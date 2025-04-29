@@ -1,0 +1,28 @@
+.sidebar {
+  background-color: #1e1e2f;
+  color: white;
+  height: 100%;
+  padding: 1rem;
+  width: 12%;
+  border-radius: 16px;
+  text-align: center;
+
+  h3 {
+    margin-bottom: 1rem;
+  }
+
+  .moduleItem {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+
+    svg {
+      margin-right: 0.5rem;
+    }
+
+    &:hover {
+      opacity: 0.8;
+    }
+  }
+}
