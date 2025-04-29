@@ -3,7 +3,7 @@ name: Deploy App Kyroo
 on:
   push:
     paths:
-      - 'apps/kyroo-fe-app/**'
+      - "apps/kyroo-fe-app/**"
     branches:
       - main
 
@@ -22,4 +22,4 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_APP_ID }}
           working-directory: ./apps/kyroo-fe-app
           scope: kyroo
-          prod: true
+          vercel-args: "--prod"

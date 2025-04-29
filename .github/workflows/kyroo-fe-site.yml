@@ -3,7 +3,7 @@ name: Deploy Sito Vetrina
 on:
   push:
     paths:
-      - 'apps/kyroo-fe-site/**'
+      - "apps/kyroo-fe-site/**"
     branches:
       - main
 
@@ -22,4 +22,4 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_SITE_ID }}
           working-directory: ./apps/kyroo-fe-site
           scope: kyroo
-          prod: true
+          vercel-args: "--prod"
