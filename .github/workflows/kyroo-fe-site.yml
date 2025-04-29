@@ -1,0 +1,25 @@
+name: Deploy Sito Vetrina
+
+on:
+  push:
+    paths:
+      - 'apps/kyroo-fe-site/**'
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout codice
+        uses: actions/checkout@v4
+
+      - name: Deploy su Vercel
+        uses: amondnet/vercel-action@v25
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_SITE_ID }}
+          working-directory: ./apps/kyroo-fe-site
+          scope: kyroo
+          prod: true
