@@ -4,7 +4,7 @@ function App() {
   return (
     <>
       <h1>Sono il sito vetrina di Kyroo</h1>
-      <p>E sono pronto per partire e funziono</p>
+      <p>E sono pronto per partire e funziono bene</p>
     </>
   );
 }
