@@ -14,6 +14,7 @@ import Knowledge from "./pages/app/Knowledge";
 import Ingestion from "./pages/app/Ingestion";
 import Billing from "./pages/app/Billing";
 import Account from "./pages/app/Account";
+import AdminDashboard from "./pages/app/AdminDashboard";
 
 function AppRoutes() {
   const { user, loading } = useAuth();
@@ -49,6 +50,7 @@ function AppRoutes() {
         <Route path="ingestion" element={<Ingestion />} />
         <Route path="billing" element={<Billing />} />
         <Route path="account" element={<Account />} />
+        <Route path="admin" element={<AdminDashboard />} />
         <Route index element={<Navigate to="chat" replace />} />
       </Route>
       

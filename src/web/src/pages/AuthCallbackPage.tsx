@@ -23,9 +23,11 @@ export default function AuthCallbackPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <div className="w-16 h-16 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-2xl flex items-center justify-center mx-auto mb-6">
-          <span className="text-white font-bold text-2xl">K</span>
-        </div>
+        <img 
+          src="/kyroo-logo.svg" 
+          alt="KYROO Logo" 
+          className="w-16 h-16 mx-auto mb-6 rounded-2xl"
+        />
         
         <h1 className="text-2xl font-bold text-foreground mb-4">
           Elaborazione autenticazione...

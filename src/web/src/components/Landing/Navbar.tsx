@@ -45,9 +45,11 @@ export default function Navbar() {
               whileHover={{ scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400, damping: 20 }}
             >
-              <div className="w-10 h-10 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-lg">K</span>
-              </div>
+              <img 
+                src="/kyroo-logo.svg" 
+                alt="KYROO Logo" 
+                className="w-10 h-10 shadow-lg rounded-2xl"
+              />
               <span className="text-2xl font-bold text-foreground tracking-tight">KYROO</span>
             </motion.div>
           </Link>

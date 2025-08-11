@@ -171,9 +171,11 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'login' }: Au
           </button>
 
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-              <span className="text-white font-bold text-xl">K</span>
-            </div>
+            <img 
+              src="/kyroo-logo.svg" 
+              alt="KYROO Logo" 
+              className="w-16 h-16 mx-auto mb-4 shadow-lg rounded-2xl"
+            />
             <h2 className="text-2xl font-bold text-foreground mb-2 tracking-tight">
               {getTitle()}
             </h2>

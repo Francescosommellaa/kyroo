@@ -40,9 +40,11 @@ export default function Footer() {
           {/* Brand Column */}
           <div className="col-span-2">
             <div className="flex items-center space-x-3 mb-6">
-              <div className="w-12 h-12 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-2xl flex items-center justify-center shadow-lg">
-                <span className="text-white font-bold text-xl">K</span>
-              </div>
+              <img 
+                src="/kyroo-logo.svg" 
+                alt="KYROO Logo" 
+                className="w-12 h-12 shadow-lg rounded-2xl"
+              />
               <span className="text-2xl font-bold text-foreground tracking-tight">KYROO</span>
             </div>
             <p className="text-foreground-secondary mb-8 max-w-sm font-light leading-relaxed text-lg">

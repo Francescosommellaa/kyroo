@@ -15,6 +15,7 @@ import {
   X,
   ChevronLeft,
   ChevronRight
+  Shield
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -36,7 +37,7 @@ export default function AppShell({ children }: AppShellProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-  const { logout, profile } = useAuth()
+  const { logout, profile, user } = useAuth()
   const navigate = useNavigate()
 
   // Detect mobile screen size
@@ -102,9 +103,11 @@ export default function AppShell({ children }: AppShellProps) {
           {/* Logo */}
           <div className="p-6 border-b border-border">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-xl flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-lg">K</span>
-              </div>
+              <img 
+                src="/kyroo-logo.svg" 
+                alt="KYROO Logo" 
+                className="w-10 h-10 flex-shrink-0"
+              />
               <AnimatePresence>
                 {!isDesktopCollapsed && (
                   <motion.div
@@ -162,15 +165,67 @@ export default function AppShell({ children }: AppShellProps) {
                 </li>
               ))}
             </ul>
+
+            {/* Admin Section */}
+            {profile?.role === 'admin' && (
+              <>
+                <div className="my-4 border-t border-border"></div>
+                <ul className="space-y-2">
+                  <li>
+                    <NavLink
+                      to="/app/admin"
+                      className={({ isActive }) =>
+                        `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface group relative ${
+                          isActive
+                            ? 'bg-accent-violet text-white'
+                            : 'text-foreground-secondary hover:text-foreground hover:bg-surface-elevated'
+                        }`
+                      }
+                      title={isDesktopCollapsed ? 'Admin Dashboard' : undefined}
+                    >
+                      <Shield size={20} className="flex-shrink-0" />
+                      <AnimatePresence>
+                        {!isDesktopCollapsed && (
+                          <motion.span
+                            className="font-medium whitespace-nowrap"
+                            initial={{ opacity: 0, width: 0 }}
+                            animate={{ opacity: 1, width: 'auto' }}
+                            exit={{ opacity: 0, width: 0 }}
+                            transition={{ duration: 0.2 }}
+                          >
+                            Admin Dashboard
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                      
+                      {/* Tooltip for collapsed state */}
+                      {isDesktopCollapsed && (
+                        <div className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                          Admin Dashboard
+                        </div>
+                      )}
+                    </NavLink>
+                  </li>
+                </ul>
+              </>
+            )}
           </nav>
 
           {/* User Profile & Logout */}
           <div className="p-4 border-t border-border">
             {/* Profile */}
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-accent-cyan to-accent-violet rounded-full flex items-center justify-center flex-shrink-0">
-                <User className="text-white" size={18} />
-              </div>
+              {profile?.avatar_url ? (
+                <img 
+                  src={profile.avatar_url} 
+                  alt="Avatar" 
+                  className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                />
+              ) : (
+                <div className="w-10 h-10 bg-gradient-to-br from-accent-cyan to-accent-violet rounded-full flex items-center justify-center flex-shrink-0">
+                  <User className="text-white" size={18} />
+                </div>
+              )}
               <AnimatePresence>
                 {!isDesktopCollapsed && (
                   <motion.div
@@ -239,9 +294,11 @@ export default function AppShell({ children }: AppShellProps) {
               {/* Header with close button */}
               <div className="flex items-center justify-between p-6 border-b border-border">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-xl flex items-center justify-center">
-                    <span className="text-white font-bold text-lg">K</span>
-                  </div>
+                  <img 
+                    src="/kyroo-logo.svg" 
+                    alt="KYROO Logo" 
+                    className="w-10 h-10"
+                  />
                   <div>
                     <h1 className="text-xl font-bold text-foreground">KYROO</h1>
                     <p className="text-xs text-foreground-secondary">Super IA Orchestrator</p>
@@ -279,13 +336,48 @@ export default function AppShell({ children }: AppShellProps) {
                 </ul>
               </nav>
 
+              {/* Admin Section Mobile */}
+              {profile?.role === 'admin' && (
+                <>
+                  <div className="mx-4 border-t border-border"></div>
+                  <nav className="p-4">
+                    <ul className="space-y-2">
+                      <li>
+                        <NavLink
+                          to="/app/admin"
+                          onClick={closeMobileMenu}
+                          className={({ isActive }) =>
+                            `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface ${
+                              isActive
+                                ? 'bg-accent-violet text-white'
+                                : 'text-foreground-secondary hover:text-foreground hover:bg-surface-elevated'
+                            }`
+                          }
+                        >
+                          <Shield size={20} />
+                          <span className="font-medium">Admin Dashboard</span>
+                        </NavLink>
+                      </li>
+                    </ul>
+                  </nav>
+                </>
+              )}
+
               {/* User Profile & Logout */}
               <div className="p-4 border-t border-border">
                 {/* Profile */}
                 <div className="flex items-center space-x-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-accent-cyan to-accent-violet rounded-full flex items-center justify-center">
-                    <User className="text-white" size={18} />
-                  </div>
+                  {profile?.avatar_url ? (
+                    <img 
+                      src={profile.avatar_url} 
+                      alt="Avatar" 
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 bg-gradient-to-br from-accent-cyan to-accent-violet rounded-full flex items-center justify-center">
+                      <User className="text-white" size={18} />
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">
                       {profile?.display_name || 'User'}
@@ -324,9 +416,11 @@ export default function AppShell({ children }: AppShellProps) {
               <Menu size={24} />
             </button>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">K</span>
-              </div>
+              <img 
+                src="/kyroo-logo.svg" 
+                alt="KYROO Logo" 
+                className="w-8 h-8"
+              />
               <span className="text-lg font-bold text-foreground">KYROO</span>
             </div>
             <div className="w-10"></div> {/* Spacer for centering */}

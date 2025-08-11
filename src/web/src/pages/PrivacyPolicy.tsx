@@ -18,9 +18,11 @@ export default function PrivacyPolicy() {
             </Link>
             
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">K</span>
-              </div>
+              <img 
+                src="/kyroo-logo.svg" 
+                alt="KYROO Logo" 
+                className="w-8 h-8 rounded-lg"
+              />
               <span className="text-xl font-bold">KYROO</span>
             </div>
           </div>
@@ -37,9 +39,11 @@ export default function PrivacyPolicy() {
         >
           {/* Title */}
           <div className="text-center mb-12">
-            <div className="w-16 h-16 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-2xl flex items-center justify-center mx-auto mb-6">
-              <Shield className="text-white" size={24} />
-            </div>
+            <img 
+              src="/kyroo-logo.svg" 
+              alt="KYROO Logo" 
+              className="w-16 h-16 mx-auto mb-6 rounded-2xl"
+            />
             <h1 className="text-4xl lg:text-5xl font-bold mb-4">
               Informativa Privacy
             </h1>
