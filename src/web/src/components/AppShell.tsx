@@ -1,6 +1,7 @@
 import { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useState } from 'react'
 import { 
   MessageSquare, 
   Calendar, 
@@ -9,7 +10,9 @@ import {
   Download, 
   CreditCard, 
   User, 
-  LogOut 
+  LogOut,
+  Menu,
+  X
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -28,6 +31,7 @@ const navItems = [
 ]
 
 export default function AppShell({ children }: AppShellProps) {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const { logout } = useAuth()
   const navigate = useNavigate()
 
@@ -36,11 +40,23 @@ export default function AppShell({ children }: AppShellProps) {
     navigate('/')
   }
 
+  const closeSidebar = () => setIsSidebarOpen(false)
+
   return (
     <div className="min-h-screen bg-background flex">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
       {/* Sidebar */}
       <motion.aside 
-        className="w-64 bg-surface border-r border-border flex flex-col"
+        className={`fixed lg:relative w-64 bg-surface border-r border-border flex flex-col z-50 h-full transition-transform duration-300 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.3 }}
@@ -65,6 +81,7 @@ export default function AppShell({ children }: AppShellProps) {
               <li key={item.path}>
                 <NavLink
                   to={item.path}
+                  onClick={closeSidebar}
                   className={({ isActive }) =>
                     `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface ${
                       isActive
@@ -96,7 +113,23 @@ export default function AppShell({ children }: AppShellProps) {
       </motion.aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto lg:ml-0">
+        {/* Mobile Header */}
+        <div className="lg:hidden bg-surface border-b border-border p-4 flex items-center justify-between">
+          <button
+            onClick={() => setIsSidebarOpen(true)}
+            className="p-2 text-foreground-secondary hover:text-foreground transition-colors rounded-lg hover:bg-surface-elevated"
+          >
+            <Menu size={24} />
+          </button>
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">K</span>
+            </div>
+            <span className="text-lg font-bold text-foreground">KYROO</span>
+          </div>
+        </div>
+
         <motion.div
           className="p-8"
           initial={{ opacity: 0, y: 20 }}
