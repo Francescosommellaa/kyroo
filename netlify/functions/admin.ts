@@ -4,30 +4,34 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-console.log('Environment check:', {
-  hasUrl: !!supabaseUrl,
-  hasKey: !!supabaseServiceKey,
-  url: supabaseUrl ? `${supabaseUrl.substring(0, 20)}...` : 'missing'
-})
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  const error = `Missing Supabase environment variables: URL=${!!supabaseUrl}, KEY=${!!supabaseServiceKey}`
-  console.error(error)
-  throw new Error(error)
-}
-
-// Admin client with service role (bypasses RLS)
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
-  }
-})
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
+}
+
+// Validate environment variables at startup
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.error('Missing environment variables:', {
+    hasUrl: !!supabaseUrl,
+    hasKey: !!supabaseServiceKey,
+    url: supabaseUrl ? `${supabaseUrl.substring(0, 20)}...` : 'missing'
+  })
+}
+
+// Create admin client only if we have the required variables
+let supabaseAdmin: any = null
+if (supabaseUrl && supabaseServiceKey) {
+  try {
+    supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+  } catch (error) {
+    console.error('Failed to create Supabase client:', error)
+  }
 }
 
 interface AdminRequest {
@@ -48,6 +52,18 @@ export default async function handler(request: Request) {
   }
 
   try {
+    // Check if Supabase client is available
+    if (!supabaseAdmin) {
+      console.error('Supabase client not initialized')
+      return new Response(JSON.stringify({ 
+        error: 'Server configuration error',
+        details: 'Supabase client not available'
+      }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
     // Verify admin authorization
     const authHeader = request.headers.get('Authorization')
     console.log('Auth header present:', !!authHeader)
@@ -68,7 +84,10 @@ export default async function handler(request: Request) {
     
     if (authError) {
       console.error('Auth error:', authError)
-      return new Response(JSON.stringify({ error: 'Invalid token', details: authError.message }), {
+      return new Response(JSON.stringify({ 
+        error: 'Invalid token', 
+        details: authError.message 
+      }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -93,7 +112,10 @@ export default async function handler(request: Request) {
 
     if (profileError) {
       console.error('Profile error:', profileError)
-      return new Response(JSON.stringify({ error: 'Profile not found', details: profileError.message }), {
+      return new Response(JSON.stringify({ 
+        error: 'Profile not found', 
+        details: profileError.message 
+      }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -113,34 +135,48 @@ export default async function handler(request: Request) {
     if (request.method === 'GET') {
       console.log('Fetching users list...')
       
-      // List all users
-      const { data: users, error } = await supabaseAdmin
-        .from('profiles')
-        .select(`
-          id,
-          display_name,
-          phone,
-          avatar_url,
-          role,
-          created_at,
-          updated_at
-        `)
-        .order('created_at', { ascending: false })
+      try {
+        // List all users
+        const { data: users, error } = await supabaseAdmin
+          .from('profiles')
+          .select(`
+            id,
+            display_name,
+            phone,
+            avatar_url,
+            role,
+            created_at,
+            updated_at
+          `)
+          .order('created_at', { ascending: false })
 
-      if (error) {
-        console.error('Users fetch error:', error)
-        return new Response(JSON.stringify({ error: error.message }), {
+        if (error) {
+          console.error('Users fetch error:', error)
+          return new Response(JSON.stringify({ 
+            error: 'Failed to fetch users',
+            details: error.message 
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+
+        console.log('Users fetched successfully:', users?.length || 0)
+        
+        return new Response(JSON.stringify({ users: users || [] }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      } catch (fetchError) {
+        console.error('Unexpected error fetching users:', fetchError)
+        return new Response(JSON.stringify({ 
+          error: 'Unexpected error',
+          details: fetchError instanceof Error ? fetchError.message : 'Unknown error'
+        }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
-
-      console.log('Users fetched successfully:', users?.length || 0)
-      
-      return new Response(JSON.stringify({ users: users || [] }), {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      })
     }
 
     if (request.method === 'PUT') {
@@ -224,6 +260,10 @@ export default async function handler(request: Request) {
   } catch (error) {
     console.error('Admin API error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    const errorStack = error instanceof Error ? error.stack : 'No stack trace'
+    
+    console.error('Error stack:', errorStack)
+    
     return new Response(JSON.stringify({ 
       error: 'Internal server error', 
       details: errorMessage,
