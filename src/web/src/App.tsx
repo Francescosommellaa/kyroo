@@ -2,6 +2,18 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./contexts/AuthContext";
 import LandingPage from "./pages/LandingPage";
+import AuthCallbackPage from "./pages/AuthCallbackPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
+import ContactsPage from "./pages/ContactsPage";
+import Chat from "./pages/app/Chat";
+import Planner from "./pages/app/Planner";
+import Executions from "./pages/app/Executions";
+import Knowledge from "./pages/app/Knowledge";
+import Ingestion from "./pages/app/Ingestion";
+import Billing from "./pages/app/Billing";
+import Account from "./pages/app/Account";
 
 function AppRoutes() {
   const { user } = useAuth();
