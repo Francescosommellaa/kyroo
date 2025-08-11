@@ -76,24 +76,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          display_name: displayName
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            display_name: displayName
+          }
         }
-      }
-    })
-    return { error }
+      })
+      return { error }
+    } catch (err) {
+      return { error: { message: 'Errore di connessione' } as any }
+    }
   }
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
-    return { error }
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      })
+      return { error }
+    } catch (err) {
+      return { error: { message: 'Errore di connessione' } as any }
+    }
   }
 
   const signOut = async () => {

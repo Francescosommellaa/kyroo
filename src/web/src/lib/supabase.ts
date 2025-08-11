@@ -7,8 +7,13 @@ const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 if (!supabaseUrl || !supabaseAnonKey) {
   // Esplicito nello sviluppare in Bolt/preview
   // Evita ReferenceError e spiega il fix
-  console.error('Supabase env missing', { hasUrl: !!supabaseUrl, hasAnon: !!supabaseAnonKey });
-  throw new Error('Missing Supabase environment variables');
+  console.error('Supabase env missing', { 
+    hasUrl: !!supabaseUrl, 
+    hasAnon: !!supabaseAnonKey,
+    url: supabaseUrl ? 'presente' : 'mancante',
+    key: supabaseAnonKey ? 'presente' : 'mancante'
+  });
+  throw new Error('Missing Supabase environment variables. Controlla .env.local');
 }
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
