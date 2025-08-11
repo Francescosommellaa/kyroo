@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Mail, Phone, MapPin, Clock, MessageSquare, Users, FileText, ExternalLink, Linkedin, Instagram, Twitter } from 'lucide-react'
+import { Mail, Clock, MessageSquare, Users, FileText, ExternalLink, Linkedin, Instagram, Twitter } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import Navbar from '../components/Landing/Navbar'
 import Footer from '../components/Landing/Footer'

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Calendar, GitBranch } from 'lucide-react'
+import { GitBranch } from 'lucide-react'
 import AppShell from '../../components/AppShell'
 
 export default function Planner() {

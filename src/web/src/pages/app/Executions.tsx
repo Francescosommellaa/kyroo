@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Play, Activity } from 'lucide-react'
+import { Activity } from 'lucide-react'
 import AppShell from '../../components/AppShell'
 
 export default function Executions() {

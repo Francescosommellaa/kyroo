@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Download, FileText } from 'lucide-react'
+import { FileText } from 'lucide-react'
 import AppShell from '../../components/AppShell'
 
 export default function Ingestion() {

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Brain, Database } from 'lucide-react'
+import { Database } from 'lucide-react'
 import AppShell from '../../components/AppShell'
 
 export default function Knowledge() {

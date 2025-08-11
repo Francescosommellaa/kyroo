@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { CreditCard, TrendingUp } from 'lucide-react'
+import { TrendingUp } from 'lucide-react'
 import AppShell from '../../components/AppShell'
 
 export default function Billing() {

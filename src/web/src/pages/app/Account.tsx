@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { User, Settings } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import AppShell from '../../components/AppShell'
 
 export default function Account() {

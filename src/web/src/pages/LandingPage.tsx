@@ -13,7 +13,6 @@ import {
 import AuthModal from '../components/AuthModal'
 import Navbar from '../components/Landing/Navbar'
 import Footer from '../components/Landing/Footer'
-import { useAuth } from '../contexts/AuthContext'
 
 export default function LandingPage() {
   const [authModal, setAuthModal] = useState<{ isOpen: boolean; mode: 'login' | 'register' }>({ 
@@ -22,7 +21,6 @@ export default function LandingPage() {
   })
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [isYearly, setIsYearly] = useState(false)
-  const { user } = useAuth()
 
   const openAuthModal = (mode: 'login' | 'register') => {
     setAuthModal({ isOpen: true, mode })
