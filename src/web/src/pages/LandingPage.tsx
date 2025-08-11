@@ -17,7 +17,7 @@ import Footer from '../components/Landing/Footer'
 export default function LandingPage() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
-
+  const [isYearly, setIsYearly] = useState(false)
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index)
   }
@@ -220,77 +220,68 @@ export default function LandingPage() {
             </div>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {[
-              {
-                name: "Free",
-                price: "€0",
-            {getPricingPlans(isYearly).map((plan) => (
-              <motion.div
-                key={plan.name}
-                className={`card-elevated relative flex flex-col ${plan.popular ? 'ring-2 ring-accent-violet' : ''}`}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
-              >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-accent-violet text-white px-4 py-1 rounded-full text-sm font-medium">
-                      Più Popolare
-                    </span>
-                  </div>
-                )}
-                
-                <div className="text-center flex flex-col h-full">
-                  <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-foreground-secondary">{plan.period}</span>
-                  </div>
-                  
-                  {plan.savings && (
-                    <div className="mb-6 text-sm">
-                      <span className="text-foreground-secondary">invece di </span>
-                      <span className="text-foreground-secondary line-through">{plan.originalPrice}</span>
-                      <span className="text-accent-cyan font-medium ml-2">{plan.savings}</span>
-                    </div>
-                  )}
-                  
-                  {plan.yearlyPrice && (
-                    <div className="mb-6 text-sm text-foreground-secondary">
-                      o {plan.yearlyPrice}{plan.yearlyPeriod} <span className="text-accent-cyan">(risparmia 20%)</span>
-                    </div>
-                  )}
-                  
-                  <ul className="space-y-3 mb-8 flex-grow">
-                    {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center gap-3">
-                        <Check className="text-accent-cyan flex-shrink-0" size={16} />
-                        <span className="text-foreground-secondary">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                  
-                  <div className="mt-auto">
-                    <motion.button
-                    onClick={() => setIsAuthModalOpen(true)}
-                    className={`w-full py-3 px-6 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-elevated ${
-                      plan.popular 
-                        ? 'bg-accent-violet hover:bg-accent-violet/90 text-white focus:ring-accent-violet' 
-                        : 'bg-surface hover:bg-surface-elevated border border-border text-foreground focus:ring-accent-cyan'
-                    }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {plan.cta}
-                  </motion.button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+<div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+  {getPricingPlans(isYearly).map((plan, index) => (
+    <motion.div
+      key={plan.name}
+      className={`card-elevated relative flex flex-col ${plan.popular ? 'ring-2 ring-accent-violet' : ''}`}
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: index * 0.1 }}
+      whileHover={{ y: -5 }}
+    >
+      {plan.popular && (
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+          <span className="bg-accent-violet text-white px-4 py-1 rounded-full text-sm font-medium">
+            Più Popolare
+          </span>
+        </div>
+      )}
+
+      <div className="text-center flex flex-col h-full">
+        <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
+        <div className="mb-4">
+          <span className="text-4xl font-bold">{plan.price}</span>
+          <span className="text-foreground-secondary">{plan.period}</span>
+        </div>
+
+        {plan.savings && (
+          <div className="mb-6 text-sm">
+            <span className="text-foreground-secondary">invece di </span>
+            <span className="text-foreground-secondary line-through">{plan.originalPrice}</span>
+            <span className="text-accent-cyan font-medium ml-2">{plan.savings}</span>
           </div>
+        )}
+
+        <ul className="space-y-3 mb-8 flex-grow">
+          {plan.features.map((feature, i) => (
+            <li key={i} className="flex items-center gap-3">
+              <Check className="text-accent-cyan flex-shrink-0" size={16} />
+              <span className="text-foreground-secondary">{feature}</span>
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-auto">
+          <motion.button
+            onClick={() => setIsAuthModalOpen(true)}
+            className={`w-full py-3 px-6 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-elevated ${
+              plan.popular
+                ? 'bg-accent-violet hover:bg-accent-violet/90 text-white focus:ring-accent-violet'
+                : 'bg-surface hover:bg-surface-elevated border border-border text-foreground focus:ring-accent-cyan'
+            }`}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            {plan.cta}
+          </motion.button>
+        </div>
+      </div>
+    </motion.div>
+  ))}
+</div>
+
         </div>
       </section>
 
