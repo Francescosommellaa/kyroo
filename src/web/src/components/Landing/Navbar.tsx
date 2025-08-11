@@ -15,32 +15,32 @@ export default function Navbar() {
 
   return (
     <motion.nav 
-      className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border"
+      className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.3 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+      <div className="container mx-auto container-padding">
+        <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <motion.div 
               className="flex items-center space-x-2"
               whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 400, damping: 10 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
             >
-              <div className="w-8 h-8 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">K</span>
+              <div className="w-10 h-10 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-2xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-lg">K</span>
               </div>
-              <span className="text-xl font-bold text-foreground">KYROO</span>
+              <span className="text-2xl font-bold text-foreground tracking-tight">KYROO</span>
             </motion.div>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
+          <div className="hidden md:flex items-center space-x-12">
             <Link 
               to="/" 
-              className="text-foreground-secondary hover:text-foreground transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-background rounded"
+              className="text-foreground-secondary hover:text-foreground transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-background rounded-lg px-3 py-2"
             >
               Home
             </Link>
@@ -52,7 +52,7 @@ export default function Navbar() {
               onMouseLeave={() => setIsResourcesOpen(false)}
             >
               <button 
-                className="flex items-center space-x-1 text-foreground-secondary hover:text-foreground transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-background rounded px-2 py-1"
+                className="flex items-center space-x-1 text-foreground-secondary hover:text-foreground transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-background rounded-lg px-3 py-2"
                 aria-expanded={isResourcesOpen}
                 aria-haspopup="true"
               >
@@ -66,20 +66,20 @@ export default function Navbar() {
               <AnimatePresence>
                 {isResourcesOpen && (
                   <motion.div
-                    className="absolute top-full left-0 mt-2 w-64 bg-surface-elevated border border-border rounded-lg shadow-xl py-2"
+                    className="absolute top-full left-0 mt-3 w-72 glass-strong border border-border/50 rounded-2xl shadow-2xl py-3"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
                   >
                     {RESOURCES.map((item) => (
                       <Link
                         key={item.name}
                         to={item.href}
-                        className="block px-4 py-3 hover:bg-surface transition-colors focus:outline-none focus:bg-surface"
+                        className="block px-6 py-4 hover:bg-surface/50 transition-all duration-200 focus:outline-none focus:bg-surface/50 rounded-xl mx-2"
                       >
-                        <div className="font-medium text-foreground">{item.name}</div>
-                        <div className="text-sm text-foreground-secondary">{item.description}</div>
+                        <div className="font-semibold text-foreground mb-1">{item.name}</div>
+                        <div className="text-sm text-foreground-secondary leading-relaxed">{item.description}</div>
                       </Link>
                     ))}
                   </motion.div>
@@ -89,25 +89,25 @@ export default function Navbar() {
 
             <Link 
               to="/contacts" 
-              className="text-foreground-secondary hover:text-foreground transition-colors font-medium focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-background rounded"
+              className="text-foreground-secondary hover:text-foreground transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-background rounded-lg px-3 py-2"
             >
               Contact
             </Link>
           </div>
 
           {/* Desktop Buttons */}
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-6">
             <motion.button 
               className="btn-secondary"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               Login
             </motion.button>
             <motion.button 
               className="btn-primary"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
               Inizia Gratis
             </motion.button>
@@ -115,7 +115,7 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2 text-foreground-secondary hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-background rounded"
+            className="md:hidden p-3 text-foreground-secondary hover:text-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-background rounded-xl"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle mobile menu"
           >
@@ -127,16 +127,16 @@ export default function Navbar() {
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
-              className="md:hidden border-t border-border bg-background"
+              className="md:hidden border-t border-border/50 glass-soft"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.3 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
-              <div className="py-4 space-y-4">
+              <div className="py-6 space-y-2">
                 <Link 
                   to="/" 
-                  className="block px-4 py-2 text-foreground-secondary hover:text-foreground transition-colors"
+                  className="block px-6 py-3 text-foreground-secondary hover:text-foreground transition-all duration-200 rounded-xl mx-4 hover:bg-surface/50"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Home
@@ -146,7 +146,7 @@ export default function Navbar() {
                   <Link
                     key={item.name}
                     to={item.href}
-                    className="block px-4 py-2 text-foreground-secondary hover:text-foreground transition-colors"
+                    className="block px-6 py-3 text-foreground-secondary hover:text-foreground transition-all duration-200 rounded-xl mx-4 hover:bg-surface/50"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     {item.name}
@@ -155,13 +155,13 @@ export default function Navbar() {
                 
                 <Link 
                   to="/contacts" 
-                  className="block px-4 py-2 text-foreground-secondary hover:text-foreground transition-colors"
+                  className="block px-6 py-3 text-foreground-secondary hover:text-foreground transition-all duration-200 rounded-xl mx-4 hover:bg-surface/50"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Contact
                 </Link>
                 
-                <div className="px-4 pt-4 space-y-3 border-t border-border">
+                <div className="px-6 pt-6 space-y-4 border-t border-border/50 mt-6">
                   <button className="btn-secondary w-full">
                     Login
                   </button>

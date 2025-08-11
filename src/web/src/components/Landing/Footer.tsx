@@ -33,45 +33,45 @@ const SOCIALS = [
 
 export default function Footer() {
   return (
-    <footer className="bg-surface border-t border-border">
-      <div className="container mx-auto px-4 py-12">
+    <footer className="glass-soft border-t border-border/50">
+      <div className="container mx-auto container-padding py-16">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-2 md:grid-cols-6 gap-8 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-12 mb-12">
           {/* Brand Column */}
           <div className="col-span-2">
-            <div className="flex items-center space-x-2 mb-4">
-              <div className="w-8 h-8 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">K</span>
+            <div className="flex items-center space-x-3 mb-6">
+              <div className="w-12 h-12 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-2xl flex items-center justify-center shadow-lg">
+                <span className="text-white font-bold text-xl">K</span>
               </div>
-              <span className="text-xl font-bold text-foreground">KYROO</span>
+              <span className="text-2xl font-bold text-foreground tracking-tight">KYROO</span>
             </div>
-            <p className="text-foreground-secondary mb-6 max-w-sm">
+            <p className="text-foreground-secondary mb-8 max-w-sm font-light leading-relaxed text-lg">
               Super IA Orchestrator per automazione intelligente e gestione workflow aziendali.
             </p>
             
             {/* Contact Info */}
-            <div className="space-y-2 mb-6">
+            <div className="space-y-3 mb-8">
               <a 
                 href="mailto:support@kyroo.io" 
-                className="flex items-center gap-2 text-foreground-secondary hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface rounded"
+                className="flex items-center gap-3 text-foreground-secondary hover:text-foreground transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface rounded-lg p-2 hover:bg-surface/50"
               >
-                <Mail size={16} />
-                <span className="text-sm">support@kyroo.io</span>
+                <Mail size={18} />
+                <span className="font-light">support@kyroo.io</span>
               </a>
             </div>
 
             {/* Social Links */}
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               {SOCIALS.map((social) => (
                 <a
                   key={social.name}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-10 h-10 bg-surface-elevated hover:bg-background border border-border rounded-lg flex items-center justify-center transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface"
+                  className="w-12 h-12 glass hover:glass-strong rounded-2xl flex items-center justify-center transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface hover:scale-110 shadow-lg"
                   aria-label={`Seguici su ${social.name}`}
                 >
-                  <social.icon size={16} className="text-foreground-secondary" />
+                  <social.icon size={18} className="text-foreground-secondary" />
                 </a>
               ))}
             </div>
@@ -79,13 +79,13 @@ export default function Footer() {
 
           {/* Product Links */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Prodotto</h3>
-            <ul className="space-y-3">
+            <h3 className="font-bold text-foreground mb-6 text-lg tracking-tight">Prodotto</h3>
+            <ul className="space-y-4">
               {FOOTER_LINKS.product.map((link) => (
                 <li key={link.name}>
                   <Link 
                     to={link.href} 
-                    className="text-foreground-secondary hover:text-foreground transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface rounded"
+                    className="text-foreground-secondary hover:text-foreground transition-all duration-200 font-light focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface rounded-lg p-1 hover:bg-surface/30"
                   >
                     {link.name}
                   </Link>
@@ -96,13 +96,13 @@ export default function Footer() {
 
           {/* Resources Links */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Risorse</h3>
-            <ul className="space-y-3">
+            <h3 className="font-bold text-foreground mb-6 text-lg tracking-tight">Risorse</h3>
+            <ul className="space-y-4">
               {FOOTER_LINKS.resources.map((link) => (
                 <li key={link.name}>
                   <Link 
                     to={link.href} 
-                    className="text-foreground-secondary hover:text-foreground transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface rounded"
+                    className="text-foreground-secondary hover:text-foreground transition-all duration-200 font-light focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface rounded-lg p-1 hover:bg-surface/30"
                   >
                     {link.name}
                   </Link>
@@ -113,13 +113,13 @@ export default function Footer() {
 
           {/* Company Links */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Azienda</h3>
-            <ul className="space-y-3">
+            <h3 className="font-bold text-foreground mb-6 text-lg tracking-tight">Azienda</h3>
+            <ul className="space-y-4">
               {FOOTER_LINKS.company.map((link) => (
                 <li key={link.name}>
                   <Link 
                     to={link.href} 
-                    className="text-foreground-secondary hover:text-foreground transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface rounded"
+                    className="text-foreground-secondary hover:text-foreground transition-all duration-200 font-light focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface rounded-lg p-1 hover:bg-surface/30"
                   >
                     {link.name}
                   </Link>
@@ -130,13 +130,13 @@ export default function Footer() {
 
           {/* Legal Links */}
           <div>
-            <h3 className="font-semibold text-foreground mb-4">Legale</h3>
-            <ul className="space-y-3">
+            <h3 className="font-bold text-foreground mb-6 text-lg tracking-tight">Legale</h3>
+            <ul className="space-y-4">
               {FOOTER_LINKS.legal.map((link) => (
                 <li key={link.name}>
                   <Link 
                     to={link.href} 
-                    className="text-foreground-secondary hover:text-foreground transition-colors text-sm focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface rounded"
+                    className="text-foreground-secondary hover:text-foreground transition-all duration-200 font-light focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface rounded-lg p-1 hover:bg-surface/30"
                   >
                     {link.name}
                   </Link>
@@ -147,12 +147,12 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="pt-8 border-t border-border">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-foreground-secondary text-sm">
+        <div className="pt-10 border-t border-border/50">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <p className="text-foreground-secondary font-light">
               © 2024 KYROO. Tutti i diritti riservati.
             </p>
-            <div className="flex items-center gap-6 text-sm text-foreground-secondary">
+            <div className="flex items-center gap-8 text-foreground-secondary font-light">
               <span>Made with ❤️ in Italy</span>
             </div>
           </div>

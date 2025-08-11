@@ -59,73 +59,71 @@ export default function LandingPage() {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-16">
-        <div className="container mx-auto px-4 py-20 lg:py-32">
+      <section className="relative overflow-hidden pt-20 section-padding">
+        <div className="container mx-auto container-padding">
           <motion.div
-            className="text-center max-w-4xl mx-auto"
+            className="text-center max-w-5xl mx-auto"
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
           >
             <motion.h1 
-              className="text-5xl lg:text-7xl font-bold mb-6 bg-gradient-to-r from-accent-violet to-accent-cyan bg-clip-text text-transparent"
+              className="text-6xl lg:text-8xl font-bold mb-8 text-gradient tracking-tight"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.1 }}
             >
               KYROO
             </motion.h1>
             <motion.p 
-              className="text-xl lg:text-2xl text-foreground-secondary mb-8"
+              className="text-2xl lg:text-3xl text-foreground-secondary mb-12 font-light"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
+              transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.2 }}
             >
               Super IA Orchestrator
             </motion.p>
             <motion.p 
-              className="text-lg text-foreground-secondary mb-12 max-w-2xl mx-auto leading-relaxed"
+              className="text-xl text-foreground-secondary mb-16 max-w-3xl mx-auto leading-relaxed font-light"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.6 }}
+              transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.3 }}
             >
               Orchestrazione intelligente di modelli AI, automazione avanzata e integrazione seamless per trasformare il tuo workflow aziendale.
             </motion.p>
             <motion.button
               onClick={() => setIsAuthModalOpen(true)}
-              className="bg-accent-violet hover:bg-accent-violet/90 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors inline-flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-background"
+              className="bg-gradient-to-r from-accent-violet to-accent-cyan hover:from-accent-violet/90 hover:to-accent-cyan/90 text-white px-12 py-5 rounded-2xl font-semibold text-xl transition-all duration-300 inline-flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-4 focus:ring-offset-background shadow-2xl hover:shadow-accent-violet/25 hover:scale-105 active:scale-95"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.8 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.4 }}
             >
               Inizia Ora
-              <ArrowRight size={20} />
+              <ArrowRight size={24} />
             </motion.button>
           </motion.div>
         </div>
       </section>
 
       {/* Cosa fa Section */}
-      <section className="py-20 bg-surface">
-        <div className="container mx-auto px-4">
+      <section className="section-padding bg-gradient-to-b from-background to-surface/50">
+        <div className="container mx-auto container-padding">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-20"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
           >
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 tracking-tight">
               Cosa fa KYROO
             </h2>
-            <p className="text-foreground-secondary text-lg max-w-2xl mx-auto">
+            <p className="text-foreground-secondary text-xl max-w-3xl mx-auto font-light leading-relaxed">
               Una piattaforma completa per orchestrare intelligenza artificiale e automazione aziendale
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
             {[
               {
                 icon: Network,
@@ -150,18 +148,17 @@ export default function LandingPage() {
             ].map((feature, index) => (
               <motion.div
                 key={index}
-                className="card text-center group hover:bg-surface-elevated transition-colors"
+                className="card text-center group hover-lift"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
+                transition={{ type: "spring", stiffness: 100, damping: 20, delay: index * 0.1 }}
               >
-                <div className="w-16 h-16 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-                  <feature.icon className="text-white" size={24} />
+                <div className="w-20 h-20 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-3xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-all duration-300 shadow-lg group-hover:shadow-accent-violet/25">
+                  <feature.icon className="text-white" size={28} />
                 </div>
-                <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-foreground-secondary">{feature.description}</p>
+                <h3 className="text-2xl font-semibold mb-4 tracking-tight">{feature.title}</h3>
+                <p className="text-foreground-secondary leading-relaxed font-light">{feature.description}</p>
               </motion.div>
             ))}
           </div>
@@ -169,37 +166,37 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
+      <section className="section-padding">
+        <div className="container mx-auto container-padding">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-20"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
           >
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 tracking-tight">
               Pricing Semplice
             </h2>
-            <p className="text-foreground-secondary text-lg">
+            <p className="text-foreground-secondary text-xl font-light">
               Scegli il piano perfetto per le tue esigenze
             </p>
           </motion.div>
 
           {/* Billing Toggle */}
           <motion.div
-            className="flex items-center justify-center mb-12"
+            className="flex items-center justify-center mb-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.1 }}
           >
-            <div className="flex items-center space-x-4 bg-surface rounded-lg p-1">
+            <div className="flex items-center space-x-2 glass rounded-2xl p-2">
               <button
                 onClick={() => setIsYearly(false)}
-                className={`px-6 py-2 rounded-md font-medium transition-all ${
+                className={`px-8 py-4 rounded-xl font-semibold transition-all duration-300 ${
                   !isYearly 
-                    ? 'bg-accent-violet text-white shadow-sm' 
+                    ? 'bg-gradient-to-r from-accent-violet to-accent-cyan text-white shadow-lg' 
                     : 'text-foreground-secondary hover:text-foreground'
                 }`}
               >
@@ -207,76 +204,74 @@ export default function LandingPage() {
               </button>
               <button
                 onClick={() => setIsYearly(true)}
-                className={`px-6 py-2 rounded-md font-medium transition-all relative ${
+                className={`px-8 py-4 rounded-xl font-semibold transition-all duration-300 relative ${
                   isYearly 
-                    ? 'bg-accent-violet text-white shadow-sm' 
+                    ? 'bg-gradient-to-r from-accent-violet to-accent-cyan text-white shadow-lg' 
                     : 'text-foreground-secondary hover:text-foreground'
                 }`}
               >
                 Annuale
-                <span className="absolute -top-2 -right-2 bg-accent-cyan text-white text-xs px-2 py-1 rounded-full">
+                <span className="absolute -top-3 -right-3 bg-gradient-to-r from-accent-cyan to-accent-violet text-white text-xs px-3 py-1 rounded-full font-bold shadow-lg">
                   -20%
                 </span>
               </button>
             </div>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
             {getPricingPlans(isYearly).map((plan, index) => (
               <motion.div
                 key={index}
-                className={`card-elevated relative flex flex-col ${plan.popular ? 'ring-2 ring-accent-violet' : ''}`}
+                className={`card-elevated relative flex flex-col hover-lift ${plan.popular ? 'ring-2 ring-accent-violet shadow-2xl shadow-accent-violet/20' : ''}`}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ y: -5 }}
+                transition={{ type: "spring", stiffness: 100, damping: 20, delay: index * 0.1 }}
               >
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-accent-violet text-white px-4 py-1 rounded-full text-sm font-medium">
+                  <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-gradient-to-r from-accent-violet to-accent-cyan text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
                       Più Popolare
                     </span>
                   </div>
                 )}
                 
                 <div className="text-center flex flex-col h-full">
-                  <h3 className="text-xl font-semibold mb-2">{plan.name}</h3>
-                  <div className="mb-4">
-                    <span className="text-4xl font-bold">{plan.price}</span>
-                    <span className="text-foreground-secondary">{plan.period}</span>
+                  <h3 className="text-2xl font-bold mb-4 tracking-tight">{plan.name}</h3>
+                  <div className="mb-6">
+                    <span className="text-5xl font-bold tracking-tight">{plan.price}</span>
+                    <span className="text-foreground-secondary text-lg font-light">{plan.period}</span>
                   </div>
                   
                   {plan.savings && (
-                    <div className="mb-6 text-sm">
+                    <div className="mb-8 text-sm">
                       <span className="text-foreground-secondary">invece di </span>
                       <span className="text-foreground-secondary line-through">{plan.originalPrice}</span>
-                      <span className="text-accent-cyan font-medium ml-2">{plan.savings}</span>
+                      <span className="text-accent-cyan font-bold ml-2">{plan.savings}</span>
                     </div>
                   )}
                   
-                  <ul className="space-y-3 mb-8 flex-grow">
+                  <ul className="space-y-4 mb-10 flex-grow">
                     {plan.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center gap-3">
-                        <Check className="text-accent-cyan flex-shrink-0" size={16} />
-                        <span className="text-foreground-secondary">{feature}</span>
+                      <li key={featureIndex} className="flex items-center gap-4">
+                        <Check className="text-accent-cyan flex-shrink-0" size={18} />
+                        <span className="text-foreground-secondary font-light">{feature}</span>
                       </li>
                     ))}
                   </ul>
                   
                   <div className="mt-auto">
                     <motion.button
-                    onClick={() => setIsAuthModalOpen(true)}
-                    className={`w-full py-3 px-6 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-elevated ${
-                      plan.popular 
-                        ? 'bg-accent-violet hover:bg-accent-violet/90 text-white focus:ring-accent-violet' 
-                        : 'bg-surface hover:bg-surface-elevated border border-border text-foreground focus:ring-accent-cyan'
-                    }`}
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                  >
-                    {plan.cta}
-                  </motion.button>
+                      onClick={() => setIsAuthModalOpen(true)}
+                      className={`w-full py-4 px-8 rounded-2xl font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-4 focus:ring-offset-surface-elevated shadow-lg hover:shadow-xl ${
+                        plan.popular 
+                          ? 'bg-gradient-to-r from-accent-violet to-accent-cyan hover:from-accent-violet/90 hover:to-accent-cyan/90 text-white focus:ring-accent-violet hover:scale-105' 
+                          : 'glass-strong hover:glass text-foreground focus:ring-accent-cyan hover:scale-105'
+                      }`}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      {plan.cta}
+                    </motion.button>
                   </div>
                 </div>
               </motion.div>
@@ -286,24 +281,24 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-20 bg-surface">
-        <div className="container mx-auto px-4">
+      <section className="section-padding bg-gradient-to-b from-surface/50 to-background">
+        <div className="container mx-auto container-padding">
           <motion.div
-            className="text-center mb-16"
+            className="text-center mb-20"
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
           >
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">
+            <h2 className="text-4xl lg:text-5xl font-bold mb-6 tracking-tight">
               Domande Frequenti
             </h2>
-            <p className="text-foreground-secondary text-lg">
+            <p className="text-foreground-secondary text-xl font-light">
               Tutto quello che devi sapere su KYROO
             </p>
           </motion.div>
 
-          <div className="max-w-3xl mx-auto space-y-4">
+          <div className="max-w-4xl mx-auto space-y-6">
             {[
               {
                 question: "Come funziona l'orchestrazione dei modelli AI?",
@@ -324,22 +319,22 @@ export default function LandingPage() {
             ].map((faq, index) => (
               <motion.div
                 key={index}
-                className="card"
+                className="card hover:glass-strong transition-all duration-300"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
+                transition={{ type: "spring", stiffness: 100, damping: 20, delay: index * 0.1 }}
               >
                 <button
                   onClick={() => toggleFaq(index)}
-                  className="w-full text-left flex items-center justify-between p-0 focus:outline-none rounded-lg"
+                  className="w-full text-left flex items-center justify-between p-0 focus:outline-none rounded-2xl"
                   aria-expanded={openFaq === index}
                 >
-                  <h3 className="text-lg font-semibold pr-4">{faq.question}</h3>
+                  <h3 className="text-xl font-semibold pr-6 tracking-tight">{faq.question}</h3>
                   {openFaq === index ? (
-                    <ChevronUp className="text-accent-violet flex-shrink-0" size={20} />
+                    <ChevronUp className="text-accent-violet flex-shrink-0" size={24} />
                   ) : (
-                    <ChevronDown className="text-foreground-secondary flex-shrink-0" size={20} />
+                    <ChevronDown className="text-foreground-secondary flex-shrink-0" size={24} />
                   )}
                 </button>
                 
@@ -349,10 +344,10 @@ export default function LandingPage() {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ type: "spring", stiffness: 200, damping: 30 }}
                       className="overflow-hidden"
                     >
-                      <p className="text-foreground-secondary mt-4 leading-relaxed">
+                      <p className="text-foreground-secondary mt-6 leading-relaxed font-light text-lg">
                         {faq.answer}
                       </p>
                     </motion.div>

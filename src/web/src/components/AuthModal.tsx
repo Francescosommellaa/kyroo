@@ -30,51 +30,53 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
         >
           {/* Backdrop */}
           <motion.div
-            className="absolute inset-0 bg-background/80 backdrop-blur-sm"
+            className="absolute inset-0 bg-background/60 backdrop-blur-xl"
             onClick={onClose}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
           />
 
           {/* Modal */}
           <motion.div
-            className="relative w-full max-w-md bg-surface-elevated border border-border rounded-xl p-6 shadow-xl"
+            className="relative w-full max-w-lg glass-strong border border-border/50 rounded-3xl p-10 shadow-2xl"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            transition={{ type: "spring", stiffness: 400, damping: 30 }}
           >
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-2 text-foreground-secondary hover:text-foreground transition-colors rounded-lg hover:bg-surface focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface-elevated"
+              className="absolute top-6 right-6 p-3 text-foreground-secondary hover:text-foreground transition-all duration-200 rounded-2xl hover:bg-surface/50 focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface-elevated"
               aria-label="Chiudi modal"
             >
-              <X size={20} />
+              <X size={24} />
             </button>
 
             <div className="text-center">
-              <div className="mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-2xl flex items-center justify-center mx-auto mb-4">
-                  <span className="text-white font-bold text-2xl">K</span>
+              <div className="mb-10">
+                <div className="w-20 h-20 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-2xl">
+                  <span className="text-white font-bold text-3xl">K</span>
                 </div>
-                <h2 className="text-2xl font-bold text-foreground mb-2">
+                <h2 className="text-3xl font-bold text-foreground mb-4 tracking-tight">
                   Accedi a KYROO
                 </h2>
-                <p className="text-foreground-secondary">
+                <p className="text-foreground-secondary text-lg font-light">
                   {demo ? 'Modalità demo attiva' : 'Scegli come accedere'}
                 </p>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {demo && (
                   <motion.button
                     onClick={handleDemoLogin}
-                    className="w-full bg-accent-violet hover:bg-accent-violet/90 text-white px-6 py-3 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface-elevated"
+                    className="w-full bg-gradient-to-r from-accent-violet to-accent-cyan hover:from-accent-violet/90 hover:to-accent-cyan/90 text-white px-8 py-4 rounded-2xl font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-4 focus:ring-offset-surface-elevated shadow-lg hover:shadow-xl hover:scale-105"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -84,7 +86,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
                 <motion.button
                   onClick={handleRegister}
-                  className="w-full bg-surface hover:bg-surface-elevated border border-border text-foreground px-6 py-3 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface-elevated"
+                  className="w-full glass hover:glass-strong text-foreground px-8 py-4 rounded-2xl font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-4 focus:ring-offset-surface-elevated hover:scale-105"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
@@ -92,7 +94,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 </motion.button>
               </div>
 
-              <p className="text-xs text-foreground-secondary mt-4">
+              <p className="text-sm text-foreground-secondary mt-8 font-light">
                 Continuando accetti i nostri{' '}
                 <a href="#" className="text-accent-cyan hover:underline">
                   Termini di Servizio

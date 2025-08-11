@@ -48,18 +48,34 @@
 
 @layer components {
   .card {
-    @apply glass p-6;
+    @apply glass p-8;
   }
   
   .card-elevated {
-    @apply glass-strong p-6;
+    @apply glass-strong p-8;
   }
   
   .btn-primary {
-    @apply bg-accent-violet hover:bg-accent-violet/90 text-white px-4 py-2 rounded-md font-medium transition-colors;
+    @apply bg-accent-violet hover:bg-accent-violet/90 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl;
   }
   
   .btn-secondary {
-    @apply bg-surface-elevated hover:bg-surface border border-border text-foreground px-4 py-2 rounded-md font-medium transition-colors;
+    @apply glass hover:glass-strong text-foreground px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98];
+  }
+  
+  .section-padding {
+    @apply py-24 lg:py-32;
+  }
+  
+  .container-padding {
+    @apply px-6 lg:px-8;
+  }
+  
+  .text-gradient {
+    @apply bg-gradient-to-r from-accent-violet to-accent-cyan bg-clip-text text-transparent;
+  }
+  
+  .hover-lift {
+    @apply transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl;
   }
 }
