@@ -2,6 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --glass-bg: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.12);
+  --glass-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+
+.glass {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 1rem; /* ~ rounded-2xl */
+}
+
+@supports (backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px)) {
+  .glass { 
+    backdrop-filter: blur(10px); 
+    -webkit-backdrop-filter: blur(10px); 
+  }
+}
+
+/* Varianti leggere/pesanti */
+.glass-soft { 
+  background: rgba(255,255,255,0.03); 
+}
+
+.glass-strong { 
+  background: rgba(255,255,255,0.06); 
+}
+
 @layer base {
   * {
     @apply border-border;
@@ -19,19 +48,11 @@
 
 @layer components {
   .card {
-    @apply bg-surface/80 backdrop-blur-sm border border-border rounded-lg p-6 shadow-sm;
-    /* Fallback per browser che non supportano backdrop-filter */
-    @supports not (backdrop-filter: blur(8px)) {
-      @apply bg-surface;
-    }
+    @apply glass p-6;
   }
   
   .card-elevated {
-    @apply bg-surface-elevated/80 backdrop-blur-sm border border-border rounded-lg p-6 shadow-md;
-    /* Fallback per browser che non supportano backdrop-filter */
-    @supports not (backdrop-filter: blur(8px)) {
-      @apply bg-surface-elevated;
-    }
+    @apply glass-strong p-6;
   }
   
   .btn-primary {
