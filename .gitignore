@@ -4,38 +4,22 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Build outputs
+# Production builds
 dist/
 build/
 .netlify/
 
-# Environment variables
+# Environment variables (NEVER commit these)
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
-*.env
-
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-
-# nyc test coverage
-.nyc_output
-
-# Logs
-logs
-*.log
-
-# Temporary folders
-tmp/
-temp/
+src/web/.env
+src/web/.env.local
+src/web/.env.development.local
+src/web/.env.test.local
+src/web/.env.production.local
 
 # IDE
 .vscode/
@@ -47,6 +31,33 @@ temp/
 .DS_Store
 Thumbs.db
 
-# Supabase
-.branches
-.temp
+# Logs
+*.log
+logs/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# Bolt specific
+.bolt/

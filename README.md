@@ -37,11 +37,21 @@ npm run build
 
 ## Ambiente FE (Vite)
 
-Copia `src/web/.env.local.example` in `src/web/.env.local` e compila:
+### Sviluppo Locale
+
+Copia `src/web/.env.example` in `src/web/.env.local` e inserisci i valori reali:
 
 ```
 VITE_SUPABASE_URL=https://<project-id>.supabase.co
 VITE_SUPABASE_ANON_KEY=<anon-public-key>
 ```
+
+### Produzione
+
+Le variabili d'ambiente vengono configurate tramite:
+- **Netlify**: Site Settings → Environment Variables
+- **Supabase**: Project Settings → API
+
+**Importante**: Non committare mai file `.env*` con credenziali reali!
 
 Riavvia il dev server dopo ogni modifica alle env.
