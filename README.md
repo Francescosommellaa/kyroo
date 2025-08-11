@@ -39,7 +39,7 @@ npm run build
 
 ### Sviluppo Locale
 
-Copia `src/web/.env.example` in `src/web/.env.local` e inserisci i valori reali:
+Copia `.env.example` in `.env.local` e inserisci i valori reali:
 
 ```
 VITE_SUPABASE_URL=https://<project-id>.supabase.co

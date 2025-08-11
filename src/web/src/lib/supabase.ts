@@ -15,7 +15,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
   
   if (import.meta.env.DEV) {
     console.error(`❌ ${errorMsg}`)
-    console.error('📝 Create src/web/.env.local from .env.example and add your Supabase credentials')
+    console.error('📝 Create .env.local from .env.example in project root and add your Supabase credentials')
   } else {
     console.error(`❌ ${errorMsg}`)
     console.error('📝 Configure environment variables in Netlify dashboard')
