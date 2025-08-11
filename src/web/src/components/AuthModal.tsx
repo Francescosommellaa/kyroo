@@ -40,6 +40,17 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (!email.trim()) {
+      setError('Email richiesta')
+      return
+    }
+    
+    if (mode !== 'reset' && !password.trim()) {
+      setError('Password richiesta')
+      return
+    }
+    
     setLoading(true)
     setError('')
     setMessage('')
@@ -50,8 +61,8 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
         if (error) {
           setError(error.message)
         } else {
-          navigate('/app/chat')
           onClose()
+          navigate('/app/chat')
         }
       } else if (mode === 'register') {
         const { error } = await signUp(email, password, displayName)
@@ -187,6 +198,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   required
                   className="w-full pl-10 pr-4 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent transition-all duration-200"
                   placeholder="la-tua-email@esempio.com"
+                  autoComplete="email"
                 />
               </div>
             </div>
@@ -207,6 +219,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     required
                     className="w-full pl-10 pr-12 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent transition-all duration-200"
                     placeholder="La tua password"
+                    autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                   />
                   <button
                     type="button"
