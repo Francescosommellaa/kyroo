@@ -37,7 +37,7 @@ export default function AppShell({ children }: AppShellProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
-  const { logout, profile, user } = useAuth()
+  const { logout, profile } = useAuth()
   const navigate = useNavigate()
 
   // Detect mobile screen size

@@ -8,7 +8,6 @@ import {
   UserX, 
   Search,
   Filter,
-  MoreVertical,
   AlertTriangle
 } from 'lucide-react'
 import AppShell from '../../components/AppShell'
