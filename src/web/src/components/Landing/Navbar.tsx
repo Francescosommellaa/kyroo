@@ -235,6 +235,7 @@ export default function Navbar() {
         isOpen={authModal.isOpen} 
         onClose={closeAuthModal}
         defaultMode={authModal.mode}
+        style={{ zIndex: 99999 }}
       />
     </motion.nav>
   )
