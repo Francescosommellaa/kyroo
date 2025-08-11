@@ -19,13 +19,16 @@ function RootRedirect() {
   const { user, loading } = useAuth();
   const loc = useLocation();
   
-  console.log('🔄 RootRedirect:', { user: !!user, loading })
+  console.log('🔄 RootRedirect:', { user: !!user, loading, timestamp: new Date().toISOString() })
   
   if (loading) {
-    console.log('🔄 RootRedirect: Still loading...')
+    console.log('🔄 RootRedirect: Still loading...', { user: !!user, loading })
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-accent-violet border-t-transparent rounded-full animate-spin"></div>
+        <div className="text-center">
+          <div className="w-8 h-8 border-4 border-accent-violet border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-foreground-secondary text-sm">Caricamento...</p>
+        </div>
       </div>
     );
   }

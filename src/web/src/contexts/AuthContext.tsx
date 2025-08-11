@@ -28,11 +28,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('🔧 Initial session:', { session: !!session, user: !!session?.user })
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
         loadProfile(session.user.id)
       } else {
+        console.log('🔧 No session, setting loading to false')
         setLoading(false)
       }
     })
@@ -40,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_, session) => {
+        console.log('🔧 Auth state change:', { session: !!session, user: !!session?.user })
         setSession(session)
         setUser(session?.user ?? null)
         
@@ -47,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await loadProfile(session.user.id)
         } else {
           setProfile(null)
+          console.log('🔧 Auth state change - no session, setting loading to false')
           setLoading(false)
         }
       }
@@ -56,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loadProfile = async (userId: string) => {
+    console.log('🔧 Loading profile for user:', userId)
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -65,12 +70,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         // Error loading profile - handle silently in production
+        console.log('🔧 Profile load error:', error.message)
       } else {
+        console.log('🔧 Profile loaded successfully:', data)
         setProfile(data)
       }
     } catch (error) {
       // Error loading profile - handle silently in production
+      console.log('🔧 Profile load exception:', error)
     } finally {
+      console.log('🔧 Setting loading to false after profile load attempt')
       setLoading(false)
     }
   }
