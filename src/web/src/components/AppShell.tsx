@@ -1,7 +1,7 @@
 import { ReactNode } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect } from 'react'
 import { 
   MessageSquare, 
   Calendar, 
@@ -12,6 +12,9 @@ import {
   User, 
   LogOut,
   Menu,
+  X,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -30,111 +33,304 @@ const navItems = [
 ]
 
 export default function AppShell({ children }: AppShellProps) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-  const { logout } = useAuth()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const { logout, profile } = useAuth()
   const navigate = useNavigate()
+
+  // Detect mobile screen size
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
+      if (window.innerWidth >= 1024) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const handleLogout = () => {
     logout()
     navigate('/')
   }
 
-  const closeSidebar = () => setIsSidebarOpen(false)
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen)
+  }
+
+  const toggleDesktopSidebar = () => {
+    setIsDesktopCollapsed(!isDesktopCollapsed)
+  }
+
+  const closeMobileMenu = () => {
+    setIsMobileMenuOpen(false)
+  }
 
   return (
     <div className="min-h-screen bg-background flex">
       {/* Mobile Overlay */}
-      {isSidebarOpen && (
+      {isMobileMenuOpen && isMobile && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-          onClick={closeSidebar}
+          onClick={closeMobileMenu}
         />
       )}
 
-      {/* Sidebar */}
-      <motion.aside 
-        className={`fixed lg:relative w-64 bg-surface border-r border-border flex flex-col z-50 h-screen lg:h-full transition-transform duration-300 ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
-        style={{
-          transform: isSidebarOpen 
-            ? 'translateX(0)' 
-            : window.innerWidth >= 1024 
-              ? 'translateX(0)' 
-              : 'translateX(-100%)'
-        }}
-        initial={{ x: -20, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        transition={{ duration: 0.3 }}
-      >
-        {/* Logo */}
-        <div className="p-6 border-b border-border">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">K</span>
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-foreground">KYROO</h1>
-              <p className="text-xs text-foreground-secondary">Super IA Orchestrator</p>
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <motion.aside 
+          className="relative bg-surface border-r border-border flex flex-col h-screen"
+          initial={false}
+          animate={{ 
+            width: isDesktopCollapsed ? '80px' : '280px'
+          }}
+          transition={{ duration: 0.3, ease: "easeInOut" }}
+        >
+          {/* Toggle Button */}
+          <button
+            onClick={toggleDesktopSidebar}
+            className="absolute -right-3 top-6 w-6 h-6 bg-surface border border-border rounded-full flex items-center justify-center text-foreground-secondary hover:text-foreground hover:bg-surface-elevated transition-colors z-10"
+          >
+            {isDesktopCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+          </button>
+
+          {/* Logo */}
+          <div className="p-6 border-b border-border">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-xl flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold text-lg">K</span>
+              </div>
+              <AnimatePresence>
+                {!isDesktopCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <h1 className="text-xl font-bold text-foreground whitespace-nowrap">KYROO</h1>
+                    <p className="text-xs text-foreground-secondary whitespace-nowrap">Super IA Orchestrator</p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
-        </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4">
-          <ul className="space-y-2">
-            {navItems.map((item) => (
-              <li key={item.path}>
-                <NavLink
-                  to={item.path}
-                  onClick={closeSidebar}
-                  className={({ isActive }) =>
-                    `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface ${
-                      isActive
-                        ? 'bg-accent-violet text-white'
-                        : 'text-foreground-secondary hover:text-foreground hover:bg-surface-elevated'
-                    }`
-                  }
+          {/* Navigation */}
+          <nav className="flex-1 p-4">
+            <ul className="space-y-2">
+              {navItems.map((item) => (
+                <li key={item.path}>
+                  <NavLink
+                    to={item.path}
+                    className={({ isActive }) =>
+                      `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface group relative ${
+                        isActive
+                          ? 'bg-accent-violet text-white'
+                          : 'text-foreground-secondary hover:text-foreground hover:bg-surface-elevated'
+                      }`
+                    }
+                    title={isDesktopCollapsed ? item.label : undefined}
+                  >
+                    <item.icon size={20} className="flex-shrink-0" />
+                    <AnimatePresence>
+                      {!isDesktopCollapsed && (
+                        <motion.span
+                          className="font-medium whitespace-nowrap"
+                          initial={{ opacity: 0, width: 0 }}
+                          animate={{ opacity: 1, width: 'auto' }}
+                          exit={{ opacity: 0, width: 0 }}
+                          transition={{ duration: 0.2 }}
+                        >
+                          {item.label}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
+                    
+                    {/* Tooltip for collapsed state */}
+                    {isDesktopCollapsed && (
+                      <div className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                        {item.label}
+                      </div>
+                    )}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {/* User Profile & Logout */}
+          <div className="p-4 border-t border-border">
+            {/* Profile */}
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-accent-cyan to-accent-violet rounded-full flex items-center justify-center flex-shrink-0">
+                <User className="text-white" size={18} />
+              </div>
+              <AnimatePresence>
+                {!isDesktopCollapsed && (
+                  <motion.div
+                    className="flex-1 min-w-0"
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {profile?.display_name || 'User'}
+                    </p>
+                    <p className="text-xs text-foreground-secondary truncate">
+                      {profile?.role || 'user'}
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* Logout */}
+            <motion.button
+              onClick={handleLogout}
+              className="w-full flex items-center space-x-3 px-4 py-3 text-foreground-secondary hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface group relative"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              title={isDesktopCollapsed ? 'Logout' : undefined}
+            >
+              <LogOut size={20} className="flex-shrink-0" />
+              <AnimatePresence>
+                {!isDesktopCollapsed && (
+                  <motion.span
+                    className="font-medium whitespace-nowrap"
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    Logout
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              
+              {/* Tooltip for collapsed state */}
+              {isDesktopCollapsed && (
+                <div className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
+                  Logout
+                </div>
+              )}
+            </motion.button>
+          </div>
+        </motion.aside>
+      )}
+
+      {/* Mobile Sidebar */}
+      {isMobile && (
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.aside 
+              className="fixed left-0 top-0 w-80 bg-surface border-r border-border flex flex-col z-50 h-screen"
+              initial={{ x: -320 }}
+              animate={{ x: 0 }}
+              exit={{ x: -320 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              {/* Header with close button */}
+              <div className="flex items-center justify-between p-6 border-b border-border">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-xl flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">K</span>
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-bold text-foreground">KYROO</h1>
+                    <p className="text-xs text-foreground-secondary">Super IA Orchestrator</p>
+                  </div>
+                </div>
+                <button
+                  onClick={closeMobileMenu}
+                  className="p-2 text-foreground-secondary hover:text-foreground transition-colors rounded-lg hover:bg-surface-elevated"
                 >
-                  <item.icon size={20} />
-                  <span className="font-medium">{item.label}</span>
-                </NavLink>
-              </li>
-            ))}
-          </ul>
-        </nav>
+                  <X size={24} />
+                </button>
+              </div>
 
-        {/* Logout */}
-        <div className="p-4 border-t border-border">
-          <motion.button
-            onClick={handleLogout}
-            className="w-full flex items-center space-x-3 px-4 py-3 text-foreground-secondary hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <LogOut size={20} />
-            <span className="font-medium">Logout</span>
-          </motion.button>
-        </div>
-      </motion.aside>
+              {/* Navigation */}
+              <nav className="flex-1 p-4">
+                <ul className="space-y-2">
+                  {navItems.map((item) => (
+                    <li key={item.path}>
+                      <NavLink
+                        to={item.path}
+                        onClick={closeMobileMenu}
+                        className={({ isActive }) =>
+                          `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface ${
+                            isActive
+                              ? 'bg-accent-violet text-white'
+                              : 'text-foreground-secondary hover:text-foreground hover:bg-surface-elevated'
+                          }`
+                        }
+                      >
+                        <item.icon size={20} />
+                        <span className="font-medium">{item.label}</span>
+                      </NavLink>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+
+              {/* User Profile & Logout */}
+              <div className="p-4 border-t border-border">
+                {/* Profile */}
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-accent-cyan to-accent-violet rounded-full flex items-center justify-center">
+                    <User className="text-white" size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {profile?.display_name || 'User'}
+                    </p>
+                    <p className="text-xs text-foreground-secondary truncate">
+                      {profile?.role || 'user'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Logout */}
+                <motion.button
+                  onClick={handleLogout}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-foreground-secondary hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <LogOut size={20} />
+                  <span className="font-medium">Logout</span>
+                </motion.button>
+              </div>
+            </motion.aside>
+          )}
+        </AnimatePresence>
+      )}
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto lg:ml-0">
+      <main className="flex-1 overflow-auto">
         {/* Mobile Header */}
-        <div className="lg:hidden bg-surface border-b border-border p-4 flex items-center justify-between">
-          <button
-            onClick={() => setIsSidebarOpen(true)}
-            className="p-2 text-foreground-secondary hover:text-foreground transition-colors rounded-lg hover:bg-surface-elevated"
-          >
-            <Menu size={24} />
-          </button>
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">K</span>
+        {isMobile && (
+          <div className="bg-surface border-b border-border p-4 flex items-center justify-between">
+            <button
+              onClick={toggleMobileMenu}
+              className="p-2 text-foreground-secondary hover:text-foreground transition-colors rounded-lg hover:bg-surface-elevated"
+            >
+              <Menu size={24} />
+            </button>
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">K</span>
+              </div>
+              <span className="text-lg font-bold text-foreground">KYROO</span>
             </div>
-            <span className="text-lg font-bold text-foreground">KYROO</span>
+            <div className="w-10"></div> {/* Spacer for centering */}
           </div>
-        </div>
+        )}
 
         <motion.div
           className="p-8"
