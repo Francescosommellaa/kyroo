@@ -4,7 +4,6 @@ import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  envDir: '.', // carica .env* da src/web
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
