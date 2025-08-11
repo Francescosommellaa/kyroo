@@ -1,4 +1,5 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
@@ -15,16 +16,22 @@ import Billing from "./pages/app/Billing";
 import Account from "./pages/app/Account";
 
 function AppRoutes() {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-accent-violet border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <Routes>
       {/* Landing page - sempre accessibile */}
       <Route path="/" element={<LandingPage />} />
       
       {/* Auth pages */}
-      <Route 
-        path="/" 
-        element={user ? <Navigate to="/app/chat" replace /> : <LandingPage />} 
-      />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
       
