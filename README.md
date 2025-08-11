@@ -39,12 +39,14 @@ npm run build
 
 ### Sviluppo Locale
 
-Copia `.env.example` in `.env.local` e inserisci i valori reali:
+Copia `.env.example` in `.env.local` **nella root del progetto** e inserisci i valori reali:
 
 ```
 VITE_SUPABASE_URL=https://<project-id>.supabase.co
 VITE_SUPABASE_ANON_KEY=<anon-public-key>
 ```
+
+**Importante**: Il file `.env.local` deve essere nella root del progetto (`/home/project/.env.local`), non in `src/web/`.
 
 ### Produzione
 
