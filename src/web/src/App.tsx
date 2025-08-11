@@ -17,12 +17,13 @@ import ContactsPage from "./pages/ContactsPage";
 
 function RootRedirect() {
   const { user, loading } = useAuth();
-  const loc = useLocation();
   
+  // Se l'utente è autenticato, vai alla dashboard
   if (user) {
-    return <Navigate to="/app/chat" replace state={{ from: loc }} />;
+    return <Navigate to="/app/chat" replace />;
   }
   
+  // Se non è autenticato, mostra la landing page
   return <LandingPage />;
 }
 
