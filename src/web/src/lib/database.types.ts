@@ -16,6 +16,8 @@ export interface Database {
           phone: string | null
           avatar_url: string | null
           role: 'user' | 'admin'
+          plan: 'free' | 'pro' | 'enterprise'
+          plan_expires_at: string | null
           created_at: string
           updated_at: string
         }
@@ -25,6 +27,8 @@ export interface Database {
           phone?: string | null
           avatar_url?: string | null
           role?: 'user' | 'admin'
+          plan?: 'free' | 'pro' | 'enterprise'
+          plan_expires_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -34,6 +38,8 @@ export interface Database {
           phone?: string | null
           avatar_url?: string | null
           role?: 'user' | 'admin'
+          plan?: 'free' | 'pro' | 'enterprise'
+          plan_expires_at?: string | null
           created_at?: string
           updated_at?: string
         }
