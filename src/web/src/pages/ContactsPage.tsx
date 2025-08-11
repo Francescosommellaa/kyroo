@@ -214,31 +214,6 @@ export default function ContactsPage() {
         </div>
       </section>
 
-      {/* Office Info */}
-      <section className="section-padding bg-gradient-to-b from-surface/50 to-background">
-        <div className="container mx-auto container-padding">
-          <motion.div
-            className="card-elevated max-w-3xl mx-auto text-center hover-lift"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ type: "spring", stiffness: 100, damping: 20 }}
-          >
-            <div className="w-20 h-20 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl">
-              <MapPin className="text-white" size={28} />
-            </div>
-            <h3 className="text-3xl font-bold mb-6 tracking-tight">Sede Legale</h3>
-            <p className="text-foreground-secondary mb-6 font-light text-lg leading-relaxed">
-              [Indirizzo da definire]<br />
-              [Città, CAP]<br />
-              Italia
-            </p>
-            <p className="text-foreground-secondary font-light">
-              P.IVA: [Da definire]
-            </p>
-          </motion.div>
-        </div>
-      </section>
 
       <Footer />
     </div>
