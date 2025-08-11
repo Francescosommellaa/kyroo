@@ -29,6 +29,7 @@ export default function Navbar() {
   }
 
   return (
+    <>
     <motion.nav 
       className="fixed top-0 left-0 right-0 z-50 glass border-b border-border/50"
       initial={{ y: -100 }}
@@ -230,13 +231,14 @@ export default function Navbar() {
           )}
         </AnimatePresence>
       </div>
-      
-      <AuthModal 
-        isOpen={authModal.isOpen} 
-        onClose={closeAuthModal}
-        defaultMode={authModal.mode}
-        style={{ zIndex: 99999 }}
-      />
     </motion.nav>
+    
+    {/* Modal renderizzato fuori dalla navbar */}
+    <AuthModal 
+      isOpen={authModal.isOpen} 
+      onClose={closeAuthModal}
+      defaultMode={authModal.mode}
+    />
+    </>
   )
 }
