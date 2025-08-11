@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Menu, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
+import AuthModal from '../AuthModal'
 
 const RESOURCES = [
   { name: "Blog", href: "/blog", description: "News e aggiornamenti" },
@@ -12,6 +14,8 @@ const RESOURCES = [
 export default function Navbar() {
   const [isResourcesOpen, setIsResourcesOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const { user } = useAuth()
 
   return (
     <motion.nav 
@@ -97,20 +101,36 @@ export default function Navbar() {
 
           {/* Desktop Buttons */}
           <div className="hidden md:flex items-center space-x-6">
-            <motion.button 
-              className="btn-secondary"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Login
-            </motion.button>
-            <motion.button 
-              className="btn-primary"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Inizia Gratis
-            </motion.button>
+            {user ? (
+              <Link to="/app/chat">
+                <motion.button 
+                  className="btn-primary"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Dashboard
+                </motion.button>
+              </Link>
+            ) : (
+              <>
+                <motion.button 
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="btn-secondary"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Login
+                </motion.button>
+                <motion.button 
+                  onClick={() => setIsAuthModalOpen(true)}
+                  className="btn-primary"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  Inizia Gratis
+                </motion.button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -162,18 +182,48 @@ export default function Navbar() {
                 </Link>
                 
                 <div className="px-6 pt-6 space-y-4 border-t border-border/50 mt-6">
-                  <button className="btn-secondary w-full">
-                    Login
-                  </button>
-                  <button className="btn-primary w-full">
-                    Inizia Gratis
-                  </button>
+                  {user ? (
+                    <Link to="/app/chat" className="block">
+                      <button 
+                        className="btn-primary w-full"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Dashboard
+                      </button>
+                    </Link>
+                  ) : (
+                    <>
+                      <button 
+                        onClick={() => {
+                          setIsAuthModalOpen(true)
+                          setIsMobileMenuOpen(false)
+                        }}
+                        className="btn-secondary w-full"
+                      >
+                        Login
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setIsAuthModalOpen(true)
+                          setIsMobileMenuOpen(false)
+                        }}
+                        className="btn-primary w-full"
+                      >
+                        Inizia Gratis
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
+      
+      <AuthModal 
+        isOpen={isAuthModalOpen} 
+        onClose={() => setIsAuthModalOpen(false)} 
+      />
     </motion.nav>
   )
 }

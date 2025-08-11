@@ -18,6 +18,7 @@ export default function LandingPage() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [isYearly, setIsYearly] = useState(false)
+  const { user } = useAuth()
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index)
