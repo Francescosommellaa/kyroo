@@ -143,7 +143,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'login' }: Au
       >
         {/* Backdrop */}
         <motion.div
-          className="absolute inset-0 bg-background/80 backdrop-blur-xl"
+          className="absolute inset-0 bg-black/90 backdrop-blur-xl"
           onClick={onClose}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -153,7 +153,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'login' }: Au
 
         {/* Modal */}
         <motion.div
-          className="relative w-full max-w-md glass-strong border border-border/50 rounded-3xl p-8 shadow-2xl"
+          className="relative w-full max-w-md bg-surface-elevated/95 backdrop-blur-xl border border-border/50 rounded-3xl p-8 shadow-2xl z-10"
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
