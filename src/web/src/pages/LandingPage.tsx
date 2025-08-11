@@ -13,6 +13,7 @@ import {
 import AuthModal from '../components/AuthModal'
 import Navbar from '../components/Landing/Navbar'
 import Footer from '../components/Landing/Footer'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function LandingPage() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
