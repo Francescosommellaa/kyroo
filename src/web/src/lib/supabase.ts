@@ -36,7 +36,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 if (import.meta.env.DEV) {
   console.log('🔧 Supabase configured:', {
     url: supabaseUrl,
-    hasKey: !!supabaseAnonKey
+    hasKey: !!supabaseAnonKey,
+    env: import.meta.env
   })
 }
 

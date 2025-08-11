@@ -26,13 +26,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('🔄 AuthContext: Initializing...')
+    
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log('🔄 AuthContext: Initial session:', !!session)
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
         loadProfile(session.user.id)
       } else {
+        console.log('🔄 AuthContext: No session, setting loading to false')
         setLoading(false)
       }
     })
@@ -40,6 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_, session) => {
+        console.log('🔄 AuthContext: Auth state changed:', !!session)
         setSession(session)
         setUser(session?.user ?? null)
         
@@ -47,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await loadProfile(session.user.id)
         } else {
           setProfile(null)
+          console.log('🔄 AuthContext: No user, setting loading to false')
           setLoading(false)
         }
       }
@@ -56,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loadProfile = async (userId: string) => {
+    console.log('🔄 AuthContext: Loading profile for user:', userId)
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -64,13 +71,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .single()
 
       if (error) {
-        console.error('Error loading profile:', error)
+        console.error('❌ Error loading profile:', error)
       } else {
+        console.log('✅ Profile loaded:', data)
         setProfile(data)
       }
     } catch (error) {
-      console.error('Error loading profile:', error)
+      console.error('❌ Error loading profile:', error)
     } finally {
+      console.log('🔄 AuthContext: Setting loading to false')
       setLoading(false)
     }
   }

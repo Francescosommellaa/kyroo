@@ -19,7 +19,10 @@ function RootRedirect() {
   const { user, loading } = useAuth();
   const loc = useLocation();
   
+  console.log('🔄 RootRedirect:', { user: !!user, loading })
+  
   if (loading) {
+    console.log('🔄 RootRedirect: Still loading...')
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-accent-violet border-t-transparent rounded-full animate-spin"></div>
@@ -27,7 +30,12 @@ function RootRedirect() {
     );
   }
   
-  if (user) return <Navigate to="/app/chat" replace state={{ from: loc }} />;
+  if (user) {
+    console.log('🔄 RootRedirect: User found, redirecting to /app/chat')
+    return <Navigate to="/app/chat" replace state={{ from: loc }} />;
+  }
+  
+  console.log('🔄 RootRedirect: No user, showing landing page')
   return <LandingPage />;
 }
 
