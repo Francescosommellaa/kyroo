@@ -1,0 +1,17 @@
+openapi: 3.1.0
+info:
+  title: KYROO API
+  version: 0.0.1
+  description: API per l'applicazione KYROO
+paths:
+  /api/openapi.json:
+    get:
+      summary: Ottieni specifica OpenAPI in formato JSON
+      description: Restituisce la documentazione completa delle API in formato JSON
+      responses:
+        '200':
+          description: Specifica OpenAPI in formato JSON
+          content:
+            application/json:
+              schema:
+                type: object

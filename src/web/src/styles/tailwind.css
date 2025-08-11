@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface border border-border rounded-lg p-6 shadow-sm;
+  }
+  
+  .card-elevated {
+    @apply bg-surface-elevated border border-border rounded-lg p-6 shadow-md;
+  }
+  
+  .btn-primary {
+    @apply bg-accent-violet hover:bg-accent-violet/90 text-white px-4 py-2 rounded-md font-medium transition-colors;
+  }
+  
+  .btn-secondary {
+    @apply bg-surface-elevated hover:bg-surface border border-border text-foreground px-4 py-2 rounded-md font-medium transition-colors;
+  }
+}
