@@ -54,8 +54,9 @@ export default function AppShell({ children }: AppShellProps) {
   }, [])
 
   const handleLogout = () => {
-    logout()
-    navigate('/')
+    logout().then(() => {
+      navigate('/')
+    })
   }
 
   const toggleMobileMenu = () => {
