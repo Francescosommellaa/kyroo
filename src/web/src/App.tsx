@@ -1,6 +1,5 @@
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
-import { useAuth } from "./contexts/AuthContext";
 import LandingPage from "./pages/LandingPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -16,23 +15,25 @@ import Billing from "./pages/app/Billing";
 import Account from "./pages/app/Account";
 
 function AppRoutes() {
-  const { user } = useAuth();
-
   return (
     <Routes>
-      <Route 
-        path="/" 
-        element={user ? <Navigate to="/app/chat" replace /> : <LandingPage />} 
-      />
+      {/* Landing page - sempre accessibile */}
+      <Route path="/" element={<LandingPage />} />
+      
+      {/* Auth pages */}
       <Route 
         path="/" 
         element={user ? <Navigate to="/app/chat" replace /> : <LandingPage />} 
       />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+      
+      {/* Public pages */}
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/contacts" element={<ContactsPage />} />
+      
+      {/* Protected app routes */}
       <Route path="/app" element={<ProtectedRoute />}>
         <Route path="chat" element={<Chat />} />
         <Route path="planner" element={<Planner />} />
@@ -43,6 +44,8 @@ function AppRoutes() {
         <Route path="account" element={<Account />} />
         <Route index element={<Navigate to="chat" replace />} />
       </Route>
+      
+      {/* Catch all - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
