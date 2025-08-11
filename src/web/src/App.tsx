@@ -15,22 +15,15 @@ import Account from "./pages/app/Account";
 import TermsOfService from "./pages/TermsOfService";
 import ContactsPage from "./pages/ContactsPage";
 
-function RootRedirect() {
-  const { user, loading } = useAuth();
-  
-  // Se l'utente è autenticato, vai alla dashboard
-  if (user) {
-    return <Navigate to="/app/chat" replace />;
-  }
-  
-  // Se non è autenticato, mostra la landing page
-  return <LandingPage />;
-}
-
 function AppRoutes() {
+  const { user } = useAuth();
+
   return (
     <Routes>
-      <Route path="/" element={<RootRedirect />} />
+      <Route 
+        path="/" 
+        element={user ? <Navigate to="/app/chat" replace /> : <LandingPage />} 
+      />
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
