@@ -54,7 +54,7 @@ export default function AppShell({ children }: AppShellProps) {
 
       {/* Sidebar */}
       <motion.aside 
-        className={`fixed lg:relative w-64 bg-surface border-r border-border flex flex-col z-50 h-full transition-transform duration-300 ${
+        className={`fixed lg:relative w-64 bg-surface border-r border-border flex flex-col z-50 h-screen lg:h-full transition-transform duration-300 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
         initial={{ x: -20, opacity: 0 }}
