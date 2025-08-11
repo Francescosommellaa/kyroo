@@ -16,10 +16,21 @@ import Footer from '../components/Landing/Footer'
 import { useAuth } from '../contexts/AuthContext'
 
 export default function LandingPage() {
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [authModal, setAuthModal] = useState<{ isOpen: boolean; mode: 'login' | 'register' }>({ 
+    isOpen: false, 
+    mode: 'register' 
+  })
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const [isYearly, setIsYearly] = useState(false)
   const { user } = useAuth()
+
+  const openAuthModal = (mode: 'login' | 'register') => {
+    setAuthModal({ isOpen: true, mode })
+  }
+
+  const closeAuthModal = () => {
+    setAuthModal({ isOpen: false, mode: 'register' })
+  }
 
   const toggleFaq = (index: number) => {
     setOpenFaq(openFaq === index ? null : index)
@@ -136,7 +147,7 @@ export default function LandingPage() {
               Orchestrazione intelligente di modelli AI, automazione avanzata e integrazione seamless per trasformare il tuo workflow aziendale.
             </motion.p>
             <motion.button
-              onClick={() => setIsAuthModalOpen(true)}
+              onClick={() => openAuthModal('register')}
               className="bg-gradient-to-r from-accent-violet to-accent-cyan hover:from-accent-violet/90 hover:to-accent-cyan/90 text-white px-12 py-5 rounded-2xl font-semibold text-xl transition-all duration-300 inline-flex items-center gap-3 focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-4 focus:ring-offset-background shadow-2xl hover:shadow-accent-violet/25 hover:scale-105 active:scale-95"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -306,7 +317,7 @@ export default function LandingPage() {
                   
                   <div className="mt-auto">
                     <motion.button
-                      onClick={() => setIsAuthModalOpen(true)}
+                      onClick={() => openAuthModal(plan.name === 'Free' ? 'register' : 'register')}
                       className={`w-full py-4 px-8 rounded-2xl font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-4 focus:ring-offset-surface-elevated shadow-lg hover:shadow-xl ${
                         plan.popular 
                           ? 'bg-gradient-to-r from-accent-violet to-accent-cyan hover:from-accent-violet/90 hover:to-accent-cyan/90 text-white focus:ring-accent-violet hover:scale-105' 
@@ -407,8 +418,9 @@ export default function LandingPage() {
       <Footer />
 
       <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
+        isOpen={authModal.isOpen} 
+        onClose={closeAuthModal}
+        defaultMode={authModal.mode}
       />
     </div>
   )

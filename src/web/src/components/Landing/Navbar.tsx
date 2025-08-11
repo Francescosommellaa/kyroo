@@ -14,8 +14,19 @@ const RESOURCES = [
 export default function Navbar() {
   const [isResourcesOpen, setIsResourcesOpen] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+  const [authModal, setAuthModal] = useState<{ isOpen: boolean; mode: 'login' | 'register' }>({ 
+    isOpen: false, 
+    mode: 'login' 
+  })
   const { user } = useAuth()
+
+  const openAuthModal = (mode: 'login' | 'register') => {
+    setAuthModal({ isOpen: true, mode })
+  }
+
+  const closeAuthModal = () => {
+    setAuthModal({ isOpen: false, mode: 'login' })
+  }
 
   return (
     <motion.nav 
@@ -114,7 +125,7 @@ export default function Navbar() {
             ) : (
               <>
                 <motion.button 
-                  onClick={() => setIsAuthModalOpen(true)}
+                  onClick={() => openAuthModal('login')}
                   className="btn-secondary"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -122,7 +133,7 @@ export default function Navbar() {
                   Login
                 </motion.button>
                 <motion.button 
-                  onClick={() => setIsAuthModalOpen(true)}
+                  onClick={() => openAuthModal('register')}
                   className="btn-primary"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
@@ -195,7 +206,7 @@ export default function Navbar() {
                     <>
                       <button 
                         onClick={() => {
-                          setIsAuthModalOpen(true)
+                          openAuthModal('login')
                           setIsMobileMenuOpen(false)
                         }}
                         className="btn-secondary w-full"
@@ -204,7 +215,7 @@ export default function Navbar() {
                       </button>
                       <button 
                         onClick={() => {
-                          setIsAuthModalOpen(true)
+                          openAuthModal('register')
                           setIsMobileMenuOpen(false)
                         }}
                         className="btn-primary w-full"
@@ -221,8 +232,9 @@ export default function Navbar() {
       </div>
       
       <AuthModal 
-        isOpen={isAuthModalOpen} 
-        onClose={() => setIsAuthModalOpen(false)} 
+        isOpen={authModal.isOpen} 
+        onClose={closeAuthModal}
+        defaultMode={authModal.mode}
       />
     </motion.nav>
   )

@@ -7,16 +7,19 @@ import { useNavigate } from 'react-router-dom'
 interface AuthModalProps {
   isOpen: boolean
   onClose: () => void
+  defaultMode?: AuthMode
 }
 
 type AuthMode = 'login' | 'register' | 'reset'
 
-export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
-  const [mode, setMode] = useState<AuthMode>('login')
+export default function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalProps) {
+  const [mode, setMode] = useState<AuthMode>(defaultMode)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [message, setMessage] = useState('')
@@ -27,11 +30,21 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const resetForm = () => {
     setEmail('')
     setPassword('')
+    setConfirmPassword('')
     setDisplayName('')
     setError('')
     setMessage('')
     setShowPassword(false)
+    setShowConfirmPassword(false)
   }
+
+  // Reset form when modal opens with new mode
+  useEffect(() => {
+    if (isOpen) {
+      setMode(defaultMode)
+      resetForm()
+    }
+  }, [isOpen, defaultMode])
 
   const handleModeChange = (newMode: AuthMode) => {
     setMode(newMode)
@@ -49,6 +62,21 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
     if (mode !== 'reset' && !password.trim()) {
       setError('Password richiesta')
       return
+    }
+    
+    if (mode === 'register') {
+      if (!displayName.trim()) {
+        setError('Nome visualizzato richiesto')
+        return
+      }
+      if (password !== confirmPassword) {
+        setError('Le password non corrispondono')
+        return
+      }
+      if (password.length < 6) {
+        setError('La password deve essere di almeno 6 caratteri')
+        return
+      }
     }
     
     setLoading(true)
@@ -115,7 +143,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
       >
         {/* Backdrop */}
         <motion.div
-          className="absolute inset-0 bg-background/60 backdrop-blur-xl"
+          className="absolute inset-0 bg-background/80 backdrop-blur-xl"
           onClick={onClose}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -218,7 +246,7 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     className="w-full pl-10 pr-12 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent transition-all duration-200"
-                    placeholder="La tua password"
+                    placeholder={mode === 'register' ? 'Almeno 6 caratteri' : 'La tua password'}
                     autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                   />
                   <button
@@ -227,6 +255,35 @@ export default function AuthModal({ isOpen, onClose }: AuthModalProps) {
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary hover:text-foreground transition-colors"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Confirm Password (solo per registrazione) */}
+            {mode === 'register' && (
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-medium text-foreground mb-2">
+                  Conferma Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary" size={18} />
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                    className="w-full pl-10 pr-12 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent transition-all duration-200"
+                    placeholder="Ripeti la password"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary hover:text-foreground transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>
