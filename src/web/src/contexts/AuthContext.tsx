@@ -179,29 +179,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       console.log('Uploading file:', fileName)
 
-      // Check if avatars bucket exists, if not create it
-      const { data: buckets } = await supabase.storage.listBuckets()
-      const avatarsBucket = buckets?.find(bucket => bucket.name === 'avatars')
-      
-      if (!avatarsBucket) {
-        console.log('Avatars bucket not found, creating...')
-        const { error: createError } = await supabase.storage.createBucket('avatars', {
-          public: true,
-          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
-          fileSizeLimit: 5242880 // 5MB
-        })
-        
-        if (createError) {
-          console.error('Failed to create avatars bucket:', createError)
-          return { error: new Error('Impossibile creare il bucket per gli avatar. Contatta il supporto.') }
-        }
-        console.log('Avatars bucket created successfully')
-      }
-
-      // First, try to remove existing file
+      // First, try to remove existing file (ignore errors)
       await supabase.storage
         .from('avatars')
         .remove([fileName])
+        .catch(() => {}) // Ignore removal errors
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
@@ -209,6 +191,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (uploadError) {
         console.error('Upload error:', uploadError)
+        
+        // If bucket doesn't exist, show helpful error
+        if (uploadError.message.includes('Bucket not found')) {
+          return { error: new Error('Il bucket per gli avatar non è configurato. Contatta il supporto.') }
+        }
+        
         throw uploadError
       }
 

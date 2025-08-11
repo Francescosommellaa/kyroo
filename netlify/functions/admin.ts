@@ -1,14 +1,28 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+// Environment variables with fallback and validation
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+console.log('Environment check:', {
+  hasUrl: !!supabaseUrl,
+  hasKey: !!supabaseServiceKey,
+  url: supabaseUrl ? `${supabaseUrl.substring(0, 20)}...` : 'missing'
+})
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase environment variables')
+  const error = `Missing Supabase environment variables: URL=${!!supabaseUrl}, KEY=${!!supabaseServiceKey}`
+  console.error(error)
+  throw new Error(error)
 }
 
 // Admin client with service role (bypasses RLS)
-const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
+const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+})
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,6 +37,8 @@ interface AdminRequest {
 }
 
 export default async function handler(request: Request) {
+  console.log('Admin function called:', request.method, request.url)
+  
   // Handle CORS preflight
   if (request.method === 'OPTIONS') {
     return new Response(null, {
@@ -34,7 +50,10 @@ export default async function handler(request: Request) {
   try {
     // Verify admin authorization
     const authHeader = request.headers.get('Authorization')
+    console.log('Auth header present:', !!authHeader)
+    
     if (!authHeader?.startsWith('Bearer ')) {
+      console.log('Missing or invalid authorization header')
       return new Response(JSON.stringify({ error: 'Missing authorization' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -42,15 +61,28 @@ export default async function handler(request: Request) {
     }
 
     const token = authHeader.replace('Bearer ', '')
+    console.log('Token extracted, length:', token.length)
     
     // Verify the user is authenticated and is admin
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
-    if (authError || !user) {
+    
+    if (authError) {
+      console.error('Auth error:', authError)
+      return new Response(JSON.stringify({ error: 'Invalid token', details: authError.message }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+    
+    if (!user) {
+      console.log('No user found for token')
       return new Response(JSON.stringify({ error: 'Invalid token' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
+
+    console.log('User authenticated:', user.id)
 
     // Check if user is admin
     const { data: profile, error: profileError } = await supabaseAdmin
@@ -59,7 +91,18 @@ export default async function handler(request: Request) {
       .eq('id', user.id)
       .single()
 
-    if (profileError || profile?.role !== 'admin') {
+    if (profileError) {
+      console.error('Profile error:', profileError)
+      return new Response(JSON.stringify({ error: 'Profile not found', details: profileError.message }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    console.log('User role:', profile?.role)
+
+    if (profile?.role !== 'admin') {
+      console.log('Access denied - user is not admin')
       return new Response(JSON.stringify({ error: 'Access denied' }), {
         status: 403,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -68,6 +111,8 @@ export default async function handler(request: Request) {
 
     // Handle different admin actions
     if (request.method === 'GET') {
+      console.log('Fetching users list...')
+      
       // List all users
       const { data: users, error } = await supabaseAdmin
         .from('profiles')
@@ -83,13 +128,16 @@ export default async function handler(request: Request) {
         .order('created_at', { ascending: false })
 
       if (error) {
+        console.error('Users fetch error:', error)
         return new Response(JSON.stringify({ error: error.message }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
-      return new Response(JSON.stringify({ users }), {
+      console.log('Users fetched successfully:', users?.length || 0)
+      
+      return new Response(JSON.stringify({ users: users || [] }), {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
@@ -175,7 +223,12 @@ export default async function handler(request: Request) {
 
   } catch (error) {
     console.error('Admin API error:', error)
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    return new Response(JSON.stringify({ 
+      error: 'Internal server error', 
+      details: errorMessage,
+      timestamp: new Date().toISOString()
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     })
