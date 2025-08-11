@@ -23,26 +23,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔧 Initial session:', { session: !!session, user: !!session?.user })
       setSession(session)
       setUser(session?.user ?? null)
       if (session?.user) {
         loadProfile(session.user.id)
-      } else {
-        console.log('🔧 No session, setting loading to false')
-        setLoading(false)
       }
     })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_, session) => {
-        console.log('🔧 Auth state change:', { session: !!session, user: !!session?.user })
         setSession(session)
         setUser(session?.user ?? null)
         
@@ -50,8 +42,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await loadProfile(session.user.id)
         } else {
           setProfile(null)
-          setLoading(false)
-          console.log('🔧 Auth state change - no session, loading set to false')
         }
       }
     )
@@ -60,7 +50,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loadProfile = async (userId: string) => {
-    console.log('🔧 Loading profile for user:', userId)
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -70,19 +59,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         // Error loading profile - handle silently in production
-        console.log('🔧 Profile load error:', error.message)
         setProfile(null)
       } else {
-        console.log('🔧 Profile loaded successfully:', data)
         setProfile(data)
       }
     } catch (error) {
       // Error loading profile - handle silently in production
-      console.log('🔧 Profile load exception:', error)
       setProfile(null)
-    } finally {
-      console.log('🔧 Setting loading to false after profile load attempt')
-      setLoading(false)
     }
   }
 
