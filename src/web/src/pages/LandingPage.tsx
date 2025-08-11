@@ -59,7 +59,49 @@ export default function LandingPage() {
       <Navbar />
       
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 section-padding">
+      <section className="relative overflow-hidden pt-32 section-padding">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-20">
+          <svg className="w-full h-full" viewBox="0 0 1200 800" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="fadeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="currentColor" stopOpacity="0.3" />
+                <stop offset="50%" stopColor="currentColor" stopOpacity="0.1" />
+                <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            
+            {/* Horizontal lines */}
+            <g stroke="url(#fadeGradient)" strokeWidth="1" className="text-accent-violet">
+              <line x1="0" y1="100" x2="1200" y2="100" />
+              <line x1="0" y1="200" x2="1200" y2="200" />
+              <line x1="0" y1="300" x2="1200" y2="300" />
+              <line x1="0" y1="400" x2="1200" y2="400" />
+              <line x1="0" y1="500" x2="1200" y2="500" />
+              <line x1="0" y1="600" x2="1200" y2="600" />
+            </g>
+            
+            {/* Vertical lines */}
+            <g stroke="url(#fadeGradient)" strokeWidth="1" className="text-accent-cyan">
+              <line x1="200" y1="0" x2="200" y2="800" />
+              <line x1="400" y1="0" x2="400" y2="800" />
+              <line x1="600" y1="0" x2="600" y2="800" />
+              <line x1="800" y1="0" x2="800" y2="800" />
+              <line x1="1000" y1="0" x2="1000" y2="800" />
+            </g>
+            
+            {/* Diagonal lines for intersection effect */}
+            <g stroke="url(#fadeGradient)" strokeWidth="0.5" className="text-foreground-secondary">
+              <line x1="0" y1="0" x2="400" y2="400" />
+              <line x1="200" y1="0" x2="600" y2="400" />
+              <line x1="400" y1="0" x2="800" y2="400" />
+              <line x1="600" y1="0" x2="1000" y2="400" />
+              <line x1="800" y1="0" x2="1200" y2="400" />
+              <line x1="1000" y1="0" x2="1200" y2="200" />
+            </g>
+          </svg>
+        </div>
+        
         <div className="container mx-auto container-padding">
           <motion.div
             className="text-center max-w-5xl mx-auto"
