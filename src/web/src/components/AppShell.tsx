@@ -14,7 +14,7 @@ import {
   Menu,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
   Shield
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
