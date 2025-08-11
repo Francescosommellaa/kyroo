@@ -75,11 +75,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loadProfile = async (userId: string) => {
-    console.log('Loading profile for user:', userId)
     try {
-      // Add timeout to prevent infinite loading (reduced to 5 seconds)
+      // Optimized timeout for better UX (2 seconds instead of 5)
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Profile loading timeout')), 5000)
+        setTimeout(() => reject(new Error('Profile loading timeout')), 2000)
       )
       
       const queryPromise = supabase
@@ -174,24 +173,65 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!user) return { error: new Error('Non autenticato') }
 
     try {
+      console.log('Starting avatar upload for user:', user.id)
       const fileExt = file.name.split('.').pop()
       const fileName = `${user.id}/avatar.${fileExt}`
+      
+      console.log('Uploading file:', fileName)
+
+      // Check if avatars bucket exists, if not create it
+      const { data: buckets } = await supabase.storage.listBuckets()
+      const avatarsBucket = buckets?.find(bucket => bucket.name === 'avatars')
+      
+      if (!avatarsBucket) {
+        console.log('Avatars bucket not found, creating...')
+        const { error: createError } = await supabase.storage.createBucket('avatars', {
+          public: true,
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+          fileSizeLimit: 5242880 // 5MB
+        })
+        
+        if (createError) {
+          console.error('Failed to create avatars bucket:', createError)
+          return { error: new Error('Impossibile creare il bucket per gli avatar. Contatta il supporto.') }
+        }
+        console.log('Avatars bucket created successfully')
+      }
+
+      // First, try to remove existing file
+      await supabase.storage
+        .from('avatars')
+        .remove([fileName])
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
         .upload(fileName, file, { upsert: true })
 
-      if (uploadError) throw uploadError
+      if (uploadError) {
+        console.error('Upload error:', uploadError)
+        throw uploadError
+      }
+
+      console.log('File uploaded successfully')
 
       const { data } = supabase.storage
         .from('avatars')
         .getPublicUrl(fileName)
 
-      // Update profile with new avatar URL
-      await updateProfile({ avatar_url: data.publicUrl })
+      console.log('Generated public URL:', data.publicUrl)
 
+      // Update profile with new avatar URL
+      const updateResult = await updateProfile({ avatar_url: data.publicUrl })
+      
+      if (updateResult.error) {
+        console.error('Profile update error:', updateResult.error)
+        throw updateResult.error
+      }
+
+      console.log('Avatar updated successfully')
       return { error: null, url: data.publicUrl }
     } catch (error) {
+      console.error('Avatar upload failed:', error)
       return { error: error as Error }
     }
   }
