@@ -34,3 +34,14 @@ npm run build
 - `npm run build` - Build completo del progetto
 - `npm run lint` - Linting del codice
 - `npm run format` - Formattazione del codice
+
+## Ambiente FE (Vite)
+
+Copia `src/web/.env.local.example` in `src/web/.env.local` e compila:
+
+```
+VITE_SUPABASE_URL=https://<project-id>.supabase.co
+VITE_SUPABASE_ANON_KEY=<anon-public-key>
+```
+
+Riavvia il dev server dopo ogni modifica alle env.
