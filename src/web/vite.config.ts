@@ -12,5 +12,15 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    rollupOptions: {
+      // Disabilita service worker
+      external: ['workbox-*']
+    }
   },
+  server: {
+    // Disabilita service worker in sviluppo
+    headers: {
+      'Service-Worker-Allowed': '/'
+    }
+  }
 })
