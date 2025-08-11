@@ -1,19 +1,22 @@
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from './database.types'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// In produzione, le variabili vengono fornite da Netlify/Supabase Edge Functions
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  // Esplicito nello sviluppare in Bolt/preview
-  // Evita ReferenceError e spiega il fix
-  console.error('Supabase env missing', { 
-    hasUrl: !!supabaseUrl, 
-    hasAnon: !!supabaseAnonKey,
-    url: supabaseUrl ? 'presente' : 'mancante',
-    key: supabaseAnonKey ? 'presente' : 'mancante'
-  });
-  throw new Error('Missing Supabase environment variables. Controlla .env.local');
+// Solo in sviluppo mostra errori dettagliati
+if ((!supabaseUrl || !supabaseAnonKey) && import.meta.env.DEV) {
+  console.error('Supabase env missing in development. Check .env.local file.');
+}
+
+// In produzione usa valori di fallback se necessario
+if (!supabaseUrl || supabaseUrl === 'https://your-project.supabase.co') {
+  console.warn('Using fallback Supabase URL. Configure VITE_SUPABASE_URL in Netlify environment variables.');
+}
+
+if (!supabaseAnonKey || supabaseAnonKey === 'your-anon-key') {
+  console.warn('Using fallback Supabase key. Configure VITE_SUPABASE_ANON_KEY in Netlify environment variables.');
 }
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {

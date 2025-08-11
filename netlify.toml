@@ -3,6 +3,11 @@
   publish = "src/web/dist"
   functions = "netlify/functions"
 
+[build.environment]
+  # Le variabili d'ambiente vengono configurate nel dashboard Netlify
+  # VITE_SUPABASE_URL = "https://your-project.supabase.co"
+  # VITE_SUPABASE_ANON_KEY = "your-anon-key"
+
 [functions]
   node_bundler = "esbuild"
 
