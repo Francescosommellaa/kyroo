@@ -19,11 +19,19 @@
 
 @layer components {
   .card {
-    @apply bg-surface border border-border rounded-lg p-6 shadow-sm;
+    @apply bg-surface/80 backdrop-blur-sm border border-border rounded-lg p-6 shadow-sm;
+    /* Fallback per browser che non supportano backdrop-filter */
+    @supports not (backdrop-filter: blur(8px)) {
+      @apply bg-surface;
+    }
   }
   
   .card-elevated {
-    @apply bg-surface-elevated border border-border rounded-lg p-6 shadow-md;
+    @apply bg-surface-elevated/80 backdrop-blur-sm border border-border rounded-lg p-6 shadow-md;
+    /* Fallback per browser che non supportano backdrop-filter */
+    @supports not (backdrop-filter: blur(8px)) {
+      @apply bg-surface-elevated;
+    }
   }
   
   .btn-primary {
