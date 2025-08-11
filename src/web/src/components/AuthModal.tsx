@@ -174,7 +174,7 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'login' }: Au
             <img 
               src="/kyroo-logo.svg" 
               alt="KYROO Logo" 
-              className="w-16 h-16 mx-auto mb-4 shadow-lg rounded-2xl"
+              className="w-16 h-16 mx-auto mb-4"
             />
             <h2 className="text-2xl font-bold text-foreground mb-2 tracking-tight">
               {getTitle()}

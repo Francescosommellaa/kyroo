@@ -43,7 +43,7 @@ export default function Footer() {
               <img 
                 src="/kyroo-logo.svg" 
                 alt="KYROO Logo" 
-                className="w-12 h-12 shadow-lg rounded-2xl"
+                className="w-12 h-12"
               />
               <span className="text-2xl font-bold text-foreground tracking-tight">KYROO</span>
             </div>

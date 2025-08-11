@@ -26,7 +26,7 @@ export default function AuthCallbackPage() {
         <img 
           src="/kyroo-logo.svg" 
           alt="KYROO Logo" 
-          className="w-16 h-16 mx-auto mb-6 rounded-2xl"
+         className="w-16 h-16 mx-auto mb-6"
         />
         
         <h1 className="text-2xl font-bold text-foreground mb-4">

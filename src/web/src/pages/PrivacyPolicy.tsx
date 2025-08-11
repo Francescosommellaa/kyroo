@@ -21,7 +21,7 @@ export default function PrivacyPolicy() {
               <img 
                 src="/kyroo-logo.svg" 
                 alt="KYROO Logo" 
-                className="w-8 h-8 rounded-lg"
+                className="w-8 h-8"
               />
               <span className="text-xl font-bold">KYROO</span>
             </div>
@@ -42,7 +42,7 @@ export default function PrivacyPolicy() {
             <img 
               src="/kyroo-logo.svg" 
               alt="KYROO Logo" 
-              className="w-16 h-16 mx-auto mb-6 rounded-2xl"
+              className="w-16 h-16 mx-auto mb-6"
             />
             <h1 className="text-4xl lg:text-5xl font-bold mb-4">
               Informativa Privacy

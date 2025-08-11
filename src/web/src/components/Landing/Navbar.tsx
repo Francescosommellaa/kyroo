@@ -48,7 +48,7 @@ export default function Navbar() {
               <img 
                 src="/kyroo-logo.svg" 
                 alt="KYROO Logo" 
-                className="w-10 h-10 shadow-lg rounded-2xl"
+                className="w-10 h-10"
               />
               <span className="text-2xl font-bold text-foreground tracking-tight">KYROO</span>
             </motion.div>

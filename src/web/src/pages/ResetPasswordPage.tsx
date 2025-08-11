@@ -105,7 +105,7 @@ export default function ResetPasswordPage() {
           <img 
             src="/kyroo-logo.svg" 
             alt="KYROO Logo" 
-            className="w-16 h-16 mx-auto mb-4 shadow-lg rounded-2xl"
+            className="w-16 h-16 mx-auto mb-4"
           />
           <h1 className="text-2xl font-bold text-foreground mb-2 tracking-tight">
             Nuova Password
