@@ -50,8 +50,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           await loadProfile(session.user.id)
         } else {
           setProfile(null)
-          console.log('🔧 Auth state change - no session, setting loading to false')
           setLoading(false)
+          console.log('🔧 Auth state change - no session, loading set to false')
         }
       }
     )
@@ -71,6 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         // Error loading profile - handle silently in production
         console.log('🔧 Profile load error:', error.message)
+        setProfile(null)
       } else {
         console.log('🔧 Profile loaded successfully:', data)
         setProfile(data)
@@ -78,6 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       // Error loading profile - handle silently in production
       console.log('🔧 Profile load exception:', error)
+      setProfile(null)
     } finally {
       console.log('🔧 Setting loading to false after profile load attempt')
       setLoading(false)
