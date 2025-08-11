@@ -287,7 +287,6 @@ export default function LandingPage() {
 
       {/* FAQ Section */}
       <section className="py-20 bg-surface">
-  const [isYearly, setIsYearly] = useState(false)
         <div className="container mx-auto px-4">
           <motion.div
             className="text-center mb-16"
