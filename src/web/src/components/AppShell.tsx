@@ -57,6 +57,13 @@ export default function AppShell({ children }: AppShellProps) {
         className={`fixed lg:relative w-64 bg-surface border-r border-border flex flex-col z-50 h-screen lg:h-full transition-transform duration-300 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
+        style={{
+          transform: isSidebarOpen 
+            ? 'translateX(0)' 
+            : window.innerWidth >= 1024 
+              ? 'translateX(0)' 
+              : 'translateX(-100%)'
+        }}
         initial={{ x: -20, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.3 }}
