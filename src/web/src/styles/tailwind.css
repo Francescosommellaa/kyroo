@@ -60,7 +60,11 @@
   }
   
   .btn-secondary {
-    @apply glass hover:glass-strong text-foreground px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98];
+    @apply glass text-foreground px-6 py-3 rounded-xl font-medium transition-all duration-200 hover:scale-[1.02] active:scale-[0.98];
+  }
+  
+  .btn-secondary:hover {
+    @apply glass-strong;
   }
   
   .section-padding {
