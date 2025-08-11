@@ -27,18 +27,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.warn('Session loading error:', error.message)
+        setSession(null)
+        setUser(null)
+        setProfile(null)
+        setLoading(false)
+        return
+      }
+
       setSession(session)
       setUser(session?.user ?? null)
+      
       if (session?.user) {
-        loadProfile(session.user.id)
+        loadProfile(session.user.id).finally(() => {
+          setLoading(false)
+        })
+      } else {
+        setLoading(false)
       }
+    }).catch((error) => {
+      console.warn('Session loading exception:', error)
+      setSession(null)
+      setUser(null)
+      setProfile(null)
       setLoading(false)
     })
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_, session) => {
+      async (event, session) => {
+        console.log('Auth state change:', event, session?.user?.id)
         setSession(session)
         setUser(session?.user ?? null)
         
@@ -55,21 +75,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const loadProfile = async (userId: string) => {
+    console.log('Loading profile for user:', userId)
     try {
-      const { data, error } = await supabase
+      // Add timeout to prevent infinite loading (reduced to 5 seconds)
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Profile loading timeout')), 5000)
+      )
+      
+      const queryPromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', userId)
         .single()
 
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any
+
       if (error) {
-        // Error loading profile - handle silently in production
+        console.warn('Profile loading error:', error.message)
         setProfile(null)
-      } else {
-        setProfile(data)
+        return
       }
+      
+      setProfile(data)
     } catch (error) {
-      // Error loading profile - handle silently in production
+      console.warn('Profile loading exception:', error)
       setProfile(null)
     }
   }
