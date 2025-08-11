@@ -3,6 +3,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./contexts/AuthContext";
 import LandingPage from "./pages/LandingPage";
 
+function AppRoutes() {
   const { user } = useAuth();
 
   return (
@@ -11,6 +12,7 @@ import LandingPage from "./pages/LandingPage";
         path="/" 
         element={user ? <Navigate to="/app/chat" replace /> : <LandingPage />} 
       />
+      <Route 
         path="/" 
         element={user ? <Navigate to="/app/chat" replace /> : <LandingPage />} 
       />
