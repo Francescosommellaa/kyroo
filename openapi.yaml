@@ -3,6 +3,70 @@ info:
   title: KYROO API
   version: 0.0.1
   description: API per l'applicazione KYROO
+
+components:
+  schemas:
+    Profile:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID univoco del profilo (riferimento a auth.users)
+        email:
+          type: string
+          format: email
+          description: Email dell'utente
+        display_name:
+          type: string
+          nullable: true
+          description: Nome visualizzato dell'utente
+        phone:
+          type: string
+          nullable: true
+          description: Numero di telefono dell'utente
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+          description: URL dell'avatar dell'utente
+        role:
+          type: string
+          enum: [user, admin]
+          default: user
+          description: Ruolo dell'utente nel sistema
+        created_at:
+          type: string
+          format: date-time
+          description: Data di creazione del profilo
+      required:
+        - id
+        - role
+        - created_at
+    
+    ProfileUpdate:
+      type: object
+      properties:
+        display_name:
+          type: string
+          nullable: true
+          description: Nome visualizzato dell'utente
+        phone:
+          type: string
+          nullable: true
+          description: Numero di telefono dell'utente
+        avatar_url:
+          type: string
+          format: uri
+          nullable: true
+          description: URL dell'avatar dell'utente
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
 paths:
   /api/openapi.json:
     get:
@@ -15,3 +79,150 @@ paths:
             application/json:
               schema:
                 type: object
+  
+  /api/profile:
+    get:
+      summary: Ottieni profilo utente corrente
+      description: Restituisce il profilo dell'utente autenticato
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Profilo utente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '401':
+          description: Non autenticato
+        '404':
+          description: Profilo non trovato
+    
+    put:
+      summary: Aggiorna profilo utente
+      description: Aggiorna il profilo dell'utente autenticato
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileUpdate'
+      responses:
+        '200':
+          description: Profilo aggiornato con successo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '400':
+          description: Dati non validi
+        '401':
+          description: Non autenticato
+        '403':
+          description: Non autorizzato
+  
+  /api/admin/users:
+    get:
+      summary: Lista tutti gli utenti (solo admin)
+      description: Restituisce la lista di tutti i profili utente (solo per amministratori)
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Lista utenti
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  users:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Profile'
+        '401':
+          description: Non autenticato
+        '403':
+          description: Accesso negato (solo admin)
+  
+  /api/admin/users/{userId}/role:
+    put:
+      summary: Aggiorna ruolo utente (solo admin)
+      description: Modifica il ruolo di un utente (solo per amministratori)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID dell'utente da modificare
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  enum: [user, admin]
+                  description: Nuovo ruolo dell'utente
+              required:
+                - role
+      responses:
+        '200':
+          description: Ruolo aggiornato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '400':
+          description: Dati non validi
+        '401':
+          description: Non autenticato
+        '403':
+          description: Accesso negato (solo admin)
+        '404':
+          description: Utente non trovato
+  
+  /api/admin/users/{userId}:
+    delete:
+      summary: Elimina utente (solo admin)
+      description: Elimina un utente dal sistema (solo per amministratori)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID dell'utente da eliminare
+      responses:
+        '200':
+          description: Utente eliminato con successo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '400':
+          description: Operazione non consentita
+        '401':
+          description: Non autenticato
+        '403':
+          description: Accesso negato (solo admin)
+        '404':
+          description: Utente non trovato
