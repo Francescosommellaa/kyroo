@@ -139,25 +139,27 @@ export default function AuthModal({ isOpen, onClose, defaultMode = 'login' }: Au
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
+        transition={{ duration: 0.3 }}
+        style={{ zIndex: 9999 }}
       >
         {/* Backdrop */}
         <motion.div
-          className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+          className="absolute inset-0 bg-black/95 backdrop-blur-xl"
           onClick={onClose}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.3 }}
         />
 
         {/* Modal */}
         <motion.div
-          className="relative w-full max-w-md bg-surface-elevated/95 backdrop-blur-xl border border-border/50 rounded-3xl p-8 shadow-2xl z-10"
+          className="relative w-full max-w-md bg-surface-elevated/98 backdrop-blur-xl border border-border/50 rounded-3xl p-8 shadow-2xl z-10 mx-auto my-auto"
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Close button */}
           <button
