@@ -66,7 +66,7 @@ export default function Navbar() {
               <AnimatePresence>
                 {isResourcesOpen && (
                   <motion.div
-                    className="absolute top-full left-0 mt-3 w-72 glass-strong border border-border/50 rounded-2xl shadow-2xl py-3"
+                    className="absolute top-full left-0 mt-3 w-72 bg-surface-elevated/95 backdrop-blur-xl border border-border/50 rounded-2xl shadow-2xl py-3"
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
@@ -76,7 +76,7 @@ export default function Navbar() {
                       <Link
                         key={item.name}
                         to={item.href}
-                        className="block px-6 py-4 hover:bg-surface/50 transition-all duration-200 focus:outline-none focus:bg-surface/50 rounded-xl mx-2"
+                        className="block px-6 py-4 hover:bg-surface-elevated/80 transition-all duration-200 focus:outline-none focus:bg-surface-elevated/80 rounded-xl mx-2"
                       >
                         <div className="font-semibold text-foreground mb-1">{item.name}</div>
                         <div className="text-sm text-foreground-secondary leading-relaxed">{item.description}</div>
