@@ -16,23 +16,75 @@ import {
   ChevronLeft,
   ChevronRight,
   Shield,
+  Lock,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { usePlan } from "../hooks/usePlan";
 import { SidebarPlanBadge } from "./PlanBadge";
+import type { PlanType } from "../../../shared/plans";
 
 interface AppShellProps {
   children: ReactNode;
 }
 
+// Define which features are available for each plan
+const getFeatureAvailability = (planType: PlanType, isTrialPro: boolean) => {
+  const effectivePlan = isTrialPro ? "pro" : planType;
+
+  return {
+    chat: true, // Available for all plans
+    planner: true, // Available for all plans (Free has limited executions)
+    executions: true, // Available for all plans (Free has limited executions)
+    knowledge: effectivePlan !== "free", // Pro and Enterprise only (Knowledge Base)
+    ingestion: effectivePlan !== "free", // Pro and Enterprise only (File analysis)
+    billing: true, // Available for all plans
+    account: true, // Available for all plans
+  };
+};
+
 const navItems = [
-  { path: "/app/chat", label: "Chat", icon: MessageSquare },
-  { path: "/app/planner", label: "Planner", icon: Calendar },
-  { path: "/app/executions", label: "Executions", icon: Play },
-  { path: "/app/knowledge", label: "Knowledge", icon: Brain },
-  { path: "/app/ingestion", label: "Ingestion", icon: Download },
-  { path: "/app/billing", label: "Billing", icon: CreditCard },
-  { path: "/app/account", label: "Account", icon: User },
+  {
+    path: "/app/chat",
+    label: "Chat",
+    icon: MessageSquare,
+    feature: "chat" as const,
+  },
+  {
+    path: "/app/planner",
+    label: "Planner",
+    icon: Calendar,
+    feature: "planner" as const,
+  },
+  {
+    path: "/app/executions",
+    label: "Executions",
+    icon: Play,
+    feature: "executions" as const,
+  },
+  {
+    path: "/app/knowledge",
+    label: "Knowledge",
+    icon: Brain,
+    feature: "knowledge" as const,
+  },
+  {
+    path: "/app/ingestion",
+    label: "Ingestion",
+    icon: Download,
+    feature: "ingestion" as const,
+  },
+  {
+    path: "/app/billing",
+    label: "Billing",
+    icon: CreditCard,
+    feature: "billing" as const,
+  },
+  {
+    path: "/app/account",
+    label: "Account",
+    icon: User,
+    feature: "account" as const,
+  },
 ];
 
 export default function AppShell({ children }: AppShellProps) {
@@ -42,6 +94,9 @@ export default function AppShell({ children }: AppShellProps) {
   const { logout, profile } = useAuth();
   const { planType, isTrialPro } = usePlan();
   const navigate = useNavigate();
+
+  // Get feature availability based on current plan
+  const featureAvailability = getFeatureAvailability(planType, isTrialPro);
 
   // Detect mobile screen size
   useEffect(() => {
@@ -138,43 +193,74 @@ export default function AppShell({ children }: AppShellProps) {
           {/* Navigation */}
           <nav className="flex-1 p-4">
             <ul className="space-y-2">
-              {navItems.map((item) => (
-                <li key={item.path}>
-                  <NavLink
-                    to={item.path}
-                    className={({ isActive }) =>
-                      `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface group relative ${
-                        isActive
-                          ? "bg-accent-violet text-white"
-                          : "text-foreground-secondary hover:text-foreground hover:bg-surface-elevated"
-                      }`
-                    }
-                    title={isDesktopCollapsed ? item.label : undefined}
-                  >
-                    <item.icon size={20} className="flex-shrink-0" />
-                    <AnimatePresence>
-                      {!isDesktopCollapsed && (
-                        <motion.span
-                          className="font-medium whitespace-nowrap"
-                          initial={{ opacity: 0, width: 0 }}
-                          animate={{ opacity: 1, width: "auto" }}
-                          exit={{ opacity: 0, width: 0 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          {item.label}
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
+              {navItems.map((item) => {
+                const isFeatureAvailable = featureAvailability[item.feature];
 
-                    {/* Tooltip for collapsed state */}
-                    {isDesktopCollapsed && (
-                      <div className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
-                        {item.label}
+                return (
+                  <li key={item.path}>
+                    <NavLink
+                      to={item.path}
+                      className={({ isActive }) =>
+                        `flex items-center justify-between px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface group relative ${
+                          isActive
+                            ? "bg-accent-violet text-white"
+                            : "text-foreground-secondary hover:text-foreground hover:bg-surface-elevated"
+                        } ${!isFeatureAvailable ? "opacity-60" : ""}`
+                      }
+                      title={isDesktopCollapsed ? item.label : undefined}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <item.icon size={20} className="flex-shrink-0" />
+                        <AnimatePresence>
+                          {!isDesktopCollapsed && (
+                            <motion.span
+                              className="font-medium whitespace-nowrap"
+                              initial={{ opacity: 0, width: 0 }}
+                              animate={{ opacity: 1, width: "auto" }}
+                              exit={{ opacity: 0, width: 0 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              {item.label}
+                            </motion.span>
+                          )}
+                        </AnimatePresence>
                       </div>
-                    )}
-                  </NavLink>
-                </li>
-              ))}
+
+                      {/* Lock icon for unavailable features */}
+                      {!isFeatureAvailable && (
+                        <AnimatePresence>
+                          {!isDesktopCollapsed && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              <Lock
+                                size={16}
+                                className="text-foreground-secondary"
+                              />
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      )}
+
+                      {/* Tooltip for collapsed state */}
+                      {isDesktopCollapsed && (
+                        <div className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50 flex items-center space-x-2">
+                          <span>{item.label}</span>
+                          {!isFeatureAvailable && (
+                            <Lock
+                              size={12}
+                              className="text-foreground-secondary"
+                            />
+                          )}
+                        </div>
+                      )}
+                    </NavLink>
+                  </li>
+                );
+              })}
             </ul>
 
             {/* Admin Section */}
@@ -329,24 +415,37 @@ export default function AppShell({ children }: AppShellProps) {
               {/* Navigation */}
               <nav className="flex-1 p-4">
                 <ul className="space-y-2">
-                  {navItems.map((item) => (
-                    <li key={item.path}>
-                      <NavLink
-                        to={item.path}
-                        onClick={closeMobileMenu}
-                        className={({ isActive }) =>
-                          `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface ${
-                            isActive
-                              ? "bg-accent-violet text-white"
-                              : "text-foreground-secondary hover:text-foreground hover:bg-surface-elevated"
-                          }`
-                        }
-                      >
-                        <item.icon size={20} />
-                        <span className="font-medium">{item.label}</span>
-                      </NavLink>
-                    </li>
-                  ))}
+                  {navItems.map((item) => {
+                    const isFeatureAvailable =
+                      featureAvailability[item.feature];
+
+                    return (
+                      <li key={item.path}>
+                        <NavLink
+                          to={item.path}
+                          onClick={closeMobileMenu}
+                          className={({ isActive }) =>
+                            `flex items-center justify-between px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface ${
+                              isActive
+                                ? "bg-accent-violet text-white"
+                                : "text-foreground-secondary hover:text-foreground hover:bg-surface-elevated"
+                            } ${!isFeatureAvailable ? "opacity-60" : ""}`
+                          }
+                        >
+                          <div className="flex items-center space-x-3">
+                            <item.icon size={20} />
+                            <span className="font-medium">{item.label}</span>
+                          </div>
+                          {!isFeatureAvailable && (
+                            <Lock
+                              size={16}
+                              className="text-foreground-secondary"
+                            />
+                          )}
+                        </NavLink>
+                      </li>
+                    );
+                  })}
                 </ul>
               </nav>
 
