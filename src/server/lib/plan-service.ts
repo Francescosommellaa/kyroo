@@ -5,12 +5,12 @@
 
 import { supabaseServer } from './supabaseServer';
 import type { PlanType, PlanLimits } from '../../shared/plans';
-import { getPlanLimits, isUnlimited, getUpgradeMessage } from '../../shared/plans';
-import type { 
-  UsageMetrics, 
-  UsageCheck, 
-  WorkspaceUsage, 
-  UserUsage 
+import { getPlanLimits, isUnlimited, getUpgradeMessage, TRIAL_PRO_DURATION_DAYS } from '../../shared/plans';
+import type {
+  UsageMetrics,
+  UsageCheck,
+  WorkspaceUsage,
+  UserUsage
 } from '../../shared/usage-tracking';
 import {
   createDefaultUsageMetrics,
@@ -22,7 +22,6 @@ import {
   isInTrialPeriod,
   isPlanExpired,
   USAGE_MESSAGES,
-  TRIAL_PRO_DURATION_DAYS
 } from '../../shared/usage-tracking';
 
 export class PlanService {
@@ -49,10 +48,10 @@ export class PlanService {
     const planType = profile.plan as PlanType;
     const planExpiresAt = profile.plan_expires_at;
     const isExpired = isPlanExpired(planExpiresAt);
-    
+
     // Check if user is in Pro trial
-    const isTrialPro = planType === 'pro' && 
-      planExpiresAt && 
+    const isTrialPro = planType === 'pro' &&
+      planExpiresAt &&
       isInTrialPeriod(profile.created_at, TRIAL_PRO_DURATION_DAYS);
 
     return {
@@ -70,7 +69,7 @@ export class PlanService {
   async getUserUsage(userId: string): Promise<UserUsage> {
     // Get user plan info
     const planInfo = await this.getUserPlan(userId);
-    
+
     // Get or create usage record
     let { data: usage, error } = await supabaseServer
       .from('user_usage')
@@ -111,34 +110,34 @@ export class PlanService {
     switch (action) {
       case 'create_workspace':
         return this.checkWorkspaceLimit(userUsage, limits);
-      
+
       case 'invite_collaborator':
         return this.checkCollaboratorLimit(userUsage, limits, workspaceId);
-      
+
       case 'create_chat':
         return this.checkActiveChatLimit(userUsage, limits, workspaceId);
-      
+
       case 'web_search':
         return this.checkWebSearchLimit(userUsage, limits, actionCount);
-      
+
       case 'web_agent_run':
         return this.checkWebAgentLimit(userUsage, limits);
-      
+
       case 'create_workflow':
         return this.checkWorkflowLimit(userUsage, limits, workspaceId);
-      
+
       case 'execute_workflow':
         return this.checkWorkflowExecutionLimit(userUsage, limits);
-      
+
       case 'upload_file':
         return this.checkFileUploadLimit(userUsage, limits);
-      
+
       case 'use_knowledge_base':
         return this.checkKnowledgeBaseLimit(userUsage, limits);
-      
+
       case 'chat_input':
         return this.checkChatTokenLimit(userUsage, limits, actionCount);
-      
+
       default:
         return { allowed: true };
     }
@@ -154,12 +153,12 @@ export class PlanService {
     amount: number = 1
   ): Promise<void> {
     const usage = await this.getUserUsage(userId);
-    
+
     switch (action) {
       case 'web_search':
         usage.globalMetrics.webSearchesToday += amount;
         break;
-      
+
       case 'web_agent_run':
         if (workspaceId) {
           const workspace = usage.workspaces.find(w => w.workspaceId === workspaceId);
@@ -168,7 +167,7 @@ export class PlanService {
           }
         }
         break;
-      
+
       case 'upload_file':
         if (workspaceId) {
           const workspace = usage.workspaces.find(w => w.workspaceId === workspaceId);
@@ -177,7 +176,7 @@ export class PlanService {
           }
         }
         break;
-      
+
       case 'execute_workflow':
         if (workspaceId) {
           const workspace = usage.workspaces.find(w => w.workspaceId === workspaceId);
@@ -201,7 +200,7 @@ export class PlanService {
   ): Promise<void> {
     const usage = await this.getUserUsage(userId);
     const workspace = usage.workspaces.find(w => w.workspaceId === workspaceId);
-    
+
     if (workspace) {
       Object.assign(workspace, updates);
       await this.saveUserUsage(usage);
@@ -245,7 +244,7 @@ export class PlanService {
    */
   async handleTrialExpiry(userId: string): Promise<void> {
     await this.upgradePlan(userId, 'free');
-    
+
     // TODO: Clean up data that exceeds free plan limits
     // - Archive excess workspaces
     // - Disable excess workflows
@@ -260,7 +259,7 @@ export class PlanService {
     isTrialPro: boolean
   ): UserUsage {
     const defaultMetrics = createDefaultUsageMetrics();
-    
+
     return {
       userId,
       planType,
@@ -281,13 +280,13 @@ export class PlanService {
     resetMonthly: boolean
   ): Promise<any> {
     const updates: any = {};
-    
+
     if (resetDaily) {
       updates.web_searches_today = 0;
       updates.workflow_executions_today = 0;
       updates.last_daily_reset = new Date().toISOString().split('T')[0];
     }
-    
+
     if (resetMonthly) {
       updates.files_this_month = 0;
       updates.web_agent_runs_this_month = 0;
@@ -451,7 +450,7 @@ export class PlanService {
 
     // Check across all workspaces for monthly limit
     const totalRuns = usage.workspaces.reduce((sum, w) => sum + w.webAgentRunsThisMonth, 0);
-    
+
     if (totalRuns >= limits.maxWebAgentRunsPerMonth) {
       return {
         allowed: false,
@@ -492,7 +491,7 @@ export class PlanService {
     }
 
     const totalExecutions = usage.workspaces.reduce((sum, w) => sum + w.workflowExecutionsToday, 0);
-    
+
     if (totalExecutions >= limits.maxWorkflowExecutionsPerDay) {
       return {
         allowed: false,
@@ -512,7 +511,7 @@ export class PlanService {
     }
 
     const totalFiles = usage.workspaces.reduce((sum, w) => sum + w.filesThisMonth, 0);
-    
+
     if (totalFiles >= limits.maxFilesPerMonth) {
       return {
         allowed: false,
@@ -540,7 +539,7 @@ export class PlanService {
     }
 
     const totalKBSize = usage.workspaces.reduce((sum, w) => sum + w.knowledgeBaseSizeGB, 0);
-    
+
     if (totalKBSize >= limits.maxKnowledgeBaseSizeGB) {
       return {
         allowed: false,
@@ -569,7 +568,7 @@ export class PlanService {
   }
 }
 
-export type UsageAction = 
+export type UsageAction =
   | 'create_workspace'
   | 'invite_collaborator'
   | 'create_chat'

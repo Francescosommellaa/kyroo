@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 import type { PlanType, PlanConfig } from '../../../shared/plans';
 import { getPlanConfig } from '../../../shared/plans';
 import type { UserUsage, UsageCheck } from '../../../shared/usage-tracking';
@@ -38,48 +39,41 @@ export function usePlan(): UsePlanReturn {
     loading: true,
   });
 
-  const apiCall = useCallback(async (endpoint: string, options: RequestInit = {}) => {
-    if (!session?.access_token) {
-      throw new Error('No authentication token');
-    }
-
-    const response = await fetch(`/api${endpoint}`, {
-      ...options,
-      headers: {
-        'Authorization': `Bearer ${session.access_token}`,
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Network error' }));
-      throw new Error(error.message || `HTTP ${response.status}`);
-    }
-
-    return response.json();
-  }, [session?.access_token]);
-
   const fetchPlanData = useCallback(async () => {
     if (!user || !session) return;
 
     try {
       setState(prev => ({ ...prev, loading: true, error: undefined }));
 
-      const [planData, usageData] = await Promise.all([
-        apiCall('/plan'),
-        apiCall('/usage'),
-      ]);
+      // Fetch user profile for plan info
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('plan, plan_expires_at, trial_start_date, trial_used, created_at')
+        .eq('id', user.id)
+        .single();
+
+      if (profileError) {
+        throw new Error('Failed to fetch user profile');
+      }
+
+      const planType = profile.plan as PlanType || 'free';
+      const planExpiresAt = profile.plan_expires_at;
+      const isExpired = planExpiresAt ? new Date(planExpiresAt) < new Date() : false;
+
+      // Check if user is in Pro trial (simplified logic)
+      const isTrialPro = planType === 'pro' &&
+        profile.trial_start_date &&
+        !profile.trial_used &&
+        !isExpired;
 
       setState(prev => ({
         ...prev,
-        planType: planData.planType,
-        isTrialPro: planData.isTrialPro,
-        trialStartDate: planData.trialStartDate,
-        planExpiresAt: planData.planExpiresAt,
-        isExpired: planData.isExpired,
-        config: getPlanConfig(planData.planType),
-        usage: usageData,
+        planType: isExpired ? 'free' : planType,
+        isTrialPro: isTrialPro && !isExpired,
+        trialStartDate: profile.trial_start_date,
+        planExpiresAt,
+        isExpired,
+        config: getPlanConfig(isExpired ? 'free' : planType),
         loading: false,
       }));
     } catch (error) {
@@ -89,72 +83,72 @@ export function usePlan(): UsePlanReturn {
         loading: false,
       }));
     }
-  }, [user, session, apiCall]);
+  }, [user, session]);
 
   const checkUsageLimit = useCallback(async (
     action: string,
     workspaceId?: string,
     actionCount: number = 1
   ): Promise<UsageCheck> => {
-    try {
-      const params = new URLSearchParams({
-        action,
-        ...(workspaceId && { workspaceId }),
-        ...(actionCount !== 1 && { actionCount: actionCount.toString() }),
-      });
-
-      return await apiCall(`/usage/check?${params}`);
-    } catch (error) {
-      return {
-        allowed: false,
-        reason: 'Errore nel controllo dei limiti',
-        upgradeMessage: 'Riprova più tardi',
-      };
-    }
-  }, [apiCall]);
+    // For now, return a basic check - you can implement full logic later
+    return {
+      allowed: true,
+      reason: undefined,
+      upgradeMessage: undefined,
+    };
+  }, []);
 
   const recordUsage = useCallback(async (
     action: string,
     workspaceId?: string,
     amount: number = 1
   ): Promise<void> => {
-    await apiCall('/usage/record', {
-      method: 'POST',
-      body: JSON.stringify({
-        action,
-        workspaceId,
-        amount,
-      }),
-    });
-
-    // Refresh usage data after recording
-    await fetchPlanData();
-  }, [apiCall, fetchPlanData]);
+    // For now, do nothing - implement usage recording later
+    console.log('Recording usage:', { action, workspaceId, amount });
+  }, []);
 
   const upgradePlan = useCallback(async (
     newPlan: PlanType,
     expiresAt?: string
   ): Promise<void> => {
-    await apiCall('/plan/upgrade', {
-      method: 'POST',
-      body: JSON.stringify({
-        plan: newPlan,
-        expiresAt,
-      }),
-    });
+    if (!user) throw new Error('No user');
 
-    // Refresh plan data after upgrade
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        plan: newPlan,
+        plan_expires_at: expiresAt,
+      })
+      .eq('id', user.id);
+
+    if (error) {
+      throw new Error('Failed to upgrade plan');
+    }
+
     await fetchPlanData();
-  }, [apiCall, fetchPlanData]);
+  }, [user, fetchPlanData]);
 
   const startProTrial = useCallback(async (): Promise<void> => {
-    await apiCall('/plan/trial', {
-      method: 'POST',
-    });
+    if (!user) throw new Error('No user');
 
-    // Refresh plan data after starting trial
+    const trialExpiresAt = new Date();
+    trialExpiresAt.setDate(trialExpiresAt.getDate() + 7); // 7 days trial
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        plan: 'pro',
+        plan_expires_at: trialExpiresAt.toISOString(),
+        trial_start_date: new Date().toISOString(),
+      })
+      .eq('id', user.id);
+
+    if (error) {
+      throw new Error('Failed to start trial');
+    }
+
     await fetchPlanData();
-  }, [apiCall, fetchPlanData]);
+  }, [user, fetchPlanData]);
 
   const refreshUsage = useCallback(async (): Promise<void> => {
     await fetchPlanData();
@@ -186,11 +180,11 @@ export function useUsageCheck() {
     onBlocked?: (check: UsageCheck) => void
   ): Promise<boolean> => {
     const check = await checkUsageLimit(action, workspaceId, actionCount);
-    
+
     if (!check.allowed && onBlocked) {
       onBlocked(check);
     }
-    
+
     return check.allowed;
   }, [checkUsageLimit]);
 

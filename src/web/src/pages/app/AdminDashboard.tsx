@@ -1,145 +1,231 @@
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
-import { 
-  Users, 
-  Shield, 
-  Trash2, 
-  UserCheck, 
-  UserX, 
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+  Users,
+  Shield,
+  Trash2,
+  UserCheck,
+  UserX,
   Search,
   Filter,
   AlertTriangle,
   CreditCard,
-  Settings
-} from 'lucide-react'
-import AppShell from '../../components/AppShell'
-
-import PlanBadge from '../../components/PlanBadge'
-import { useAuth } from '../../contexts/AuthContext'
-import { useNavigate } from 'react-router-dom'
-import type { PlanType } from 'shared/plans'
+  Settings,
+} from "lucide-react";
+import AppShell from "../../components/AppShell";
+import PlanBadge from "../../components/PlanBadge";
+import PlanManagementModal from "../../components/PlanManagementModal";
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import type { PlanType } from "../../../../shared/plans";
 interface User {
-  id: string
-  display_name: string | null
-  phone: string | null
-  avatar_url: string | null
-  role: 'user' | 'admin'
-  plan: PlanType
-  plan_expires_at: string | null
-  trial_start_date: string | null
-  trial_used: boolean
-  created_at: string
-  updated_at: string
+  id: string;
+  display_name: string | null;
+  phone: string | null;
+  avatar_url: string | null;
+  role: "user" | "admin";
+  plan: PlanType;
+  plan_expires_at: string | null;
+  trial_start_date: string | null;
+  trial_used: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export default function AdminDashboard() {
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'admin'>('all')
-  const [planFilter, setPlanFilter] = useState<'all' | PlanType>('all')
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const { session } = useAuth()
-  const navigate = useNavigate()
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [roleFilter, setRoleFilter] = useState<"all" | "user" | "admin">("all");
+  const [planFilter, setPlanFilter] = useState<"all" | PlanType>("all");
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Aggiungi questi stati per il modal
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isPlanModalOpen, setIsPlanModalOpen] = useState(false);
+
+  const { session } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    loadUsers()
-  }, [])
+    loadUsers();
+  }, []);
 
   const loadUsers = async () => {
     try {
-      setLoading(true)
-      const response = await fetch('/.netlify/functions/admin', {
+      setLoading(true);
+      const response = await fetch("/.netlify/functions/admin", {
         headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
-          'Content-Type': 'application/json'
-        }
-      })
+          Authorization: `Bearer ${session?.access_token}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to load users')
+        throw new Error("Failed to load users");
       }
 
-      const data = await response.json()
-      setUsers(data.users || [])
+      const data = await response.json();
+      setUsers(data.users || []);
     } catch (err) {
-      setError('Errore nel caricamento degli utenti')
-      console.error('Error loading users:', err)
+      setError("Errore nel caricamento degli utenti");
+      console.error("Error loading users:", err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const updateUserRole = async (userId: string, newRole: 'user' | 'admin') => {
+  const updateUserRole = async (userId: string, newRole: "user" | "admin") => {
     try {
-      setActionLoading(userId)
-      const response = await fetch('/.netlify/functions/admin', {
-        method: 'PUT',
+      setActionLoading(userId);
+      const response = await fetch("/.netlify/functions/admin", {
+        method: "PUT",
         headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${session?.access_token}`,
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          action: 'update_user_role',
+          action: "update_user_role",
           userId,
-          role: newRole
-        })
-      })
+          role: newRole,
+        }),
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to update user role')
+        throw new Error("Failed to update user role");
       }
 
       // Reload users
-      await loadUsers()
+      await loadUsers();
     } catch (err) {
-      setError('Errore nell\'aggiornamento del ruolo')
-      console.error('Error updating user role:', err)
+      setError("Errore nell'aggiornamento del ruolo");
+      console.error("Error updating user role:", err);
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
   const deleteUser = async (userId: string) => {
-    if (!confirm('Sei sicuro di voler eliminare questo utente? Questa azione non può essere annullata.')) {
-      return
+    if (
+      !confirm(
+        "Sei sicuro di voler eliminare questo utente? Questa azione non può essere annullata.",
+      )
+    ) {
+      return;
     }
 
     try {
-      setActionLoading(userId)
-      const response = await fetch(`/.netlify/functions/admin?userId=${userId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${session?.access_token}`,
-          'Content-Type': 'application/json'
-        }
-      })
+      setActionLoading(userId);
+      const response = await fetch(
+        `/.netlify/functions/admin?userId=${userId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
 
       if (!response.ok) {
-        throw new Error('Failed to delete user')
+        throw new Error("Failed to delete user");
       }
 
       // Reload users
-      await loadUsers()
+      await loadUsers();
     } catch (err) {
-      setError('Errore nell\'eliminazione dell\'utente')
-      console.error('Error deleting user:', err)
+      setError("Errore nell'eliminazione dell'utente");
+      console.error("Error deleting user:", err);
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
-  const filteredUsers = users.filter(user => {
-    const matchesSearch = !searchTerm || 
+  // Aggiungi queste funzioni QUI
+  const handleUpdatePlan = async (
+    userId: string,
+    newPlan: PlanType,
+    expiresAt?: string,
+  ) => {
+    try {
+      setActionLoading(userId);
+      const response = await fetch("/.netlify/functions/admin", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "update_user_plan",
+          userId,
+          plan: newPlan,
+          expiresAt,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update user plan");
+      }
+
+      // Reload users
+      await loadUsers();
+
+      // Close modal
+      setIsPlanModalOpen(false);
+      setSelectedUser(null);
+    } catch (err) {
+      setError("Errore nell'aggiornamento del piano");
+      console.error("Error updating user plan:", err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleStartTrial = async (userId: string) => {
+    try {
+      setActionLoading(userId);
+      const response = await fetch("/.netlify/functions/admin", {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "start_trial",
+          userId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to start trial");
+      }
+
+      // Reload users
+      await loadUsers();
+
+      // Close modal
+      setIsPlanModalOpen(false);
+      setSelectedUser(null);
+    } catch (err) {
+      setError("Errore nell'avvio del trial");
+      console.error("Error starting trial:", err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      !searchTerm ||
       user.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.id.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter
-    const matchesPlan = planFilter === 'all' || user.plan === planFilter
-    
-    return matchesSearch && matchesRole && matchesPlan
-  })
+      user.id.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesRole = roleFilter === "all" || user.role === roleFilter;
+    const matchesPlan = planFilter === "all" || user.plan === planFilter;
+
+    return matchesSearch && matchesRole && matchesPlan;
+  });
 
   if (loading) {
     return (
@@ -148,7 +234,7 @@ export default function AdminDashboard() {
           <div className="w-8 h-8 border-4 border-accent-violet border-t-transparent rounded-full animate-spin" />
         </div>
       </AppShell>
-    )
+    );
   }
 
   return (
@@ -166,8 +252,12 @@ export default function AdminDashboard() {
                 <Shield className="text-white" size={24} />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-foreground">Admin Dashboard</h1>
-                <p className="text-foreground-secondary">Gestisci utenti e permessi del sistema</p>
+                <h1 className="text-3xl font-bold text-foreground">
+                  Admin Dashboard
+                </h1>
+                <p className="text-foreground-secondary">
+                  Gestisci utenti e permessi del sistema
+                </p>
               </div>
             </div>
           </div>
@@ -190,8 +280,12 @@ export default function AdminDashboard() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-foreground-secondary text-sm">Totale Utenti</p>
-                  <p className="text-3xl font-bold text-foreground">{users.length}</p>
+                  <p className="text-foreground-secondary text-sm">
+                    Totale Utenti
+                  </p>
+                  <p className="text-3xl font-bold text-foreground">
+                    {users.length}
+                  </p>
                 </div>
                 <div className="w-12 h-12 bg-accent-violet/10 rounded-xl flex items-center justify-center">
                   <Users className="text-accent-violet" size={24} />
@@ -207,9 +301,11 @@ export default function AdminDashboard() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-foreground-secondary text-sm">Amministratori</p>
+                  <p className="text-foreground-secondary text-sm">
+                    Amministratori
+                  </p>
                   <p className="text-3xl font-bold text-foreground">
-                    {users.filter(u => u.role === 'admin').length}
+                    {users.filter((u) => u.role === "admin").length}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-accent-cyan/10 rounded-xl flex items-center justify-center">
@@ -226,9 +322,11 @@ export default function AdminDashboard() {
             >
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-foreground-secondary text-sm">Utenti Standard</p>
+                  <p className="text-foreground-secondary text-sm">
+                    Utenti Standard
+                  </p>
                   <p className="text-3xl font-bold text-foreground">
-                    {users.filter(u => u.role === 'user').length}
+                    {users.filter((u) => u.role === "user").length}
                   </p>
                 </div>
                 <div className="w-12 h-12 bg-green-500/10 rounded-xl flex items-center justify-center">
@@ -248,7 +346,10 @@ export default function AdminDashboard() {
             <div className="flex flex-col sm:flex-row gap-4">
               {/* Search */}
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary" size={18} />
+                <Search
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary"
+                  size={18}
+                />
                 <input
                   type="text"
                   placeholder="Cerca per nome o ID..."
@@ -260,7 +361,10 @@ export default function AdminDashboard() {
 
               {/* Role Filter */}
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary" size={18} />
+                <Filter
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary"
+                  size={18}
+                />
                 <select
                   value={roleFilter}
                   onChange={(e) => setRoleFilter(e.target.value as any)}
@@ -274,10 +378,15 @@ export default function AdminDashboard() {
 
               {/* Plan Filter */}
               <div className="relative">
-                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary" size={18} />
+                <Filter
+                  className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary"
+                  size={18}
+                />
                 <select
                   value={planFilter}
-                  onChange={(e) => setPlanFilter(e.target.value as PlanType | 'all')}
+                  onChange={(e) =>
+                    setPlanFilter(e.target.value as PlanType | "all")
+                  }
                   className="pl-10 pr-8 py-3 bg-surface border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent appearance-none cursor-pointer"
                 >
                   <option value="all">Tutti i piani</option>
@@ -300,11 +409,21 @@ export default function AdminDashboard() {
               <table className="w-full">
                 <thead className="bg-surface border-b border-border">
                   <tr>
-                    <th className="text-left py-4 px-6 font-semibold text-foreground">Utente</th>
-                    <th className="text-left py-4 px-6 font-semibold text-foreground">Ruolo</th>
-                    <th className="text-left py-4 px-6 font-semibold text-foreground">Piano</th>
-                    <th className="text-left py-4 px-6 font-semibold text-foreground">Creato</th>
-                    <th className="text-right py-4 px-6 font-semibold text-foreground">Azioni</th>
+                    <th className="text-left py-4 px-6 font-semibold text-foreground">
+                      Utente
+                    </th>
+                    <th className="text-left py-4 px-6 font-semibold text-foreground">
+                      Ruolo
+                    </th>
+                    <th className="text-left py-4 px-6 font-semibold text-foreground">
+                      Piano
+                    </th>
+                    <th className="text-left py-4 px-6 font-semibold text-foreground">
+                      Creato
+                    </th>
+                    <th className="text-right py-4 px-6 font-semibold text-foreground">
+                      Azioni
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -320,12 +439,13 @@ export default function AdminDashboard() {
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-gradient-to-br from-accent-violet to-accent-cyan rounded-full flex items-center justify-center">
                             <span className="text-white font-semibold text-sm">
-                              {user.display_name?.charAt(0)?.toUpperCase() || 'U'}
+                              {user.display_name?.charAt(0)?.toUpperCase() ||
+                                "U"}
                             </span>
                           </div>
                           <div>
                             <p className="font-medium text-foreground">
-                              {user.display_name || 'Unnamed User'}
+                              {user.display_name || "Unnamed User"}
                             </p>
                             <p className="text-sm text-foreground-secondary font-mono">
                               {user.id.slice(0, 8)}...
@@ -334,12 +454,14 @@ export default function AdminDashboard() {
                         </div>
                       </td>
                       <td className="py-4 px-6">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                          user.role === 'admin' 
-                            ? 'bg-accent-violet/10 text-accent-violet' 
-                            : 'bg-green-500/10 text-green-500'
-                        }`}>
-                          {user.role === 'admin' ? (
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                            user.role === "admin"
+                              ? "bg-accent-violet/10 text-accent-violet"
+                              : "bg-green-500/10 text-green-500"
+                          }`}
+                        >
+                          {user.role === "admin" ? (
                             <>
                               <Shield size={12} className="mr-1" />
                               Admin
@@ -353,7 +475,15 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="py-4 px-6">
-                        <PlanBadge planType={user.plan} isTrialPro={user.plan === 'pro' && user.trial_start_date !== null && user.plan_expires_at !== null && new Date(user.plan_expires_at) > new Date()} />
+                        <PlanBadge
+                          planType={user.plan}
+                          isTrialPro={
+                            user.plan === "pro" &&
+                            user.trial_start_date !== null &&
+                            user.plan_expires_at !== null &&
+                            new Date(user.plan_expires_at) > new Date()
+                          }
+                        />
                       </td>
                       <td className="py-4 px-6 text-foreground-secondary">
                         {new Date(user.created_at).toLocaleDateString("it-IT")}
@@ -363,8 +493,8 @@ export default function AdminDashboard() {
                           {/* Manage Plan */}
                           <motion.button
                             onClick={() => {
-                              // TODO: Implement plan management modal
-                              console.log('Manage plan for user:', user.id);
+                              setSelectedUser(user);
+                              setIsPlanModalOpen(true);
                             }}
                             className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-elevated"
                             title="Gestisci Piano"
@@ -375,9 +505,13 @@ export default function AdminDashboard() {
                           </motion.button>
 
                           {/* Manage Enterprise Limits */}
-                          {user.plan === 'enterprise' && (
+                          {user.plan === "enterprise" && (
                             <motion.button
-                              onClick={() => navigate(`/app/admin/enterprise-limits/${user.id}`)}
+                              onClick={() =>
+                                navigate(
+                                  `/app/admin/enterprise-limits/${user.id}`,
+                                )
+                              }
                               className="p-2 text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-surface-elevated"
                               title="Gestisci Limiti Enterprise"
                               whileHover={{ scale: 1.1 }}
@@ -389,20 +523,29 @@ export default function AdminDashboard() {
 
                           {/* Toggle Role */}
                           <motion.button
-                            onClick={() => updateUserRole(user.id, user.role === 'admin' ? 'user' : 'admin')}
+                            onClick={() =>
+                              updateUserRole(
+                                user.id,
+                                user.role === "admin" ? "user" : "admin",
+                              )
+                            }
                             disabled={actionLoading === user.id}
                             className={`p-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-surface-elevated ${
-                              user.role === 'admin'
-                                ? 'text-orange-500 hover:bg-orange-500/10 focus:ring-orange-500'
-                                : 'text-accent-violet hover:bg-accent-violet/10 focus:ring-accent-violet'
+                              user.role === "admin"
+                                ? "text-orange-500 hover:bg-orange-500/10 focus:ring-orange-500"
+                                : "text-accent-violet hover:bg-accent-violet/10 focus:ring-accent-violet"
                             }`}
-                            title={user.role === 'admin' ? 'Rimuovi admin' : 'Rendi admin'}
+                            title={
+                              user.role === "admin"
+                                ? "Rimuovi admin"
+                                : "Rendi admin"
+                            }
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                           >
                             {actionLoading === user.id ? (
                               <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                            ) : user.role === 'admin' ? (
+                            ) : user.role === "admin" ? (
                               <UserX size={16} />
                             ) : (
                               <UserCheck size={16} />
@@ -433,12 +576,14 @@ export default function AdminDashboard() {
 
               {filteredUsers.length === 0 && (
                 <div className="text-center py-12">
-                  <Users className="mx-auto text-foreground-secondary mb-4" size={48} />
+                  <Users
+                    className="mx-auto text-foreground-secondary mb-4"
+                    size={48}
+                  />
                   <p className="text-foreground-secondary">
-                    {searchTerm || roleFilter !== 'all' 
-                      ? 'Nessun utente trovato con i filtri applicati' 
-                      : 'Nessun utente trovato'
-                    }
+                    {searchTerm || roleFilter !== "all"
+                      ? "Nessun utente trovato con i filtri applicati"
+                      : "Nessun utente trovato"}
                   </p>
                 </div>
               )}
@@ -446,6 +591,20 @@ export default function AdminDashboard() {
           </motion.div>
         </motion.div>
       </div>
+
+      {/* Plan Management Modal */}
+      {selectedUser && (
+        <PlanManagementModal
+          user={selectedUser}
+          isOpen={isPlanModalOpen}
+          onClose={() => {
+            setIsPlanModalOpen(false);
+            setSelectedUser(null);
+          }}
+          onUpdatePlan={handleUpdatePlan}
+          onStartTrial={handleStartTrial}
+        />
+      )}
     </AppShell>
-  )
+  );
 }

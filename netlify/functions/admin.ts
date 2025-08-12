@@ -35,14 +35,16 @@ if (supabaseUrl && supabaseServiceKey) {
 }
 
 interface AdminRequest {
-  action: 'list_users' | 'update_user_role' | 'delete_user'
-  userId?: string
+  action: 'update_user_role' | 'update_user_plan' | 'start_trial'
+  userId: string
   role?: 'user' | 'admin'
+  plan?: string
+  expiresAt?: string
 }
 
 export default async function handler(request: Request) {
   console.log('Admin function called:', request.method, request.url)
-  
+
   // Handle CORS preflight
   if (request.method === 'OPTIONS') {
     return new Response(null, {
@@ -55,7 +57,7 @@ export default async function handler(request: Request) {
     // Check if Supabase client is available
     if (!supabaseAdmin) {
       console.error('Supabase client not initialized')
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         error: 'Server configuration error',
         details: 'Supabase client not available'
       }), {
@@ -67,7 +69,7 @@ export default async function handler(request: Request) {
     // Verify admin authorization
     const authHeader = request.headers.get('Authorization')
     console.log('Auth header present:', !!authHeader)
-    
+
     if (!authHeader?.startsWith('Bearer ')) {
       console.log('Missing or invalid authorization header')
       return new Response(JSON.stringify({ error: 'Missing authorization' }), {
@@ -78,21 +80,21 @@ export default async function handler(request: Request) {
 
     const token = authHeader.replace('Bearer ', '')
     console.log('Token extracted, length:', token.length)
-    
+
     // Verify the user is authenticated and is admin
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token)
-    
+
     if (authError) {
       console.error('Auth error:', authError)
-      return new Response(JSON.stringify({ 
-        error: 'Invalid token', 
-        details: authError.message 
+      return new Response(JSON.stringify({
+        error: 'Invalid token',
+        details: authError.message
       }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
-    
+
     if (!user) {
       console.log('No user found for token')
       return new Response(JSON.stringify({ error: 'Invalid token' }), {
@@ -112,9 +114,9 @@ export default async function handler(request: Request) {
 
     if (profileError) {
       console.error('Profile error:', profileError)
-      return new Response(JSON.stringify({ 
-        error: 'Profile not found', 
-        details: profileError.message 
+      return new Response(JSON.stringify({
+        error: 'Profile not found',
+        details: profileError.message
       }), {
         status: 404,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -134,7 +136,7 @@ export default async function handler(request: Request) {
     // Handle different admin actions
     if (request.method === 'GET') {
       console.log('Fetching users list...')
-      
+
       try {
         // List all users with simplified query first
         const { data: users, error } = await supabaseAdmin
@@ -144,7 +146,7 @@ export default async function handler(request: Request) {
 
         if (error) {
           console.error('Users fetch error:', error)
-          return new Response(JSON.stringify({ 
+          return new Response(JSON.stringify({
             error: 'Failed to fetch users',
             details: error.message,
             code: error.code,
@@ -157,14 +159,14 @@ export default async function handler(request: Request) {
 
         console.log('Users fetched successfully:', users?.length || 0)
         console.log('Sample user data:', users?.[0] ? Object.keys(users[0]) : 'No users')
-        
+
         return new Response(JSON.stringify({ users: users || [] }), {
           status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       } catch (fetchError) {
         console.error('Unexpected error fetching users:', fetchError)
-        return new Response(JSON.stringify({ 
+        return new Response(JSON.stringify({
           error: 'Unexpected error',
           details: fetchError instanceof Error ? fetchError.message : 'Unknown error',
           stack: fetchError instanceof Error ? fetchError.stack : 'No stack'
@@ -176,38 +178,117 @@ export default async function handler(request: Request) {
     }
 
     if (request.method === 'PUT') {
-      // Update user role
       const body: AdminRequest = await request.json()
-      
-      if (body.action !== 'update_user_role' || !body.userId || !body.role) {
-        return new Response(JSON.stringify({ error: 'Invalid request' }), {
-          status: 400,
+
+      // Handle different PUT actions
+      if (body.action === 'update_user_role') {
+        if (!body.userId || !body.role) {
+          return new Response(JSON.stringify({ error: 'Invalid request' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+
+        // Prevent self-demotion
+        if (body.userId === user.id && body.role !== 'admin') {
+          return new Response(JSON.stringify({ error: 'Cannot demote yourself' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+
+        const { error } = await supabaseAdmin
+          .from('profiles')
+          .update({ role: body.role })
+          .eq('id', body.userId)
+
+        if (error) {
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
-      // Prevent self-demotion
-      if (body.userId === user.id && body.role !== 'admin') {
-        return new Response(JSON.stringify({ error: 'Cannot demote yourself' }), {
-          status: 400,
+      // Handle plan update
+      if (body.action === 'update_user_plan') {
+        if (!body.userId || !body.plan) {
+          return new Response(JSON.stringify({ error: 'Invalid request - missing userId or plan' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+
+        const updateData: any = { plan: body.plan }
+
+        // If expiresAt is provided, add it to the update
+        if (body.expiresAt) {
+          updateData.plan_expires_at = body.expiresAt
+        }
+
+        const { error } = await supabaseAdmin
+          .from('profiles')
+          .update(updateData)
+          .eq('id', body.userId)
+
+        if (error) {
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
-      const { error } = await supabaseAdmin
-        .from('profiles')
-        .update({ role: body.role })
-        .eq('id', body.userId)
+      // Handle trial start
+      if (body.action === 'start_trial') {
+        if (!body.userId) {
+          return new Response(JSON.stringify({ error: 'Invalid request - missing userId' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
 
-      if (error) {
-        return new Response(JSON.stringify({ error: error.message }), {
-          status: 500,
+        // Calculate trial expiration (7 days from now)
+        const trialStartDate = new Date()
+        const trialEndDate = new Date()
+        trialEndDate.setDate(trialEndDate.getDate() + 7)
+
+        const { error } = await supabaseAdmin
+          .from('profiles')
+          .update({
+            plan: 'pro',
+            trial_start_date: trialStartDate.toISOString(),
+            plan_expires_at: trialEndDate.toISOString(),
+            trial_used: true
+          })
+          .eq('id', body.userId)
+
+        if (error) {
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
         })
       }
 
-      return new Response(JSON.stringify({ success: true }), {
-        status: 200,
+      // If no valid action found
+      return new Response(JSON.stringify({ error: 'Invalid action' }), {
+        status: 400,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
@@ -216,7 +297,7 @@ export default async function handler(request: Request) {
       // Delete user
       const url = new URL(request.url)
       const userId = url.searchParams.get('userId')
-      
+
       if (!userId) {
         return new Response(JSON.stringify({ error: 'Missing userId' }), {
           status: 400,
@@ -257,11 +338,11 @@ export default async function handler(request: Request) {
     console.error('Admin API error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     const errorStack = error instanceof Error ? error.stack : 'No stack trace'
-    
+
     console.error('Error stack:', errorStack)
-    
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error', 
+
+    return new Response(JSON.stringify({
+      error: 'Internal server error',
       details: errorMessage,
       timestamp: new Date().toISOString()
     }), {
