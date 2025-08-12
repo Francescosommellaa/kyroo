@@ -18,6 +18,8 @@ import {
   Shield
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { usePlan } from '../hooks/usePlan'
+import { SidebarPlanBadge } from './PlanBadge'
 
 interface AppShellProps {
   children: ReactNode
@@ -38,6 +40,7 @@ export default function AppShell({ children }: AppShellProps) {
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
   const { logout, profile } = useAuth()
+  const { planType, isTrialPro } = usePlan()
   const navigate = useNavigate()
 
   // Detect mobile screen size
@@ -238,9 +241,7 @@ export default function AppShell({ children }: AppShellProps) {
                     <p className="text-sm font-medium text-foreground truncate">
                       {profile?.display_name || 'User'}
                     </p>
-                    <p className="text-xs text-foreground-secondary truncate">
-                      {profile?.role || 'user'}
-                    </p>
+                    <SidebarPlanBadge planType={planType} isTrialPro={isTrialPro} />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -382,9 +383,7 @@ export default function AppShell({ children }: AppShellProps) {
                     <p className="text-sm font-medium text-foreground truncate">
                       {profile?.display_name || 'User'}
                     </p>
-                    <p className="text-xs text-foreground-secondary truncate">
-                      {profile?.role || 'user'}
-                    </p>
+                    <SidebarPlanBadge planType={planType} isTrialPro={isTrialPro} />
                   </div>
                 </div>
 

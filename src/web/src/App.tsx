@@ -14,7 +14,8 @@ import Knowledge from "./pages/app/Knowledge";
 import Ingestion from "./pages/app/Ingestion";
 import Billing from "./pages/app/Billing";
 import Account from "./pages/app/Account";
-import AdminDashboard from "./pages/app/AdminDashboard";
+impoimport AdminDashboard from "./pages/app/AdminDashboard";
+import EnterpriseLimits from "./pages/app/EnterpriseLimits";
 
 function AppRoutes() {
   const { loading } = useAuth();
@@ -51,11 +52,15 @@ function AppRoutes() {
         <Route path="billing" element={<Billing />} />
         <Route path="account" element={<Account />} />
         <Route path="admin" element={<AdminDashboard />} />
+        <Route path="admin/enterprise-limits/:userId" element={<EnterpriseLimits />} />
         <Route index element={<Navigate to="chat" replace />} />
       </Route>
       
       {/* Catch all - redirect to home */}
       <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
+}nt={<Navigate to="/" replace />} />
     </Routes>
   );
 }

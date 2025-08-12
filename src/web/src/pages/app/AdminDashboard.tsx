@@ -8,10 +8,15 @@ import {
   UserX, 
   Search,
   Filter,
-  AlertTriangle
+  AlertTriangle,
+  CreditCard,
+  Star,
+  Check
 } from 'lucide-react'
 import AppShell from '../../components/AppShell'
+import PlanManagementModal from '../../components/PlanManagementModal'
 import { useAuth } from '../../contexts/AuthContext'
+import type { PlanType } from '../../../shared/plans'
 
 interface User {
   id: string
@@ -19,6 +24,10 @@ interface User {
   phone: string | null
   avatar_url: string | null
   role: 'user' | 'admin'
+  plan: PlanType
+  plan_expires_at: string | null
+  trial_start_date: string | null
+  trial_used: boolean
   created_at: string
   updated_at: string
 }
@@ -29,7 +38,10 @@ export default function AdminDashboard() {
   const [error, setError] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'admin'>('all')
+  const [planFilter, setPlanFilter] = useState<'all' | PlanType>('all')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [planModalOpen, setPlanModalOpen] = useState(false)
   const { session } = useAuth()
 
   useEffect(() => {
@@ -125,8 +137,9 @@ export default function AdminDashboard() {
       user.id.toLowerCase().includes(searchTerm.toLowerCase())
     
     const matchesRole = roleFilter === 'all' || user.role === roleFilter
+    const matchesPlan = planFilter === 'all' || user.plan === planFilter
     
-    return matchesSearch && matchesRole
+    return matchesSearch && matchesRole && matchesPlan
   })
 
   if (loading) {
@@ -259,6 +272,21 @@ export default function AdminDashboard() {
                   <option value="user">User</option>
                 </select>
               </div>
+
+              {/* Plan Filter */}
+              <div className="relative">
+                <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary" size={18} />
+                <select
+                  value={planFilter}
+                  onChange={(e) => setPlanFilter(e.target.value as PlanType | 'all')}
+                  className="pl-10 pr-8 py-3 bg-surface border border-border rounded-xl text-foreground focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent appearance-none cursor-pointer"
+                >
+                  <option value="all">Tutti i piani</option>
+                  <option value="free">Free</option>
+                  <option value="pro">Pro</option>
+                  <option value="enterprise">Enterprise</option>
+                </select>
+              </div>
             </div>
           </motion.div>
 
@@ -275,6 +303,7 @@ export default function AdminDashboard() {
                   <tr>
                     <th className="text-left py-4 px-6 font-semibold text-foreground">Utente</th>
                     <th className="text-left py-4 px-6 font-semibold text-foreground">Ruolo</th>
+                    <th className="text-left py-4 px-6 font-semibold text-foreground">Piano</th>
                     <th className="text-left py-4 px-6 font-semibold text-foreground">Creato</th>
                     <th className="text-right py-4 px-6 font-semibold text-foreground">Azioni</th>
                   </tr>
@@ -324,11 +353,41 @@ export default function AdminDashboard() {
                           )}
                         </span>
                       </td>
+                      <td className="py-4 px-6">
+                        <PlanBadge planType={user.plan} isTrialPro={user.plan === 'pro' && user.trial_start_date !== null && user.plan_expires_at !== null && new Date(user.plan_expires_at) > new Date()} />
+                      </td>
                       <td className="py-4 px-6 text-foreground-secondary">
-                        {new Date(user.created_at).toLocaleDateString('it-IT')}
+                        {new Date(user.created_at).toLocaleDateString("it-IT")}
                       </td>
                       <td className="py-4 px-6">
                         <div className="flex items-center justify-end gap-2">
+                          {/* Manage Plan */}
+                          <motion.button
+                            onClick={() => {
+                              setSelectedUser(user);
+                              setPlanModalOpen(true);
+                            }}
+                            className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-elevated"
+                            title="Gestisci Piano"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <CreditCard size={16} />
+                          </motion.button>
+
+                          {/* Manage Enterprise Limits */}
+                          {user.plan === 'enterprise' && (
+                            <motion.button
+                              onClick={() => navigate(`/app/admin/enterprise-limits/${user.id}`)}
+                              className="p-2 text-yellow-500 hover:bg-yellow-500/10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 focus:ring-offset-surface-elevated"
+                              title="Gestisci Limiti Enterprise"
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                            >
+                              <Settings size={16} />
+                            </motion.button>
+                          )}
+
                           {/* Toggle Role */}
                           <motion.button
                             onClick={() => updateUserRole(user.id, user.role === 'admin' ? 'user' : 'admin')}
