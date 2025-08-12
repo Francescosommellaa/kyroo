@@ -40,8 +40,6 @@ export default function AdminDashboard() {
   const [roleFilter, setRoleFilter] = useState<'all' | 'user' | 'admin'>('all')
   const [planFilter, setPlanFilter] = useState<'all' | PlanType>('all')
   const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [planModalOpen, setPlanModalOpen] = useState(false)
   const { session } = useAuth()
   const navigate = useNavigate()
 
