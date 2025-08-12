@@ -136,25 +136,19 @@ export default async function handler(request: Request) {
       console.log('Fetching users list...')
       
       try {
-        // List all users
+        // List all users with simplified query first
         const { data: users, error } = await supabaseAdmin
           .from('profiles')
-          .select(`
-            id,
-            display_name,
-            phone,
-            avatar_url,
-            role,
-            created_at,
-            updated_at
-          `)
+          .select('*')
           .order('created_at', { ascending: false })
 
         if (error) {
           console.error('Users fetch error:', error)
           return new Response(JSON.stringify({ 
             error: 'Failed to fetch users',
-            details: error.message 
+            details: error.message,
+            code: error.code,
+            hint: error.hint
           }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' }
@@ -162,6 +156,7 @@ export default async function handler(request: Request) {
         }
 
         console.log('Users fetched successfully:', users?.length || 0)
+        console.log('Sample user data:', users?.[0] ? Object.keys(users[0]) : 'No users')
         
         return new Response(JSON.stringify({ users: users || [] }), {
           status: 200,
@@ -171,7 +166,8 @@ export default async function handler(request: Request) {
         console.error('Unexpected error fetching users:', fetchError)
         return new Response(JSON.stringify({ 
           error: 'Unexpected error',
-          details: fetchError instanceof Error ? fetchError.message : 'Unknown error'
+          details: fetchError instanceof Error ? fetchError.message : 'Unknown error',
+          stack: fetchError instanceof Error ? fetchError.stack : 'No stack'
         }), {
           status: 500,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' }
