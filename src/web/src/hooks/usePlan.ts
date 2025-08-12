@@ -86,9 +86,9 @@ export function usePlan(): UsePlanReturn {
   }, [user, session]);
 
   const checkUsageLimit = useCallback(async (
-    action: string,
-    workspaceId?: string,
-    actionCount: number = 1
+    _action: string,
+    _workspaceId?: string,
+    _actionCount: number = 1
   ): Promise<UsageCheck> => {
     // For now, return a basic check - you can implement full logic later
     return {
@@ -99,12 +99,11 @@ export function usePlan(): UsePlanReturn {
   }, []);
 
   const recordUsage = useCallback(async (
-    action: string,
-    workspaceId?: string,
-    amount: number = 1
+    _action: string,
+    _workspaceId?: string,
+    _amount: number = 1
   ): Promise<void> => {
     // For now, do nothing - implement usage recording later
-    console.log('Recording usage:', { action, workspaceId, amount });
   }, []);
 
   const upgradePlan = useCallback(async (

@@ -3,33 +3,48 @@
  * Displays estimated costs and revenue for Enterprise users
  */
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Calculator, TrendingUp, TrendingDown, DollarSign, Info } from 'lucide-react';
-import type { PlanLimits } from '../../../shared/plans';
-import { 
-  calculateEnterpriseCosts, 
-  formatCurrency, 
-  formatNumber, 
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+  Calculator,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Info,
+} from "lucide-react";
+import type { PlanLimits } from "../../../shared/plans";
+import {
+  calculateEnterpriseCosts,
+  formatCurrency,
+  formatNumber,
   getCategoryColor,
   DEFAULT_UNIT_COSTS,
   type CostBreakdown,
-  type UnitCosts
-} from '../../../shared/cost-calculator';
+  type UnitCosts,
+} from "../../../shared/cost-calculator";
 
 interface CostCalculatorProps {
   limits: Partial<PlanLimits>;
   className?: string;
 }
 
-export default function CostCalculator({ limits, className = '' }: CostCalculatorProps) {
-  const [costBreakdown, setCostBreakdown] = useState<CostBreakdown | null>(null);
+export default function CostCalculator({
+  limits,
+  className = "",
+}: CostCalculatorProps) {
+  const [costBreakdown, setCostBreakdown] = useState<CostBreakdown | null>(
+    null,
+  );
   const [utilizationRate, setUtilizationRate] = useState(70); // 70% default
   const [unitCosts] = useState<UnitCosts>(DEFAULT_UNIT_COSTS);
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
-    const breakdown = calculateEnterpriseCosts(limits, unitCosts, utilizationRate / 100);
+    const breakdown = calculateEnterpriseCosts(
+      limits,
+      unitCosts,
+      utilizationRate / 100,
+    );
     setCostBreakdown(breakdown);
   }, [limits, unitCosts, utilizationRate]);
 
@@ -53,16 +68,20 @@ export default function CostCalculator({ limits, className = '' }: CostCalculato
             <Calculator className="text-white" size={20} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-foreground">Calcolo Costi/Ricavi</h3>
-            <p className="text-sm text-foreground-secondary">Stima basata sui limiti configurati</p>
+            <h3 className="text-lg font-semibold text-foreground">
+              Calcolo Costi/Ricavi
+            </h3>
+            <p className="text-sm text-foreground-secondary">
+              Stima basata sui limiti configurati
+            </p>
           </div>
         </div>
-        
+
         <button
           onClick={() => setShowDetails(!showDetails)}
           className="text-sm text-accent-violet hover:text-accent-cyan transition-colors"
         >
-          {showDetails ? 'Nascondi dettagli' : 'Mostra dettagli'}
+          {showDetails ? "Nascondi dettagli" : "Mostra dettagli"}
         </button>
       </div>
 
@@ -72,7 +91,9 @@ export default function CostCalculator({ limits, className = '' }: CostCalculato
           <label className="text-sm font-medium text-foreground">
             Tasso di Utilizzo Stimato
           </label>
-          <span className="text-sm text-foreground-secondary">{utilizationRate}%</span>
+          <span className="text-sm text-foreground-secondary">
+            {utilizationRate}%
+          </span>
         </div>
         <input
           type="range"
@@ -100,11 +121,13 @@ export default function CostCalculator({ limits, className = '' }: CostCalculato
       ) : (
         <>
           {/* Cost Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="space-y-4 mb-6">
             <div className="bg-red-50 border border-red-200 rounded-xl p-4">
               <div className="flex items-center space-x-2 mb-2">
                 <TrendingDown className="text-red-500" size={16} />
-                <span className="text-sm font-medium text-red-700">Costi Mensili</span>
+                <span className="text-sm font-medium text-red-700">
+                  Costi Mensili
+                </span>
               </div>
               <p className="text-2xl font-bold text-red-600">
                 {formatCurrency(costBreakdown.totalMonthlyCost)}
@@ -117,7 +140,9 @@ export default function CostCalculator({ limits, className = '' }: CostCalculato
             <div className="bg-green-50 border border-green-200 rounded-xl p-4">
               <div className="flex items-center space-x-2 mb-2">
                 <TrendingUp className="text-green-500" size={16} />
-                <span className="text-sm font-medium text-green-700">Prezzo Suggerito</span>
+                <span className="text-sm font-medium text-green-700">
+                  Prezzo Suggerito
+                </span>
               </div>
               <p className="text-2xl font-bold text-green-600">
                 {formatCurrency(costBreakdown.suggestedPrice)}
@@ -130,13 +155,19 @@ export default function CostCalculator({ limits, className = '' }: CostCalculato
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
               <div className="flex items-center space-x-2 mb-2">
                 <DollarSign className="text-blue-500" size={16} />
-                <span className="text-sm font-medium text-blue-700">Margine</span>
+                <span className="text-sm font-medium text-blue-700">
+                  Margine
+                </span>
               </div>
               <p className="text-2xl font-bold text-blue-600">
                 {costBreakdown.profitMargin}%
               </p>
               <p className="text-xs text-blue-500 mt-1">
-                +{formatCurrency(costBreakdown.suggestedPrice - costBreakdown.totalMonthlyCost)}/mese
+                +
+                {formatCurrency(
+                  costBreakdown.suggestedPrice - costBreakdown.totalMonthlyCost,
+                )}
+                /mese
               </p>
             </div>
           </div>
@@ -145,13 +176,15 @@ export default function CostCalculator({ limits, className = '' }: CostCalculato
           {showDetails && costBreakdown.estimates.length > 0 && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
+              animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               transition={{ duration: 0.3 }}
               className="space-y-3"
             >
-              <h4 className="text-sm font-semibold text-foreground mb-3">Dettaglio Costi</h4>
-              
+              <h4 className="text-sm font-semibold text-foreground mb-3">
+                Dettaglio Costi
+              </h4>
+
               {costBreakdown.estimates.map((estimate, index) => (
                 <motion.div
                   key={index}
@@ -161,7 +194,9 @@ export default function CostCalculator({ limits, className = '' }: CostCalculato
                   transition={{ duration: 0.2, delay: index * 0.05 }}
                 >
                   <div className="flex items-center space-x-3">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(estimate.category)}`}>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(estimate.category)}`}
+                    >
                       {estimate.category}
                     </span>
                     <div>
@@ -169,18 +204,17 @@ export default function CostCalculator({ limits, className = '' }: CostCalculato
                         {estimate.description}
                       </p>
                       <p className="text-xs text-foreground-secondary">
-                        {formatNumber(estimate.estimatedUsage)} {estimate.unit} × {formatCurrency(estimate.unitCost)}
+                        {formatNumber(estimate.estimatedUsage)} {estimate.unit}{" "}
+                        × {formatCurrency(estimate.unitCost)}
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="text-right">
                     <p className="text-sm font-semibold text-foreground">
                       {formatCurrency(estimate.monthlyCost)}
                     </p>
-                    <p className="text-xs text-foreground-secondary">
-                      /mese
-                    </p>
+                    <p className="text-xs text-foreground-secondary">/mese</p>
                   </div>
                 </motion.div>
               ))}
@@ -189,19 +223,29 @@ export default function CostCalculator({ limits, className = '' }: CostCalculato
 
           {/* Pricing Recommendations */}
           <div className="mt-6 p-4 bg-gradient-to-r from-accent-violet/10 to-accent-cyan/10 rounded-xl border border-accent-violet/20">
-            <h4 className="text-sm font-semibold text-foreground mb-2">Raccomandazioni Pricing</h4>
+            <h4 className="text-sm font-semibold text-foreground mb-2">
+              Raccomandazioni Pricing
+            </h4>
             <div className="space-y-2 text-sm text-foreground-secondary">
               <p>
-                • <strong>Prezzo base:</strong> {formatCurrency(costBreakdown.totalMonthlyCost)} 
+                • <strong>Prezzo base:</strong>{" "}
+                {formatCurrency(costBreakdown.totalMonthlyCost)}
                 (copertura costi operativi)
               </p>
               <p>
-                • <strong>Prezzo consigliato:</strong> {formatCurrency(costBreakdown.suggestedPrice)} 
+                • <strong>Prezzo consigliato:</strong>{" "}
+                {formatCurrency(costBreakdown.suggestedPrice)}
                 (margine {costBreakdown.profitMargin}%)
               </p>
               <p>
-                • <strong>Sconto annuale:</strong> {formatCurrency(costBreakdown.suggestedYearlyPrice)} 
-                (risparmio di {formatCurrency((costBreakdown.suggestedPrice * 12) - costBreakdown.suggestedYearlyPrice)})
+                • <strong>Sconto annuale:</strong>{" "}
+                {formatCurrency(costBreakdown.suggestedYearlyPrice)}
+                (risparmio di{" "}
+                {formatCurrency(
+                  costBreakdown.suggestedPrice * 12 -
+                    costBreakdown.suggestedYearlyPrice,
+                )}
+                )
               </p>
             </div>
           </div>
@@ -211,11 +255,15 @@ export default function CostCalculator({ limits, className = '' }: CostCalculato
             <div className="flex items-start space-x-2">
               <Info className="text-blue-500 mt-0.5" size={14} />
               <div className="text-xs text-blue-700">
-                <p className="font-medium mb-1">Fattori di costo considerati:</p>
+                <p className="font-medium mb-1">
+                  Fattori di costo considerati:
+                </p>
                 <p>
-                  I costi sono basati sui pricing reali di OpenAI/Claude (AI), Tavily (ricerche), 
-                  Milvus/Zilliz (vector DB), Cohere (embedding), Supabase (database/storage). 
-                  Il tasso di utilizzo rappresenta quanto effettivamente l'utente sfrutterà i limiti configurati.
+                  I costi sono basati sui pricing reali di OpenAI/Claude (AI),
+                  Tavily (ricerche), Milvus/Zilliz (vector DB), Cohere
+                  (embedding), Supabase (database/storage). Il tasso di utilizzo
+                  rappresenta quanto effettivamente l'utente sfrutterà i limiti
+                  configurati.
                 </p>
               </div>
             </div>
@@ -228,8 +276,12 @@ export default function CostCalculator({ limits, className = '' }: CostCalculato
 
 // Preset component for quick cost estimation
 export function QuickCostEstimate({ limits }: { limits: Partial<PlanLimits> }) {
-  const costBreakdown = calculateEnterpriseCosts(limits, DEFAULT_UNIT_COSTS, 0.7);
-  
+  const costBreakdown = calculateEnterpriseCosts(
+    limits,
+    DEFAULT_UNIT_COSTS,
+    0.7,
+  );
+
   if (costBreakdown.totalMonthlyCost < 0.01) {
     return (
       <div className="text-xs text-foreground-secondary">
@@ -241,15 +293,17 @@ export function QuickCostEstimate({ limits }: { limits: Partial<PlanLimits> }) {
   return (
     <div className="flex items-center space-x-4 text-sm">
       <div className="text-red-600">
-        <span className="font-medium">Costi:</span> {formatCurrency(costBreakdown.totalMonthlyCost)}/mese
+        <span className="font-medium">Costi:</span>{" "}
+        {formatCurrency(costBreakdown.totalMonthlyCost)}/mese
       </div>
       <div className="text-green-600">
-        <span className="font-medium">Ricavi:</span> {formatCurrency(costBreakdown.suggestedPrice)}/mese
+        <span className="font-medium">Ricavi:</span>{" "}
+        {formatCurrency(costBreakdown.suggestedPrice)}/mese
       </div>
       <div className="text-blue-600">
-        <span className="font-medium">Margine:</span> {costBreakdown.profitMargin}%
+        <span className="font-medium">Margine:</span>{" "}
+        {costBreakdown.profitMargin}%
       </div>
     </div>
   );
 }
-

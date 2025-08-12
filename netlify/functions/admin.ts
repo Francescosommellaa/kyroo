@@ -35,11 +35,12 @@ if (supabaseUrl && supabaseServiceKey) {
 }
 
 interface AdminRequest {
-  action: 'update_user_role' | 'update_user_plan' | 'start_trial'
+  action: 'update_user_role' | 'update_user_plan' | 'start_trial' | 'update_custom_limits'
   userId: string
   role?: 'user' | 'admin'
   plan?: string
   expiresAt?: string
+  customLimits?: any
 }
 
 export default async function handler(request: Request) {
@@ -135,6 +136,50 @@ export default async function handler(request: Request) {
 
     // Handle different admin actions
     if (request.method === 'GET') {
+      const url = new URL(request.url)
+      const action = url.searchParams.get('action')
+      const userId = url.searchParams.get('userId')
+
+      // Handle get_user_profile action
+      if (action === 'get_user_profile' && userId) {
+        console.log('Fetching user profile for:', userId)
+
+        try {
+          const { data: userProfile, error } = await supabaseAdmin
+            .from('profiles')
+            .select('id, display_name, custom_limits, plan, role')
+            .eq('id', userId)
+            .single()
+
+          if (error) {
+            console.error('User profile fetch error:', error)
+            return new Response(JSON.stringify({
+              error: 'Failed to fetch user profile',
+              details: error.message
+            }), {
+              status: 404,
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            })
+          }
+
+          console.log('User profile fetched successfully:', userProfile)
+          return new Response(JSON.stringify(userProfile), {
+            status: 200,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        } catch (fetchError) {
+          console.error('Unexpected error fetching user profile:', fetchError)
+          return new Response(JSON.stringify({
+            error: 'Unexpected error',
+            details: fetchError instanceof Error ? fetchError.message : 'Unknown error'
+          }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+      }
+
+      // Default: List all users
       console.log('Fetching users list...')
 
       try {
@@ -271,6 +316,33 @@ export default async function handler(request: Request) {
             plan_expires_at: trialEndDate.toISOString(),
             trial_used: true
           })
+          .eq('id', body.userId)
+
+        if (error) {
+          return new Response(JSON.stringify({ error: error.message }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+
+        return new Response(JSON.stringify({ success: true }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        })
+      }
+
+      // Handle custom limits update
+      if (body.action === 'update_custom_limits') {
+        if (!body.userId || !body.customLimits) {
+          return new Response(JSON.stringify({ error: 'Invalid request - missing userId or customLimits' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          })
+        }
+
+        const { error } = await supabaseAdmin
+          .from('profiles')
+          .update({ custom_limits: body.customLimits })
           .eq('id', body.userId)
 
         if (error) {

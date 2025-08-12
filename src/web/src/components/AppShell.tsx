@@ -1,85 +1,85 @@
-import { ReactNode } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect } from 'react'
-import { 
-  MessageSquare, 
-  Calendar, 
-  Play, 
-  Brain, 
-  Download, 
-  CreditCard, 
-  User, 
+import { ReactNode } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import {
+  MessageSquare,
+  Calendar,
+  Play,
+  Brain,
+  Download,
+  CreditCard,
+  User,
   LogOut,
   Menu,
   X,
   ChevronLeft,
   ChevronRight,
-  Shield
-} from 'lucide-react'
-import { useAuth } from '../contexts/AuthContext'
-import { usePlan } from '../hooks/usePlan'
-import { SidebarPlanBadge } from './PlanBadge'
+  Shield,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { usePlan } from "../hooks/usePlan";
+import { SidebarPlanBadge } from "./PlanBadge";
 
 interface AppShellProps {
-  children: ReactNode
+  children: ReactNode;
 }
 
 const navItems = [
-  { path: '/app/chat', label: 'Chat', icon: MessageSquare },
-  { path: '/app/planner', label: 'Planner', icon: Calendar },
-  { path: '/app/executions', label: 'Executions', icon: Play },
-  { path: '/app/knowledge', label: 'Knowledge', icon: Brain },
-  { path: '/app/ingestion', label: 'Ingestion', icon: Download },
-  { path: '/app/billing', label: 'Billing', icon: CreditCard },
-  { path: '/app/account', label: 'Account', icon: User },
-]
+  { path: "/app/chat", label: "Chat", icon: MessageSquare },
+  { path: "/app/planner", label: "Planner", icon: Calendar },
+  { path: "/app/executions", label: "Executions", icon: Play },
+  { path: "/app/knowledge", label: "Knowledge", icon: Brain },
+  { path: "/app/ingestion", label: "Ingestion", icon: Download },
+  { path: "/app/billing", label: "Billing", icon: CreditCard },
+  { path: "/app/account", label: "Account", icon: User },
+];
 
 export default function AppShell({ children }: AppShellProps) {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
-  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false)
-  const [isMobile, setIsMobile] = useState(false)
-  const { logout, profile } = useAuth()
-  const { planType, isTrialPro } = usePlan()
-  const navigate = useNavigate()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const { logout, profile } = useAuth();
+  const { planType, isTrialPro } = usePlan();
+  const navigate = useNavigate();
 
   // Detect mobile screen size
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 1024)
+      setIsMobile(window.innerWidth < 1024);
       if (window.innerWidth >= 1024) {
-        setIsMobileMenuOpen(false)
+        setIsMobileMenuOpen(false);
       }
-    }
-    
-    checkMobile()
-    window.addEventListener('resize', checkMobile)
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const handleLogout = () => {
     logout().then(() => {
-      navigate('/')
-    })
-  }
+      navigate("/");
+    });
+  };
 
   const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen)
-  }
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
 
   const toggleDesktopSidebar = () => {
-    setIsDesktopCollapsed(!isDesktopCollapsed)
-  }
+    setIsDesktopCollapsed(!isDesktopCollapsed);
+  };
 
   const closeMobileMenu = () => {
-    setIsMobileMenuOpen(false)
-  }
+    setIsMobileMenuOpen(false);
+  };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-background">
       {/* Mobile Overlay */}
       {isMobileMenuOpen && isMobile && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={closeMobileMenu}
         />
@@ -87,11 +87,11 @@ export default function AppShell({ children }: AppShellProps) {
 
       {/* Desktop Sidebar */}
       {!isMobile && (
-        <motion.aside 
-          className="relative bg-surface border-r border-border flex flex-col h-screen"
+        <motion.aside
+          className="fixed left-0 top-0 bg-surface border-r border-border flex flex-col h-screen z-30"
           initial={false}
-          animate={{ 
-            width: isDesktopCollapsed ? '80px' : '280px'
+          animate={{
+            width: isDesktopCollapsed ? "80px" : "280px",
           }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
         >
@@ -100,27 +100,35 @@ export default function AppShell({ children }: AppShellProps) {
             onClick={toggleDesktopSidebar}
             className="absolute -right-3 top-6 w-6 h-6 bg-surface border border-border rounded-full flex items-center justify-center text-foreground-secondary hover:text-foreground hover:bg-surface-elevated transition-colors z-10"
           >
-            {isDesktopCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+            {isDesktopCollapsed ? (
+              <ChevronRight size={14} />
+            ) : (
+              <ChevronLeft size={14} />
+            )}
           </button>
 
           {/* Logo */}
           <div className="p-6 border-b border-border">
             <div className="flex items-center space-x-3">
-              <img 
-                src="/kyroo-logo.svg" 
-                alt="KYROO Logo" 
+              <img
+                src="/kyroo-logo.svg"
+                alt="KYROO Logo"
                 className="w-10 h-10 flex-shrink-0"
               />
               <AnimatePresence>
                 {!isDesktopCollapsed && (
                   <motion.div
                     initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
+                    animate={{ opacity: 1, width: "auto" }}
                     exit={{ opacity: 0, width: 0 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <h1 className="text-xl font-bold text-foreground whitespace-nowrap">KYROO</h1>
-                    <p className="text-xs text-foreground-secondary whitespace-nowrap">Super IA Orchestrator</p>
+                    <h1 className="text-xl font-bold text-foreground whitespace-nowrap">
+                      KYROO
+                    </h1>
+                    <p className="text-xs text-foreground-secondary whitespace-nowrap">
+                      Super IA Orchestrator
+                    </p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -137,8 +145,8 @@ export default function AppShell({ children }: AppShellProps) {
                     className={({ isActive }) =>
                       `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface group relative ${
                         isActive
-                          ? 'bg-accent-violet text-white'
-                          : 'text-foreground-secondary hover:text-foreground hover:bg-surface-elevated'
+                          ? "bg-accent-violet text-white"
+                          : "text-foreground-secondary hover:text-foreground hover:bg-surface-elevated"
                       }`
                     }
                     title={isDesktopCollapsed ? item.label : undefined}
@@ -149,7 +157,7 @@ export default function AppShell({ children }: AppShellProps) {
                         <motion.span
                           className="font-medium whitespace-nowrap"
                           initial={{ opacity: 0, width: 0 }}
-                          animate={{ opacity: 1, width: 'auto' }}
+                          animate={{ opacity: 1, width: "auto" }}
                           exit={{ opacity: 0, width: 0 }}
                           transition={{ duration: 0.2 }}
                         >
@@ -157,7 +165,7 @@ export default function AppShell({ children }: AppShellProps) {
                         </motion.span>
                       )}
                     </AnimatePresence>
-                    
+
                     {/* Tooltip for collapsed state */}
                     {isDesktopCollapsed && (
                       <div className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
@@ -170,7 +178,7 @@ export default function AppShell({ children }: AppShellProps) {
             </ul>
 
             {/* Admin Section */}
-            {profile?.role === 'admin' && (
+            {profile?.role === "admin" && (
               <>
                 <div className="my-4 border-t border-border"></div>
                 <ul className="space-y-2">
@@ -180,11 +188,11 @@ export default function AppShell({ children }: AppShellProps) {
                       className={({ isActive }) =>
                         `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface group relative ${
                           isActive
-                            ? 'bg-accent-violet text-white'
-                            : 'text-foreground-secondary hover:text-foreground hover:bg-surface-elevated'
+                            ? "bg-accent-violet text-white"
+                            : "text-foreground-secondary hover:text-foreground hover:bg-surface-elevated"
                         }`
                       }
-                      title={isDesktopCollapsed ? 'Admin Dashboard' : undefined}
+                      title={isDesktopCollapsed ? "Admin Dashboard" : undefined}
                     >
                       <Shield size={20} className="flex-shrink-0" />
                       <AnimatePresence>
@@ -192,7 +200,7 @@ export default function AppShell({ children }: AppShellProps) {
                           <motion.span
                             className="font-medium whitespace-nowrap"
                             initial={{ opacity: 0, width: 0 }}
-                            animate={{ opacity: 1, width: 'auto' }}
+                            animate={{ opacity: 1, width: "auto" }}
                             exit={{ opacity: 0, width: 0 }}
                             transition={{ duration: 0.2 }}
                           >
@@ -200,7 +208,7 @@ export default function AppShell({ children }: AppShellProps) {
                           </motion.span>
                         )}
                       </AnimatePresence>
-                      
+
                       {/* Tooltip for collapsed state */}
                       {isDesktopCollapsed && (
                         <div className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
@@ -219,9 +227,9 @@ export default function AppShell({ children }: AppShellProps) {
             {/* Profile */}
             <div className="flex items-center space-x-3 mb-4">
               {profile?.avatar_url ? (
-                <img 
-                  src={profile.avatar_url} 
-                  alt="Avatar" 
+                <img
+                  src={profile.avatar_url}
+                  alt="Avatar"
                   className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                 />
               ) : (
@@ -234,14 +242,17 @@ export default function AppShell({ children }: AppShellProps) {
                   <motion.div
                     className="flex-1 min-w-0"
                     initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
+                    animate={{ opacity: 1, width: "auto" }}
                     exit={{ opacity: 0, width: 0 }}
                     transition={{ duration: 0.2 }}
                   >
                     <p className="text-sm font-medium text-foreground truncate">
-                      {profile?.display_name || 'User'}
+                      {profile?.display_name || "User"}
                     </p>
-                    <SidebarPlanBadge planType={planType} isTrialPro={isTrialPro} />
+                    <SidebarPlanBadge
+                      planType={planType}
+                      isTrialPro={isTrialPro}
+                    />
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -253,7 +264,7 @@ export default function AppShell({ children }: AppShellProps) {
               className="w-full flex items-center space-x-3 px-4 py-3 text-foreground-secondary hover:text-foreground hover:bg-surface-elevated rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-surface group relative"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              title={isDesktopCollapsed ? 'Logout' : undefined}
+              title={isDesktopCollapsed ? "Logout" : undefined}
             >
               <LogOut size={20} className="flex-shrink-0" />
               <AnimatePresence>
@@ -261,7 +272,7 @@ export default function AppShell({ children }: AppShellProps) {
                   <motion.span
                     className="font-medium whitespace-nowrap"
                     initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
+                    animate={{ opacity: 1, width: "auto" }}
                     exit={{ opacity: 0, width: 0 }}
                     transition={{ duration: 0.2 }}
                   >
@@ -269,7 +280,7 @@ export default function AppShell({ children }: AppShellProps) {
                   </motion.span>
                 )}
               </AnimatePresence>
-              
+
               {/* Tooltip for collapsed state */}
               {isDesktopCollapsed && (
                 <div className="absolute left-full ml-2 px-2 py-1 bg-surface-elevated text-foreground text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-50">
@@ -285,7 +296,7 @@ export default function AppShell({ children }: AppShellProps) {
       {isMobile && (
         <AnimatePresence>
           {isMobileMenuOpen && (
-            <motion.aside 
+            <motion.aside
               className="fixed left-0 top-0 w-80 bg-surface border-r border-border flex flex-col z-50 h-screen"
               initial={{ x: -320 }}
               animate={{ x: 0 }}
@@ -295,14 +306,16 @@ export default function AppShell({ children }: AppShellProps) {
               {/* Header with close button */}
               <div className="flex items-center justify-between p-6 border-b border-border">
                 <div className="flex items-center space-x-3">
-                  <img 
-                    src="/kyroo-logo.svg" 
-                    alt="KYROO Logo" 
+                  <img
+                    src="/kyroo-logo.svg"
+                    alt="KYROO Logo"
                     className="w-10 h-10"
                   />
                   <div>
                     <h1 className="text-xl font-bold text-foreground">KYROO</h1>
-                    <p className="text-xs text-foreground-secondary">Super IA Orchestrator</p>
+                    <p className="text-xs text-foreground-secondary">
+                      Super IA Orchestrator
+                    </p>
                   </div>
                 </div>
                 <button
@@ -324,8 +337,8 @@ export default function AppShell({ children }: AppShellProps) {
                         className={({ isActive }) =>
                           `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface ${
                             isActive
-                              ? 'bg-accent-violet text-white'
-                              : 'text-foreground-secondary hover:text-foreground hover:bg-surface-elevated'
+                              ? "bg-accent-violet text-white"
+                              : "text-foreground-secondary hover:text-foreground hover:bg-surface-elevated"
                           }`
                         }
                       >
@@ -338,7 +351,7 @@ export default function AppShell({ children }: AppShellProps) {
               </nav>
 
               {/* Admin Section Mobile */}
-              {profile?.role === 'admin' && (
+              {profile?.role === "admin" && (
                 <>
                   <div className="mx-4 border-t border-border"></div>
                   <nav className="p-4">
@@ -350,8 +363,8 @@ export default function AppShell({ children }: AppShellProps) {
                           className={({ isActive }) =>
                             `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface ${
                               isActive
-                                ? 'bg-accent-violet text-white'
-                                : 'text-foreground-secondary hover:text-foreground hover:bg-surface-elevated'
+                                ? "bg-accent-violet text-white"
+                                : "text-foreground-secondary hover:text-foreground hover:bg-surface-elevated"
                             }`
                           }
                         >
@@ -369,9 +382,9 @@ export default function AppShell({ children }: AppShellProps) {
                 {/* Profile */}
                 <div className="flex items-center space-x-3 mb-4">
                   {profile?.avatar_url ? (
-                    <img 
-                      src={profile.avatar_url} 
-                      alt="Avatar" 
+                    <img
+                      src={profile.avatar_url}
+                      alt="Avatar"
                       className="w-10 h-10 rounded-full object-cover"
                     />
                   ) : (
@@ -381,9 +394,12 @@ export default function AppShell({ children }: AppShellProps) {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">
-                      {profile?.display_name || 'User'}
+                      {profile?.display_name || "User"}
                     </p>
-                    <SidebarPlanBadge planType={planType} isTrialPro={isTrialPro} />
+                    <SidebarPlanBadge
+                      planType={planType}
+                      isTrialPro={isTrialPro}
+                    />
                   </div>
                 </div>
 
@@ -404,7 +420,13 @@ export default function AppShell({ children }: AppShellProps) {
       )}
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main
+        className="overflow-auto"
+        style={{
+          marginLeft: !isMobile ? (isDesktopCollapsed ? "80px" : "280px") : "0",
+          minHeight: "100vh",
+        }}
+      >
         {/* Mobile Header */}
         {isMobile && (
           <div className="bg-surface border-b border-border p-4 flex items-center justify-between">
@@ -415,11 +437,7 @@ export default function AppShell({ children }: AppShellProps) {
               <Menu size={24} />
             </button>
             <div className="flex items-center space-x-2">
-              <img 
-                src="/kyroo-logo.svg" 
-                alt="KYROO Logo" 
-                className="w-8 h-8"
-              />
+              <img src="/kyroo-logo.svg" alt="KYROO Logo" className="w-8 h-8" />
               <span className="text-lg font-bold text-foreground">KYROO</span>
             </div>
             <div className="w-10"></div> {/* Spacer for centering */}
@@ -436,5 +454,5 @@ export default function AppShell({ children }: AppShellProps) {
         </motion.div>
       </main>
     </div>
-  )
+  );
 }
