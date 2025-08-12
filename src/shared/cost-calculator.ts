@@ -274,7 +274,7 @@ export function calculateEnterpriseCosts(
   }
 
   // Email costs (Resend)
-  if (limits.maxEmailsPerMonth && limits.maxEmailsPerMonth > 0) {
+  if (limits.maxEmailsPerMonth !== undefined && limits.maxEmailsPerMonth > 0) {
     const emailsPerMonth = limits.maxEmailsPerMonth === -1 ? 50000 : limits.maxEmailsPerMonth;
     const usage = emailsPerMonth * utilizationRate;
     
@@ -289,7 +289,7 @@ export function calculateEnterpriseCosts(
   }
 
   // SMS costs (Twilio)
-  if (limits.maxSmsPerMonth && limits.maxSmsPerMonth > 0) {
+  if (limits.maxSmsPerMonth !== undefined && limits.maxSmsPerMonth > 0) {
     const smsPerMonth = limits.maxSmsPerMonth === -1 ? 1000 : limits.maxSmsPerMonth;
     const usage = smsPerMonth * utilizationRate;
     

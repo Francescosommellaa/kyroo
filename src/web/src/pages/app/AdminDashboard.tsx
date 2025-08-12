@@ -13,12 +13,11 @@ import {
   Settings
 } from 'lucide-react'
 import AppShell from '../../components/AppShell'
-import PlanManagementModal from '../../components/PlanManagementModal'
+
 import PlanBadge from '../../components/PlanBadge'
 import { useAuth } from '../../contexts/AuthContext'
 import { useNavigate } from 'react-router-dom'
-import type { PlanType } from '../../../shared/plans'
-
+import type { PlanType } from 'shared/plans'
 interface User {
   id: string
   display_name: string | null
@@ -366,8 +365,8 @@ export default function AdminDashboard() {
                           {/* Manage Plan */}
                           <motion.button
                             onClick={() => {
-                              setSelectedUser(user);
-                              setPlanModalOpen(true);
+                              // TODO: Implement plan management modal
+                              console.log('Manage plan for user:', user.id);
                             }}
                             className="p-2 text-blue-500 hover:bg-blue-500/10 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-surface-elevated"
                             title="Gestisci Piano"

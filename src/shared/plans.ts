@@ -47,6 +47,8 @@ export interface PlanLimits {
   
   // Team features
   canInviteUsers: boolean;
+  maxEmailsPerMonth: number;
+  maxSmsPerMonth: number;
 }
 
 export interface PlanConfig {
@@ -77,6 +79,7 @@ export const PLAN_CONFIGS: Record<PlanType, PlanConfig> = {
       maxCollaboratorsPerWorkspace: 0,
       maxActiveChatPerWorkspace: 10,
       maxChatInputTokens: 8000,
+      maxEmbeddingTokens: 1000,
       maxWebSearchesPerDay: 25,
       webAgentEnabled: false,
       maxWebAgentRunsPerMonth: 0,
@@ -95,6 +98,8 @@ export const PLAN_CONFIGS: Record<PlanType, PlanConfig> = {
       priority: 'standard',
       dataRetentionDays: 30,
       canInviteUsers: false,
+      maxEmailsPerMonth: 3000,
+      maxSmsPerMonth: 0,
     },
     features: [
       'Chat illimitate',
@@ -120,6 +125,7 @@ export const PLAN_CONFIGS: Record<PlanType, PlanConfig> = {
       maxCollaboratorsPerWorkspace: 5,
       maxActiveChatPerWorkspace: -1, // unlimited
       maxChatInputTokens: 32000,
+      maxEmbeddingTokens: 10000,
       maxWebSearchesPerDay: 150,
       webAgentEnabled: true,
       maxWebAgentRunsPerMonth: 5,
@@ -138,6 +144,8 @@ export const PLAN_CONFIGS: Record<PlanType, PlanConfig> = {
       priority: 'high',
       dataRetentionDays: 90,
       canInviteUsers: true,
+      maxEmailsPerMonth: -1, // unlimited
+      maxSmsPerMonth: -1, // unlimited
     },
     features: [
       'Fino a 3 workspace',
@@ -166,6 +174,7 @@ export const PLAN_CONFIGS: Record<PlanType, PlanConfig> = {
       maxCollaboratorsPerWorkspace: -1, // unlimited
       maxActiveChatPerWorkspace: -1, // unlimited
       maxChatInputTokens: 128000,
+      maxEmbeddingTokens: -1, // unlimited
       maxWebSearchesPerDay: -1, // fair use
       webAgentEnabled: true,
       maxWebAgentRunsPerMonth: -1, // unlimited
@@ -184,6 +193,8 @@ export const PLAN_CONFIGS: Record<PlanType, PlanConfig> = {
       priority: 'maximum',
       dataRetentionDays: -1, // contract defined
       canInviteUsers: true,
+      maxEmailsPerMonth: -1, // unlimited
+      maxSmsPerMonth: -1, // unlimited
     },
     features: [
       'Workspace illimitati',
