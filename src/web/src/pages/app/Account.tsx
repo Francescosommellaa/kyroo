@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
 import { motion } from 'framer-motion'
+import { useState, useRef, useEffect } from 'react'
 import { 
   User, 
   Mail, 
@@ -23,11 +23,23 @@ export default function Account() {
   
   // Form state
   const [formData, setFormData] = useState({
-    display_name: profile?.display_name || '',
-    phone: profile?.phone || '',
+    display_name: '',
+    phone: '',
     first_name: '',
     last_name: ''
   })
+
+  // Sync form data with profile when profile changes
+  useEffect(() => {
+    if (profile) {
+      setFormData({
+        display_name: profile.display_name || '',
+        phone: profile.phone || '',
+        first_name: '',
+        last_name: ''
+      })
+    }
+  }, [profile])
 
   // Get user plan from profile
   const userPlan = profile?.plan || 'free'
