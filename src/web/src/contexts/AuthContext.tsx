@@ -216,6 +216,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         throw updateResult.error
       }
 
+      // Force refresh profile data
+      await fetchProfile()
+
       console.log('Avatar updated successfully')
       return { error: null, url: data.publicUrl }
     } catch (error) {
