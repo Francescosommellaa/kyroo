@@ -14,10 +14,11 @@ import Knowledge from "./pages/app/Knowledge";
 import Ingestion from "./pages/app/Ingestion";
 import Billing from "./pages/app/Billing";
 import Account from "./pages/app/Account";
-impoimport AdminDashboard from "./pages/app/AdminDashboard";
+import AdminDashboard from "./pages/app/AdminDashboard";
 import EnterpriseLimits from "./pages/app/EnterpriseLimits";
+import Pricing from "./pages/Pricing";
 
-function AppRoutes() {
+export default function AppRoutes() {
   const { loading } = useAuth();
 
   if (loading) {
@@ -41,6 +42,7 @@ function AppRoutes() {
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<TermsOfService />} />
       <Route path="/contacts" element={<ContactsPage />} />
+      <Route path="/pricing" element={<Pricing />} />
       
       {/* Protected app routes */}
       <Route path="/app" element={<ProtectedRoute />}>
@@ -60,11 +62,5 @@ function AppRoutes() {
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
-}nt={<Navigate to="/" replace />} />
-    </Routes>
-  );
 }
 
-export default function App() {
-  return <AppRoutes />;
-}

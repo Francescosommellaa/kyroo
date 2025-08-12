@@ -9,68 +9,72 @@ import type { PlanLimits } from './plans';
 export interface UnitCosts {
   // Per token costs
   chatTokenCost: number; // EUR per 1000 tokens
+  embeddingTokenCost: number; // EUR per 1000 tokens
   
   // Per search costs
   webSearchCost: number; // EUR per search
   
+  // Browser headless costs
+  browserlessUnitCost: number; // EUR per Browserless unit
+
+  // Parsing/OCR documents costs
+  unstructuredPageCost: number; // EUR per page processed by Unstructured
+
   // Storage costs
   knowledgeBaseStorageCost: number; // EUR per GB per month
-  
-  // File processing costs
-  fileProcessingCost: number; // EUR per file
-  fileSizeCost: number; // EUR per MB
-  
-  // Web Agent costs
-  webAgentRunCost: number; // EUR per run
-  webAgentPageCost: number; // EUR per page visited
-  webAgentTimeCost: number; // EUR per minute
+  databaseStorageCost: number; // EUR per GB per month
   
   // Workflow costs
-  workflowExecutionCost: number; // EUR per execution
-  workflowConcurrencyCost: number; // EUR per concurrent slot per month
-  workflowTimeCost: number; // EUR per minute
+  qstashMessageCost: number; // EUR per QStash message
   
-  // Infrastructure costs
+  // Email costs
+  resendEmailCost: number; // EUR per email
+
+  // SMS costs
+  twilioSmsOutboundCost: number; // EUR per outbound SMS
+  twilioSmsInboundCost: number; // EUR per inbound SMS
+
+  // Generic infrastructure costs (existing, not specified by user, keeping for now)
   workspaceCost: number; // EUR per workspace per month
   userCost: number; // EUR per user per month
   collaboratorCost: number; // EUR per collaborator per month
-  
-  // Data retention costs
   dataRetentionCost: number; // EUR per GB per day
 }
 
 // Default unit costs based on real service pricing (January 2025)
 export const DEFAULT_UNIT_COSTS: UnitCosts = {
-  // AI Processing costs (based on OpenAI GPT-4o and Claude pricing)
-  chatTokenCost: 0.005, // €0.005 per 1000 tokens (average of GPT-4o $5/1M input + Claude Sonnet $3/1M input)
-  
-  // Web search costs (based on Tavily API pricing)
-  webSearchCost: 0.008, // €0.008 per search (Tavily: $0.008 per credit/search)
-  
-  // Vector database and storage costs (based on Milvus/Zilliz Cloud pricing)
-  knowledgeBaseStorageCost: 0.25, // €0.25 per GB per month (Zilliz Cloud vector storage)
-  
-  // File processing costs (based on embedding costs - Cohere Embed)
-  fileProcessingCost: 0.001, // €0.001 per file (small embedding cost)
-  fileSizeCost: 0.0001, // €0.0001 per MB (processing cost)
-  
-  // Web Agent costs (combination of browser automation + AI processing)
-  webAgentRunCost: 0.10, // €0.10 per run (infrastructure + coordination)
-  webAgentPageCost: 0.005, // €0.005 per page (processing + extraction)
-  webAgentTimeCost: 0.02, // €0.02 per minute (compute time)
-  
-  // Workflow costs (compute + orchestration)
-  workflowExecutionCost: 0.05, // €0.05 per execution
-  workflowConcurrencyCost: 5.00, // €5.00 per slot per month (compute reservation)
-  workflowTimeCost: 0.01, // €0.01 per minute
-  
-  // Infrastructure costs (based on Supabase pricing)
-  workspaceCost: 2.00, // €2.00 per workspace per month (database + storage allocation)
-  userCost: 0.50, // €0.50 per user per month (auth + profile storage)
-  collaboratorCost: 0.30, // €0.30 per collaborator per month (reduced cost)
-  
-  // Data retention costs (based on Supabase storage pricing)
-  dataRetentionCost: 0.0002, // €0.0002 per GB per day (storage cost)
+  // LLM & NLP
+  chatTokenCost: 0.004, // €0.004 per 1000 tokens (average of GPT-4o and Claude Sonnet input tokens)
+  embeddingTokenCost: 0.0001, // €0.0001 per 1000 tokens (Cohere Embeddings, estimated)
+
+  // Ricerca sul web (Tavily)
+  webSearchCost: 0.008, // €0.008 per credit (Tavily: $0.008/credit)
+
+  // Browser headless (Browserless)
+  browserlessUnitCost: 0.00083, // €0.00083 per unit (Browserless: $50/month for 60k units)
+
+  // Parsing/OCR documenti (Unstructured Serverless API)
+  unstructuredPageCost: 0.01, // €0.01 per page (Unstructured: $10 per 1000 pages)
+
+  // Storage file (Supabase Storage)
+  knowledgeBaseStorageCost: 0.021, // €0.021 per GB per month (Supabase Pro overage)
+  databaseStorageCost: 0.125, // €0.125 per GB per month (Supabase Pro overage)
+
+  // Scheduler/queue (Upstash QStash)
+  qstashMessageCost: 0.00001, // €0.00001 per message (QStash: $1 per 100k messages)
+
+  // Email transazionali (Resend)
+  resendEmailCost: 0.0004, // €0.0004 per email (Resend: $20/month for 50k emails)
+
+  // SMS (Twilio SMS Italia)
+  twilioSmsOutboundCost: 0.0927, // €0.0927 per SMS outbound
+  twilioSmsInboundCost: 0.0200, // €0.0200 per SMS inbound
+
+  // Generic infrastructure costs (existing, not specified by user, keeping for now)
+  workspaceCost: 2.00,
+  userCost: 0.50,
+  collaboratorCost: 0.30,
+  dataRetentionCost: 0.0002,
 };
 
 export interface CostEstimate {
@@ -161,7 +165,24 @@ export function calculateEnterpriseCosts(
     });
   }
 
-  // Web search costs
+
+
+
+
+  // Embedding token costs
+  if (limits.maxEmbeddingTokens && limits.maxEmbeddingTokens > 0) {
+    const tokensPerMonth = limits.maxEmbeddingTokens === -1 ? 5000000 : limits.maxEmbeddingTokens * 30 * 10; // Assume 10 embeddings per day
+    const usage = tokensPerMonth * utilizationRate;
+    
+    estimates.push({
+      category: 'AI Processing',
+      description: 'Embedding token processing',
+      unitCost: unitCosts.embeddingTokenCost,
+      estimatedUsage: usage / 1000, // Convert to thousands
+      monthlyCost: (usage / 1000) * unitCosts.embeddingTokenCost,
+      unit: 'k tokens',
+    });
+  }
   if (limits.maxWebSearchesPerDay && limits.maxWebSearchesPerDay > 0) {
     const searchesPerMonth = limits.maxWebSearchesPerDay === -1 ? 10000 : limits.maxWebSearchesPerDay * 30;
     const usage = searchesPerMonth * utilizationRate;
@@ -191,125 +212,103 @@ export function calculateEnterpriseCosts(
     });
   }
 
-  // File processing costs
+  // File processing costs (Unstructured)
   if (limits.maxFilesPerMonth && limits.maxFilesPerMonth > 0) {
-    const filesPerMonth = limits.maxFilesPerMonth === -1 ? 1000 : limits.maxFilesPerMonth;
-    const usage = filesPerMonth * utilizationRate;
+    const pagesPerMonth = limits.maxFilesPerMonth === -1 ? 10000 : limits.maxFilesPerMonth * 10; // Assume 10 pages per file
+    const usage = pagesPerMonth * utilizationRate;
     
     estimates.push({
       category: 'Processing',
-      description: 'File processing',
-      unitCost: unitCosts.fileProcessingCost,
+      description: 'Document parsing (Unstructured)',
+      unitCost: unitCosts.unstructuredPageCost,
       estimatedUsage: usage,
-      monthlyCost: usage * unitCosts.fileProcessingCost,
-      unit: 'files',
+      monthlyCost: usage * unitCosts.unstructuredPageCost,
+      unit: 'pages',
     });
-
-    // File size costs
-    if (limits.maxFileSizeMB && limits.maxFileSizeMB > 0) {
-      const avgFileSizeMB = limits.maxFileSizeMB === -1 ? 10 : Math.min(limits.maxFileSizeMB, 10); // Assume average 10MB
-      const totalSizeMB = usage * avgFileSizeMB;
-      
-      estimates.push({
-        category: 'Processing',
-        description: 'File size processing',
-        unitCost: unitCosts.fileSizeCost,
-        estimatedUsage: totalSizeMB,
-        monthlyCost: totalSizeMB * unitCosts.fileSizeCost,
-        unit: 'MB',
-      });
-    }
   }
 
-  // Web Agent costs
+  // Web Agent costs (Browserless)
   if (limits.maxWebAgentRunsPerMonth && limits.maxWebAgentRunsPerMonth > 0) {
     const runsPerMonth = limits.maxWebAgentRunsPerMonth === -1 ? 500 : limits.maxWebAgentRunsPerMonth;
-    const usage = runsPerMonth * utilizationRate;
+    const unitsPerRun = 1; // Assume 1 unit per run for simplicity (up to 30s)
+    const totalUnits = runsPerMonth * unitsPerRun * utilizationRate;
     
     estimates.push({
       category: 'Automation',
-      description: 'Web Agent runs',
-      unitCost: unitCosts.webAgentRunCost,
-      estimatedUsage: usage,
-      monthlyCost: usage * unitCosts.webAgentRunCost,
-      unit: 'runs',
+      description: 'Web Agent browser sessions (Browserless)',
+      unitCost: unitCosts.browserlessUnitCost,
+      estimatedUsage: totalUnits,
+      monthlyCost: totalUnits * unitCosts.browserlessUnitCost,
+      unit: 'units',
     });
-
-    // Web Agent page costs
-    if (limits.maxWebAgentPagesPerRun && limits.maxWebAgentPagesPerRun > 0) {
-      const pagesPerRun = limits.maxWebAgentPagesPerRun === -1 ? 50 : limits.maxWebAgentPagesPerRun;
-      const totalPages = usage * pagesPerRun;
-      
-      estimates.push({
-        category: 'Automation',
-        description: 'Web Agent pages',
-        unitCost: unitCosts.webAgentPageCost,
-        estimatedUsage: totalPages,
-        monthlyCost: totalPages * unitCosts.webAgentPageCost,
-        unit: 'pages',
-      });
-    }
-
-    // Web Agent time costs
-    if (limits.maxWebAgentRunDurationMinutes && limits.maxWebAgentRunDurationMinutes > 0) {
-      const minutesPerRun = limits.maxWebAgentRunDurationMinutes === -1 ? 30 : limits.maxWebAgentRunDurationMinutes;
-      const totalMinutes = usage * minutesPerRun;
-      
-      estimates.push({
-        category: 'Automation',
-        description: 'Web Agent runtime',
-        unitCost: unitCosts.webAgentTimeCost,
-        estimatedUsage: totalMinutes,
-        monthlyCost: totalMinutes * unitCosts.webAgentTimeCost,
-        unit: 'minutes',
-      });
-    }
   }
 
-  // Workflow costs
+  // Workflow execution costs (Upstash QStash)
   if (limits.maxWorkflowExecutionsPerDay && limits.maxWorkflowExecutionsPerDay > 0) {
-    const executionsPerMonth = limits.maxWorkflowExecutionsPerDay === -1 ? 3000 : limits.maxWorkflowExecutionsPerDay * 30;
-    const usage = executionsPerMonth * utilizationRate;
+    const messagesPerMonth = limits.maxWorkflowExecutionsPerDay === -1 ? 30000 : limits.maxWorkflowExecutionsPerDay * 30 * 10; // Assume 10 messages per execution
+    const usage = messagesPerMonth * utilizationRate;
     
     estimates.push({
       category: 'Automation',
-      description: 'Workflow executions',
-      unitCost: unitCosts.workflowExecutionCost,
+      description: 'Workflow messages (QStash)',
+      unitCost: unitCosts.qstashMessageCost,
       estimatedUsage: usage,
-      monthlyCost: usage * unitCosts.workflowExecutionCost,
-      unit: 'executions',
+      monthlyCost: usage * unitCosts.qstashMessageCost,
+      unit: 'messages',
     });
   }
 
-  // Workflow concurrency costs
-  if (limits.maxWorkflowConcurrency && limits.maxWorkflowConcurrency > 0) {
-    const concurrencySlots = limits.maxWorkflowConcurrency === -1 ? 20 : limits.maxWorkflowConcurrency;
-    const usage = concurrencySlots * utilizationRate;
-    
-    estimates.push({
-      category: 'Infrastructure',
-      description: 'Workflow concurrency slots',
-      unitCost: unitCosts.workflowConcurrencyCost,
-      estimatedUsage: usage,
-      monthlyCost: usage * unitCosts.workflowConcurrencyCost,
-      unit: 'slots',
-    });
-  }
-
-  // Data retention costs
-  if (limits.dataRetentionDays && limits.dataRetentionDays > 0) {
-    const retentionDays = limits.dataRetentionDays === -1 ? 365 : limits.dataRetentionDays;
-    const estimatedDataGB = 100; // Assume 100GB of data per user
-    const totalDataGB = estimatedDataGB * utilizationRate;
-    const monthlyCost = (totalDataGB * unitCosts.dataRetentionCost * retentionDays) / 30;
+  // Database storage costs (Supabase Postgres)
+  if (limits.maxKnowledgeBaseSizeGB && limits.maxKnowledgeBaseSizeGB > 0) { // Reusing KB size for DB storage
+    const storageGB = limits.maxKnowledgeBaseSizeGB === -1 ? 1000 : limits.maxKnowledgeBaseSizeGB;
+    const usage = storageGB * utilizationRate;
     
     estimates.push({
       category: 'Storage',
-      description: 'Data retention',
-      unitCost: unitCosts.dataRetentionCost,
-      estimatedUsage: totalDataGB,
-      monthlyCost: monthlyCost,
-      unit: 'GB-days',
+      description: 'Database storage (Supabase Postgres)',
+      unitCost: unitCosts.databaseStorageCost,
+      estimatedUsage: usage,
+      monthlyCost: usage * unitCosts.databaseStorageCost,
+      unit: 'GB',
+    });
+  }
+
+  // Email costs (Resend)
+  if (limits.maxEmailsPerMonth && limits.maxEmailsPerMonth > 0) {
+    const emailsPerMonth = limits.maxEmailsPerMonth === -1 ? 50000 : limits.maxEmailsPerMonth;
+    const usage = emailsPerMonth * utilizationRate;
+    
+    estimates.push({
+      category: 'External Services',
+      description: 'Transactional emails (Resend)',
+      unitCost: unitCosts.resendEmailCost,
+      estimatedUsage: usage,
+      monthlyCost: usage * unitCosts.resendEmailCost,
+      unit: 'emails',
+    });
+  }
+
+  // SMS costs (Twilio)
+  if (limits.maxSmsPerMonth && limits.maxSmsPerMonth > 0) {
+    const smsPerMonth = limits.maxSmsPerMonth === -1 ? 1000 : limits.maxSmsPerMonth;
+    const usage = smsPerMonth * utilizationRate;
+    
+    estimates.push({
+      category: 'External Services',
+      description: 'Outbound SMS (Twilio)',
+      unitCost: unitCosts.twilioSmsOutboundCost,
+      estimatedUsage: usage,
+      monthlyCost: usage * unitCosts.twilioSmsOutboundCost,
+      unit: 'SMS',
+    });
+
+    estimates.push({
+      category: 'External Services',
+      description: 'Inbound SMS (Twilio)',
+      unitCost: unitCosts.twilioSmsInboundCost,
+      estimatedUsage: usage * 0.1, // Assume 10% inbound SMS
+      monthlyCost: usage * 0.1 * unitCosts.twilioSmsInboundCost,
+      unit: 'SMS',
     });
   }
 

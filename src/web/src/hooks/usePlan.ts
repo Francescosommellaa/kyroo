@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import type { PlanType, PlanConfig } from '../../../shared/plans';
-import { getPlanConfig, getPlanLimits } from '../../../shared/plans';
+import { getPlanConfig } from '../../../shared/plans';
 import type { UserUsage, UsageCheck } from '../../../shared/usage-tracking';
 
 interface PlanState {

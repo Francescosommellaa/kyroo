@@ -10,12 +10,13 @@ import {
   Filter,
   AlertTriangle,
   CreditCard,
-  Star,
-  Check
+  Settings
 } from 'lucide-react'
 import AppShell from '../../components/AppShell'
 import PlanManagementModal from '../../components/PlanManagementModal'
+import PlanBadge from '../../components/PlanBadge'
 import { useAuth } from '../../contexts/AuthContext'
+import { useNavigate } from 'react-router-dom'
 import type { PlanType } from '../../../shared/plans'
 
 interface User {
@@ -43,6 +44,7 @@ export default function AdminDashboard() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [planModalOpen, setPlanModalOpen] = useState(false)
   const { session } = useAuth()
+  const navigate = useNavigate()
 
   useEffect(() => {
     loadUsers()

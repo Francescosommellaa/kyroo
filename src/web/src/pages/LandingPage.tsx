@@ -39,27 +39,45 @@ export default function LandingPage() {
       name: "Free",
       price: "€0",
       period: "/mese",
-      features: ["5 workflow al mese", "Modelli base", "Support community", "Dashboard basic", "Cronologia 30 giorni"],
+      features: [
+        "3 workspace",
+        "5 utenti totali",
+        "10 ricerche web/giorno",
+        "20 file/mese",
+        "Support community"
+      ],
       cta: "Inizia Gratis",
       popular: false
     },
     {
       name: "Pro",
-      price: yearly ? "€182" : "€19",
+      price: yearly ? "€96" : "€12",
       period: yearly ? "/anno" : "/mese",
-      originalPrice: yearly ? "€228/anno" : undefined,
-      savings: yearly ? "Risparmia 20%" : undefined,
-      features: ["Workflow illimitati", "Tutti i modelli AI", "Support prioritario", "Analytics avanzate", "Integrazioni premium", "Cronologia estesa"],
+      originalPrice: yearly ? "€144/anno" : undefined,
+      savings: yearly ? "Risparmia 33%" : undefined,
+      features: [
+        "10 workspace",
+        "50 utenti totali",
+        "100 ricerche web/giorno",
+        "200 file/mese",
+        "Support prioritario",
+        "Prova gratuita 7 giorni"
+      ],
       cta: "Prova Pro",
       popular: true
     },
     {
       name: "Enterprise",
-      price: yearly ? "€374" : "€39",
-      period: yearly ? "/anno" : "/mese",
-      originalPrice: yearly ? "€468/anno" : undefined,
-      savings: yearly ? "Risparmia 20%" : undefined,
-      features: ["Tutto di Pro", "Team illimitati", "Onboarding dedicato", "Custom integrations", "SLA garantito", "Support 24/7"],
+      price: "Personalizzato",
+      period: "",
+      features: [
+        "Workspace illimitati",
+        "Utenti illimitati",
+        "Limiti personalizzabili",
+        "Support dedicato 24/7",
+        "SLA garantito",
+        "Onboarding dedicato"
+      ],
       cta: "Contatta Sales",
       popular: false
     }
@@ -288,6 +306,29 @@ export default function LandingPage() {
               </motion.div>
             ))}
           </div>
+          
+          {/* Compare Plans Button */}
+          <motion.div
+            className="text-center mt-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.3 }}
+          >
+            <motion.button
+              onClick={() => window.open('/pricing', '_blank')}
+              className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-accent-violet/10 to-accent-cyan/10 border border-accent-violet/20 rounded-2xl text-accent-violet hover:text-accent-cyan transition-all duration-300 hover:shadow-lg hover:scale-105 font-semibold"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Zap className="mr-2" size={20} />
+              Confronta tutti i piani e limiti
+              <ArrowRight className="ml-2" size={20} />
+            </motion.button>
+            <p className="text-foreground-secondary text-sm mt-3">
+              Visualizza tutti i dettagli, limiti e funzionalità di ogni piano
+            </p>
+          </motion.div>
         </div>
       </section>
 

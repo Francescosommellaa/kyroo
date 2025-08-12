@@ -3,7 +3,7 @@
  * Tracks user/workspace usage against plan limits
  */
 
-import type { PlanType, PlanLimits } from './plans';
+import type { PlanType } from './plans';
 
 export interface UsageMetrics {
   // Workspace metrics

@@ -4,7 +4,7 @@
  */
 
 import { motion } from 'framer-motion';
-import { Check, Star, Zap, Shield } from 'lucide-react';
+import { Check, Star, Shield } from 'lucide-react';
 import type { PlanConfig, PlanType } from '../../../shared/plans';
 import { formatLimit } from '../../../shared/plans';
 

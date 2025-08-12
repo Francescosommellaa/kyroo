@@ -14,6 +14,7 @@ export interface PlanLimits {
   // Chat limits
   maxActiveChatPerWorkspace: number;
   maxChatInputTokens: number;
+  maxEmbeddingTokens: number;
   
   // Search limits (per user per day)
   maxWebSearchesPerDay: number;

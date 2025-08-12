@@ -25,7 +25,7 @@ interface CostCalculatorProps {
 export default function CostCalculator({ limits, className = '' }: CostCalculatorProps) {
   const [costBreakdown, setCostBreakdown] = useState<CostBreakdown | null>(null);
   const [utilizationRate, setUtilizationRate] = useState(70); // 70% default
-  const [unitCosts, setUnitCosts] = useState<UnitCosts>(DEFAULT_UNIT_COSTS);
+  const [unitCosts] = useState<UnitCosts>(DEFAULT_UNIT_COSTS);
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
