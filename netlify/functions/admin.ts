@@ -108,7 +108,7 @@ export default async function handler(request: Request) {
 
     // Check if user is admin
     const { data: profile, error: profileError } = await supabaseAdmin
-      .from('profiles')
+      .from('user')
       .select('role')
       .eq('id', user.id)
       .single()
@@ -146,7 +146,7 @@ export default async function handler(request: Request) {
 
         try {
           const { data: userProfile, error } = await supabaseAdmin
-            .from('profiles')
+            .from('user')
             .select('id, display_name, custom_limits, plan, role')
             .eq('id', userId)
             .single()
@@ -185,8 +185,8 @@ export default async function handler(request: Request) {
       try {
         // List all users with simplified query first
         const { data: users, error } = await supabaseAdmin
-          .from('profiles')
-          .select('*')
+          .from('user')
+          .select('id, display_name, phone, avatar_url, role, plan, plan_expires_at, trial_start_date, trial_used, created_at, updated_at')
           .order('created_at', { ascending: false })
 
         if (error) {

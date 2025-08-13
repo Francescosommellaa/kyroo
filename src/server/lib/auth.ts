@@ -13,7 +13,7 @@ export interface AuthError extends Error {
  */
 export async function getUserFromBearer(req: Request): Promise<User> {
   const authHeader = req.headers.get('Authorization')
-  
+
   if (!authHeader?.startsWith('Bearer ')) {
     const error = new Error('Missing or invalid Authorization header') as AuthError
     error.status = 401
@@ -21,9 +21,9 @@ export async function getUserFromBearer(req: Request): Promise<User> {
   }
 
   const token = authHeader.replace('Bearer ', '')
-  
+
   const { data: { user }, error } = await supabaseAnon.auth.getUser(token)
-  
+
   if (error || !user) {
     const authError = new Error('Invalid or expired token') as AuthError
     authError.status = 401
@@ -40,7 +40,7 @@ export async function getUserFromBearer(req: Request): Promise<User> {
  */
 export async function requireAdmin(userId: string): Promise<void> {
   const { data, error } = await supabaseServer
-    .from('profiles')
+    .from('user')
     .select('role')
     .eq('id', userId)
     .single()
@@ -66,7 +66,7 @@ export async function requireAdmin(userId: string): Promise<void> {
 export async function isAdmin(userId: string): Promise<boolean> {
   try {
     const { data, error } = await supabaseServer
-      .from('profiles')
+      .from('user')
       .select('role')
       .eq('id', userId)
       .single()
