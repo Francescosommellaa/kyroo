@@ -1,0 +1,9 @@
+{
+  "name": "@kyroo/shared",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "exports": {
+    "./plans": "./plans.ts",
+    "./usage-tracking": "./usage-tracking.ts"
+  }
+}
