@@ -242,8 +242,9 @@ export default async function handler(request: Request) {
           })
         }
 
+        // Linea 246 - Correzione update role
         const { error } = await supabaseAdmin
-          .from('profiles')
+          .from('user')
           .update({ role: body.role })
           .eq('id', body.userId)
 
@@ -276,8 +277,9 @@ export default async function handler(request: Request) {
           updateData.plan_expires_at = body.expiresAt
         }
 
+        // Linea 280 - Correzione update plan
         const { error } = await supabaseAdmin
-          .from('profiles')
+          .from('user')
           .update(updateData)
           .eq('id', body.userId)
 
@@ -308,8 +310,9 @@ export default async function handler(request: Request) {
         const trialEndDate = new Date()
         trialEndDate.setDate(trialEndDate.getDate() + 7)
 
+        // Linea 312 - Correzione start trial
         const { error } = await supabaseAdmin
-          .from('profiles')
+          .from('user')
           .update({
             plan: 'pro',
             trial_start_date: trialStartDate.toISOString(),
@@ -340,8 +343,9 @@ export default async function handler(request: Request) {
           })
         }
 
+        // Linea 344 - Correzione update custom limits
         const { error } = await supabaseAdmin
-          .from('profiles')
+          .from('user')
           .update({ custom_limits: body.customLimits })
           .eq('id', body.userId)
 
@@ -385,7 +389,7 @@ export default async function handler(request: Request) {
         })
       }
 
-      // Delete user from auth (this will cascade to profiles via trigger)
+      // Delete user from auth (this will cascade to user via trigger)
       const { error } = await supabaseAdmin.auth.admin.deleteUser(userId)
 
       if (error) {
