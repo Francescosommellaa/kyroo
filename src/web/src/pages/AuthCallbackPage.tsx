@@ -7,7 +7,7 @@ import { supabase } from "../lib/supabase";
 export default function AuthCallbackPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  // Remove this line: const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -23,7 +23,7 @@ export default function AuthCallbackPage() {
         }
 
         if (data.session) {
-          setSuccess(true);
+          // Remove this line: setSuccess(true);
           // Reindirizza all'app dopo 2 secondi
           setTimeout(() => {
             navigate("/app");
@@ -37,7 +37,7 @@ export default function AuthCallbackPage() {
               "Errore nella verifica dell'email. Il link potrebbe essere scaduto.",
             );
           } else {
-            setSuccess(true);
+            // Remove this line: setSuccess(true);
             setTimeout(() => {
               navigate("/app");
             }, 2000);
