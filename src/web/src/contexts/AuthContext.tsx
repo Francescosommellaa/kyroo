@@ -100,7 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       );
 
       const queryPromise = supabase
-        .from("profiles")
+        .from("user")
         .select("*")
         .eq("id", userId)
         .single();
@@ -131,7 +131,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       // Verifica che Supabase sia configurato correttamente
       if (!supabase) {
-        return { error: { message: "Configurazione Supabase non valida" } as AuthError };
+        return {
+          error: { message: "Configurazione Supabase non valida" } as AuthError,
+        };
       }
 
       const { data, error } = await supabase.auth.signUp({
@@ -147,8 +149,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         // Gestisci errori specifici di configurazione
-        if (error.message.includes('API key') || error.message.includes('Invalid API key')) {
-          return { error: { message: "Errore di configurazione del servizio. Contatta il supporto." } as AuthError };
+        if (
+          error.message.includes("API key") ||
+          error.message.includes("Invalid API key")
+        ) {
+          return {
+            error: {
+              message:
+                "Errore di configurazione del servizio. Contatta il supporto.",
+            } as AuthError,
+          };
         }
         return { error };
       }
@@ -160,8 +170,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       return { error: null };
     } catch (err) {
-      console.error('SignUp error:', err);
-      return { error: { message: "Errore di connessione al servizio" } as AuthError };
+      console.error("SignUp error:", err);
+      return {
+        error: { message: "Errore di connessione al servizio" } as AuthError,
+      };
     }
   };
 
@@ -231,7 +243,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     try {
       const { error } = await supabase
-        .from("profiles")
+        .from("user")
         .update(updates)
         .eq("id", user.id);
 
