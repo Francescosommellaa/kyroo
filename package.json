@@ -10,7 +10,8 @@
     "src/server"
   ],
   "scripts": {
-    "build": "npm -w src/web run build || true",    "dev": "npm -w src/web run dev",
+    "build": "npm -w src/web run build || true",
+    "dev": "npm -w src/web run dev",
     "lint": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier --write .",
     "test": "npm -ws run test"

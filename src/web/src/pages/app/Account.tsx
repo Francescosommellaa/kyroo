@@ -1,145 +1,277 @@
-import { motion } from 'framer-motion'
-import { useState, useRef, useEffect } from 'react'
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  Camera, 
-  Save, 
-  AlertCircle, 
+import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import {
+  User,
+  Mail,
+  Phone,
+  Camera,
+  Save,
+  AlertCircle,
   CheckCircle,
   Crown,
   CreditCard,
-  ArrowRight
-} from 'lucide-react'
-import AppShell from '../../components/AppShell'
-import { useAuth } from '../../contexts/AuthContext'
+  ArrowRight,
+  Lock,
+  Eye,
+  EyeOff,
+} from "lucide-react";
+import AppShell from "../../components/AppShell";
+import { useAuth } from "../../contexts/AuthContext";
 
 export default function Account() {
-  const { user, profile, updateProfile, uploadAvatar } = useAuth()
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  
+  const { user, profile, updateProfile, uploadAvatar, updatePassword } =
+    useAuth();
+  const [loading, setLoading] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [message, setMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const [passwordMessage, setPasswordMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+
   // Form state
   const [formData, setFormData] = useState({
-    display_name: '',
-    phone: '',
-    first_name: '',
-    last_name: ''
-  })
+    display_name: "",
+    phone: "",
+    first_name: "",
+    last_name: "",
+  });
+
+  // Password form state
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false,
+  });
 
   // Sync form data with profile when profile changes
   useEffect(() => {
-    if (profile) {
+    if (profile && !hasUnsavedChanges && !isUpdatingPassword) {
+      // Aggiungi la condizione !isUpdatingPassword
       setFormData({
-        display_name: profile.display_name || '',
-        phone: profile.phone || '',
-        first_name: '',
-        last_name: ''
-      })
+        display_name: profile.display_name || "",
+        phone: profile.phone || "",
+        first_name: "",
+        last_name: "",
+      });
     }
-  }, [profile])
+  }, [profile, hasUnsavedChanges, isUpdatingPassword]);
 
   // Get user plan from profile
-  const userPlan = profile?.plan || 'free'
-  
+  const userPlan = profile?.plan || "free";
+
   const planInfo = {
     free: {
-      name: 'Free',
-      color: 'text-gray-500',
-      bgColor: 'bg-gray-500/10',
-      icon: User
+      name: "Free",
+      color: "text-gray-500",
+      bgColor: "bg-gray-500/10",
+      icon: User,
     },
     pro: {
-      name: 'Pro',
-      color: 'text-accent-violet',
-      bgColor: 'bg-accent-violet/10',
-      icon: Crown
+      name: "Pro",
+      color: "text-accent-violet",
+      bgColor: "bg-accent-violet/10",
+      icon: Crown,
     },
     enterprise: {
-      name: 'Enterprise',
-      color: 'text-accent-cyan',
-      bgColor: 'bg-accent-cyan/10',
-      icon: Crown
-    }
-  }
+      name: "Enterprise",
+      color: "text-accent-cyan",
+      bgColor: "bg-accent-cyan/10",
+      icon: Crown,
+    },
+  };
 
-  const currentPlan = planInfo[userPlan as keyof typeof planInfo] || planInfo.free
+  const currentPlan =
+    planInfo[userPlan as keyof typeof planInfo] || planInfo.free;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
-    }))
-  }
+      [name]: value,
+    }));
+    setHasUnsavedChanges(true);
+  };
 
   const handleAvatarClick = () => {
-    fileInputRef.current?.click()
-  }
+    fileInputRef.current?.click();
+  };
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
+    const file = e.target.files?.[0];
+    if (!file) return;
 
     // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setMessage({ type: 'error', text: 'Seleziona un file immagine valido' })
-      return
+    if (!file.type.startsWith("image/")) {
+      setMessage({ type: "error", text: "Seleziona un file immagine valido" });
+      return;
     }
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
-      setMessage({ type: 'error', text: 'L\'immagine deve essere inferiore a 5MB' })
-      return
+      setMessage({
+        type: "error",
+        text: "L'immagine deve essere inferiore a 5MB",
+      });
+      return;
     }
 
     try {
-      setLoading(true)
-      setMessage(null)
-      
-      const { error } = await uploadAvatar(file)
-      
+      setLoading(true);
+      setMessage(null);
+
+      const { error } = await uploadAvatar(file);
+
       if (error) {
-        setMessage({ type: 'error', text: error.message })
+        setMessage({ type: "error", text: error.message });
       } else {
-        setMessage({ type: 'success', text: 'Avatar aggiornato con successo!' })
+        setMessage({
+          type: "success",
+          text: "Avatar aggiornato con successo!",
+        });
       }
     } catch (err) {
-      setMessage({ type: 'error', text: 'Errore durante l\'upload dell\'avatar' })
+      setMessage({
+        type: "error",
+        text: "Errore durante l'upload dell'avatar",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     try {
-      setLoading(true)
-      setMessage(null)
-      
+      setLoading(true);
+      setMessage(null);
+
       const { error } = await updateProfile({
         display_name: formData.display_name.trim() || null,
-        phone: formData.phone.trim() || null
-      })
-      
+        phone: formData.phone.trim() || null,
+      });
+
       if (error) {
-        setMessage({ type: 'error', text: error.message })
+        setMessage({ type: "error", text: error.message });
       } else {
-        setMessage({ type: 'success', text: 'Profilo aggiornato con successo!' })
+        setMessage({
+          type: "success",
+          text: "Profilo aggiornato con successo!",
+        });
+        setHasUnsavedChanges(false); // Reset flag dopo il salvataggio
       }
     } catch (err) {
-      setMessage({ type: 'error', text: 'Errore durante l\'aggiornamento del profilo' })
+      setMessage({
+        type: "error",
+        text: "Errore durante l'aggiornamento del profilo",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
+
+  const handlePasswordInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+  ) => {
+    const { name, value } = e.target;
+    setPasswordData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const togglePasswordVisibility = (field: "current" | "new" | "confirm") => {
+    setShowPasswords((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
+  };
+
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // Validation
+    if (
+      !passwordData.currentPassword ||
+      !passwordData.newPassword ||
+      !passwordData.confirmPassword
+    ) {
+      setPasswordMessage({
+        type: "error",
+        text: "Tutti i campi sono obbligatori",
+      });
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordMessage({ type: "error", text: "Le password non coincidono" });
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      setPasswordMessage({
+        type: "error",
+        text: "La password deve essere di almeno 8 caratteri",
+      });
+      return;
+    }
+
+    if (passwordData.currentPassword === passwordData.newPassword) {
+      setPasswordMessage({
+        type: "error",
+        text: "La nuova password deve essere diversa da quella attuale",
+      });
+      return;
+    }
+
+    try {
+      setPasswordLoading(true);
+      setIsUpdatingPassword(true);
+      setPasswordMessage(null);
+
+      const { error } = await updatePassword(passwordData.newPassword);
+
+      if (error) {
+        setPasswordMessage({ type: "error", text: error.message });
+      } else {
+        setPasswordMessage({
+          type: "success",
+          text: "Password aggiornata con successo!",
+        });
+        // Reset form
+        setPasswordData({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      }
+    } catch (err) {
+      setPasswordMessage({
+        type: "error",
+        text: "Errore durante l'aggiornamento della password",
+      });
+    } finally {
+      setPasswordLoading(false);
+      setIsUpdatingPassword(false);
+    }
+  };
 
   return (
     <AppShell>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto ">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -148,7 +280,7 @@ export default function Account() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-foreground mb-2">
-              Ciao, {profile?.display_name || 'Utente'}!
+              Ciao, {profile?.display_name || "Utente"}!
             </h1>
             <p className="text-foreground-secondary">
               Gestisci il tuo profilo, preferenze e impostazioni di sicurezza
@@ -156,35 +288,39 @@ export default function Account() {
           </div>
 
           {/* Message */}
-          {message && (
+          {(message || passwordMessage) && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className={`mb-6 p-4 rounded-xl flex items-center gap-3 ${
-                message.type === 'success' 
-                  ? 'bg-green-500/10 border border-green-500/20 text-green-400'
-                  : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                message?.type === "success" ||
+                passwordMessage?.type === "success"
+                  ? "bg-green-500/10 border border-green-500/20 text-green-400"
+                  : "bg-red-500/10 border border-red-500/20 text-red-400"
               }`}
             >
-              {message.type === 'success' ? (
+              {message?.type === "success" ||
+              passwordMessage?.type === "success" ? (
                 <CheckCircle size={20} />
               ) : (
                 <AlertCircle size={20} />
               )}
-              {message.text}
+              {message?.text || passwordMessage?.text}
             </motion.div>
           )}
 
+          {/* Main Layout - 2 Columns */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Profile Section */}
-            <div className="lg:col-span-2">
+            {/* Left Column - Informazioni Profilo e Sicurezza */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Profile Information Card */}
               <motion.div
                 className="card"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.1 }}
               >
-                <div className="mb-6">
+                <div className="mb-8">
                   <h2 className="text-xl font-semibold text-foreground mb-2">
                     Informazioni Profilo
                   </h2>
@@ -197,14 +333,14 @@ export default function Account() {
                   {/* Avatar Section */}
                   <div className="flex items-center gap-6">
                     <div className="relative">
-                      <div 
+                      <div
                         className="w-20 h-20 rounded-full overflow-hidden cursor-pointer group"
                         onClick={handleAvatarClick}
                       >
                         {profile?.avatar_url ? (
-                          <img 
-                            src={profile.avatar_url} 
-                            alt="Avatar" 
+                          <img
+                            src={profile.avatar_url}
+                            alt="Avatar"
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -225,7 +361,9 @@ export default function Account() {
                       />
                     </div>
                     <div>
-                      <h3 className="font-medium text-foreground">Foto Profilo</h3>
+                      <h3 className="font-medium text-foreground">
+                        Foto Profilo
+                      </h3>
                       <p className="text-sm text-foreground-secondary">
                         Clicca per cambiare la tua foto profilo
                       </p>
@@ -241,10 +379,13 @@ export default function Account() {
                       Email
                     </label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary" size={18} />
+                      <Mail
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary"
+                        size={18}
+                      />
                       <input
                         type="email"
-                        value={user?.email || ''}
+                        value={user?.email || ""}
                         disabled
                         className="w-full pl-10 pr-4 py-3 bg-surface border border-border rounded-xl text-foreground-secondary cursor-not-allowed"
                       />
@@ -260,7 +401,10 @@ export default function Account() {
                       Nome Visualizzato
                     </label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary" size={18} />
+                      <User
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary"
+                        size={18}
+                      />
                       <input
                         type="text"
                         name="display_name"
@@ -278,7 +422,10 @@ export default function Account() {
                       Numero di Telefono
                     </label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary" size={18} />
+                      <Phone
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary"
+                        size={18}
+                      />
                       <input
                         type="tel"
                         name="phone"
@@ -303,42 +450,181 @@ export default function Account() {
                     ) : (
                       <Save size={20} />
                     )}
-                    {loading ? 'Salvando...' : 'Salva Modifiche'}
+                    {loading ? "Salvando..." : "Salva Modifiche"}
                   </motion.button>
                 </form>
               </motion.div>
-            </div>
 
-            {/* Sidebar */}
-            <div className="space-y-6">
-              {/* Plan Card */}
+              {/* Security Card */}
               <motion.div
                 className="card"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: 0.2 }}
               >
+                <div className="mb-6">
+                  <h2 className="text-xl font-semibold text-foreground mb-2">
+                    Sicurezza
+                  </h2>
+                  <p className="text-foreground-secondary text-sm">
+                    Aggiorna la tua password per mantenere il tuo account sicuro
+                  </p>
+                </div>
+
+                <form onSubmit={handlePasswordSubmit} className="space-y-6">
+                  {/* Current Password */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Password Attuale
+                    </label>
+                    <div className="relative">
+                      <Lock
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary"
+                        size={18}
+                      />
+                      <input
+                        type={showPasswords.current ? "text" : "password"}
+                        name="currentPassword"
+                        value={passwordData.currentPassword}
+                        onChange={handlePasswordInputChange}
+                        placeholder="Inserisci la password attuale"
+                        className="w-full pl-10 pr-12 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility("current")}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary hover:text-foreground transition-colors"
+                      >
+                        {showPasswords.current ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* New Password */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Nuova Password
+                    </label>
+                    <div className="relative">
+                      <Lock
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary"
+                        size={18}
+                      />
+                      <input
+                        type={showPasswords.new ? "text" : "password"}
+                        name="newPassword"
+                        value={passwordData.newPassword}
+                        onChange={handlePasswordInputChange}
+                        placeholder="Inserisci la nuova password"
+                        className="w-full pl-10 pr-12 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility("new")}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary hover:text-foreground transition-colors"
+                      >
+                        {showPasswords.new ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
+                    <p className="text-xs text-foreground-secondary mt-1">
+                      Almeno 8 caratteri
+                    </p>
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Conferma Nuova Password
+                    </label>
+                    <div className="relative">
+                      <Lock
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary"
+                        size={18}
+                      />
+                      <input
+                        type={showPasswords.confirm ? "text" : "password"}
+                        name="confirmPassword"
+                        value={passwordData.confirmPassword}
+                        onChange={handlePasswordInputChange}
+                        placeholder="Conferma la nuova password"
+                        className="w-full pl-10 pr-12 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => togglePasswordVisibility("confirm")}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary hover:text-foreground transition-colors"
+                      >
+                        {showPasswords.confirm ? (
+                          <EyeOff size={18} />
+                        ) : (
+                          <Eye size={18} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <motion.button
+                    type="submit"
+                    disabled={passwordLoading}
+                    className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-accent-violet hover:bg-accent-violet/90 disabled:bg-accent-violet/50 text-white font-medium rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-background"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    {passwordLoading ? (
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Lock size={20} />
+                    )}
+                    {passwordLoading ? "Aggiornando..." : "Aggiorna Password"}
+                  </motion.button>
+                </form>
+              </motion.div>
+            </div>
+
+            {/* Right Column - Piano Attuale, Azioni Rapide, Informazioni Account */}
+            <div className="space-y-6">
+              {/* Plan Card */}
+              <motion.div
+                className="card"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+              >
                 <div className="mb-4">
-                  <h3 className="font-semibold text-foreground mb-2">Piano Attuale</h3>
-                  <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${currentPlan.bgColor} ${currentPlan.color}`}>
+                  <h3 className="font-semibold text-foreground mb-2">
+                    Piano Attuale
+                  </h3>
+                  <div
+                    className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium ${currentPlan.bgColor} ${currentPlan.color}`}
+                  >
                     <currentPlan.icon size={16} />
                     {currentPlan.name}
                   </div>
                 </div>
-                
-                {userPlan === 'free' && (
+
+                {userPlan === "free" && (
                   <div className="p-4 bg-gradient-to-r from-accent-violet/10 to-accent-cyan/10 border border-accent-violet/20 rounded-xl">
                     <h4 className="font-medium text-foreground mb-2">
                       Sblocca tutte le funzionalità
                     </h4>
                     <p className="text-sm text-foreground-secondary mb-3">
-                      Passa a Pro per accedere a funzionalità avanzate e limiti più alti
+                      Passa a Pro per accedere a funzionalità avanzate e limiti
+                      più alti
                     </p>
                     <motion.button
                       className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-accent-violet hover:bg-accent-violet/90 text-white text-sm font-medium rounded-lg transition-colors"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      onClick={() => window.location.href = '/app/billing'}
+                      onClick={() => (window.location.href = "/app/billing")}
                     >
                       <Crown size={16} />
                       Effettua Upgrade
@@ -353,21 +639,27 @@ export default function Account() {
                 className="card"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
               >
-                <h3 className="font-semibold text-foreground mb-4">Azioni Rapide</h3>
+                <h3 className="font-semibold text-foreground mb-4">
+                  Azioni Rapide
+                </h3>
                 <div className="space-y-3">
                   <motion.button
                     className="w-full flex items-center gap-3 p-3 text-left hover:bg-surface-elevated rounded-lg transition-colors"
                     whileHover={{ scale: 1.02 }}
-                    onClick={() => window.location.href = '/app/billing'}
+                    onClick={() => (window.location.href = "/app/billing")}
                   >
                     <div className="w-8 h-8 bg-accent-cyan/10 rounded-lg flex items-center justify-center">
                       <CreditCard className="text-accent-cyan" size={16} />
                     </div>
                     <div>
-                      <p className="font-medium text-foreground">Fatturazione</p>
-                      <p className="text-xs text-foreground-secondary">Gestisci piano e pagamenti</p>
+                      <p className="font-medium text-foreground">
+                        Fatturazione
+                      </p>
+                      <p className="text-xs text-foreground-secondary">
+                        Gestisci piano e pagamenti
+                      </p>
                     </div>
                   </motion.button>
                 </div>
@@ -378,20 +670,32 @@ export default function Account() {
                 className="card"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
+                transition={{ duration: 0.6, delay: 0.5 }}
               >
-                <h3 className="font-semibold text-foreground mb-4">Informazioni Account</h3>
+                <h3 className="font-semibold text-foreground mb-4">
+                  Informazioni Account
+                </h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex justify-between">
                     <span className="text-foreground-secondary">Membro da</span>
                     <span className="text-foreground">
-                      {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('it-IT') : 'N/A'}
+                      {profile?.created_at
+                        ? new Date(profile.created_at).toLocaleDateString(
+                            "it-IT",
+                          )
+                        : "N/A"}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-foreground-secondary">Ruolo</span>
-                    <span className={`font-medium ${profile?.role === 'admin' ? 'text-accent-violet' : 'text-foreground'}`}>
-                      {profile?.role === 'admin' ? 'Amministratore' : 'Utente'}
+                    <span
+                      className={`font-medium ${
+                        profile?.role === "admin"
+                          ? "text-accent-violet"
+                          : "text-foreground"
+                      }`}
+                    >
+                      {profile?.role === "admin" ? "Amministratore" : "Utente"}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -407,6 +711,5 @@ export default function Account() {
         </motion.div>
       </div>
     </AppShell>
-  )
+  );
 }
-
