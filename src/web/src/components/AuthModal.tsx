@@ -66,8 +66,13 @@ export default function AuthModal({
           return;
         }
 
-        if (password.length < 6) {
-          setError("La password deve essere di almeno 6 caratteri");
+        if (password.length < 8) {
+          setError("La password deve essere di almeno 8 caratteri");
+          return;
+        }
+
+        if (displayName.length < 2 || displayName.length > 50) {
+          setError("Il nome visualizzato deve essere tra 2 e 50 caratteri");
           return;
         }
 
@@ -288,6 +293,9 @@ export default function AuthModal({
                         value={displayName}
                         onChange={(e) => setDisplayName(e.target.value)}
                         placeholder="Il tuo nome"
+                        required
+                        minLength={2}
+                        maxLength={50}
                         className="w-full pl-10 pr-4 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent"
                       />
                     </div>
@@ -332,6 +340,7 @@ export default function AuthModal({
                         onChange={(e) => setPassword(e.target.value)}
                         placeholder="La tua password"
                         required
+                        minLength={8}
                         className="w-full pl-10 pr-12 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent"
                       />
                       <button
@@ -366,6 +375,7 @@ export default function AuthModal({
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="Conferma la password"
                         required
+                        minLength={8}
                         className="w-full pl-10 pr-12 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent"
                       />
                       <button

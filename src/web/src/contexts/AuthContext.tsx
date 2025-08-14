@@ -136,6 +136,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
       }
 
+      // Client-side validation for display name
+      if (displayName && (displayName.length < 2 || displayName.length > 50)) {
+        return {
+          error: { message: "Il nome visualizzato deve essere tra 2 e 50 caratteri" } as AuthError,
+        };
+      }
+
+      // Client-side validation for password
+      if (password.length < 8) {
+        return {
+          error: { message: "La password deve essere di almeno 8 caratteri" } as AuthError,
+        };
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
