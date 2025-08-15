@@ -1,10 +1,12 @@
 -- Ricrea completamente il trigger handle_new_user con gestione errori migliorata
 
--- 1. Elimina il trigger esistente se presente
+-- 1. Elimina tutti i trigger esistenti che dipendono dalla funzione
 DROP TRIGGER IF EXISTS handle_new_user ON auth.users;
+DROP TRIGGER IF EXISTS handle_new_user_insert ON auth.users;
+DROP TRIGGER IF EXISTS handle_new_user_update ON auth.users;
 
--- 2. Elimina la funzione esistente se presente
-DROP FUNCTION IF EXISTS public.handle_new_user();
+-- 2. Elimina la funzione esistente con CASCADE
+DROP FUNCTION IF EXISTS public.handle_new_user() CASCADE;
 
 -- 3. Crea la funzione handle_new_user con gestione errori completa
 CREATE OR REPLACE FUNCTION public.handle_new_user()

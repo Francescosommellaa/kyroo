@@ -1,26 +1,41 @@
--- Verifica dettagliata dello stato dei trigger
+-- Verifica dettagliata dello stato del trigger handle_new_user
+-- Controlla esistenza, definizione e funzionamento del trigger
 
--- 1. Controlla se il trigger handle_new_user esiste
+-- 1. Verifica esistenza del trigger
 SELECT 
-    trigger_name,
-    event_manipulation,
-    event_object_table,
-    action_statement,
-    action_timing,
-    action_orientation
-FROM information_schema.triggers 
-WHERE trigger_name = 'handle_new_user';
+    t.trigger_name,
+    t.event_manipulation,
+    t.event_object_table,
+    t.action_timing,
+    t.action_statement,
+    t.trigger_schema
+FROM information_schema.triggers t
+WHERE t.trigger_name = 'handle_new_user'
+    AND t.event_object_table = 'users'
+    AND t.trigger_schema = 'auth';
 
--- 2. Controlla tutte le funzioni che iniziano con handle_new_user
+-- 2. Verifica esistenza della funzione
 SELECT 
-    routine_name,
-    routine_type,
-    routine_definition
-FROM information_schema.routines 
-WHERE routine_name LIKE 'handle_new_user%' 
-AND routine_schema = 'public';
+    p.proname as function_name,
+    p.prosrc as function_body,
+    n.nspname as schema_name
+FROM pg_proc p
+JOIN pg_namespace n ON p.pronamespace = n.oid
+WHERE p.proname = 'handle_new_user'
+    AND n.nspname = 'public';
 
--- 3. Verifica le policy RLS sulla tabella user
+-- 3. Verifica permessi sulla tabella user
+SELECT 
+    grantee,
+    table_name,
+    privilege_type
+FROM information_schema.role_table_grants
+WHERE table_schema = 'public'
+    AND table_name = 'user'
+    AND grantee IN ('anon', 'authenticated', 'service_role')
+ORDER BY table_name, grantee;
+
+-- 4. Verifica policy RLS sulla tabella user
 SELECT 
     schemaname,
     tablename,
@@ -30,24 +45,29 @@ SELECT
     cmd,
     qual,
     with_check
-FROM pg_policies 
-WHERE tablename = 'user';
+FROM pg_policies
+WHERE schemaname = 'public'
+    AND tablename = 'user';
 
--- 4. Controlla i permessi sulla tabella user
+-- 5. Verifica se RLS è abilitato
 SELECT 
-    grantee,
-    table_name,
-    privilege_type
-FROM information_schema.role_table_grants 
-WHERE table_schema = 'public' 
-AND table_name = 'user' 
-AND grantee IN ('anon', 'authenticated')
-ORDER BY table_name, grantee;
+    schemaname,
+    tablename,
+    rowsecurity
+FROM pg_tables
+WHERE schemaname = 'public'
+    AND tablename = 'user';
 
--- 5. Verifica se esistono le funzioni helper
+-- 6. Verifica funzioni helper esistenti
 SELECT 
-    routine_name,
-    routine_type
-FROM information_schema.routines 
-WHERE routine_name IN ('check_trigger_exists', 'check_function_exists')
-AND routine_schema = 'public';
+    p.proname as function_name,
+    n.nspname as schema_name
+FROM pg_proc p
+JOIN pg_namespace n ON p.pronamespace = n.oid
+WHERE p.proname IN ('check_trigger_exists', 'check_function_exists')
+    AND n.nspname = 'public';
+
+-- 7. Verifica completata
+SELECT 
+    'Verifica trigger completata' as status,
+    now() as timestamp;
