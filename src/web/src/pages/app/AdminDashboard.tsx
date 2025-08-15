@@ -15,7 +15,7 @@ import {
 import AppShell from "../../components/AppShell";
 import PlanBadge from "../../components/PlanBadge";
 import PlanManagementModal from "../../components/PlanManagementModal";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../contexts/auth";
 import { useNavigate } from "react-router-dom";
 import type { PlanType } from "../../../../shared/plans";
 interface User {

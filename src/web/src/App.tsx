@@ -1,5 +1,5 @@
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth } from "./contexts/AuthContext";
+import { useAuth } from "./contexts/auth";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";

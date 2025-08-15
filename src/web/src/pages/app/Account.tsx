@@ -16,7 +16,7 @@ import {
   EyeOff,
 } from "lucide-react";
 import AppShell from "../../components/AppShell";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAuth } from "../../contexts/auth";
 
 export default function Account() {
   const { user, profile, updateProfile, uploadAvatar, updatePassword } =

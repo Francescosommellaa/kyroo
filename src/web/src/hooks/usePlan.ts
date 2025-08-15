@@ -3,7 +3,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/auth';
 import { supabase } from '../lib/supabase';
 import type { PlanType, PlanConfig } from '../../../shared/plans';
 import { getPlanConfig } from '../../../shared/plans';

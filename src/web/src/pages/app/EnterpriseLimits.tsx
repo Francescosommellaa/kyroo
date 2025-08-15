@@ -4,7 +4,7 @@ import { Settings, Save, AlertTriangle, ArrowLeft, Check } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import AppShell from '../../components/AppShell';
 import CostCalculator from '../../components/CostCalculator';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/auth';
 import type { PlanLimits } from '../../../../shared/plans';
 
 interface UserProfile {

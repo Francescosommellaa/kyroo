@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/auth";
 
 export default function AuthCallbackPage() {
   const [loading, setLoading] = useState(true);

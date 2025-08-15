@@ -18,7 +18,7 @@ import {
   Shield,
   Lock,
 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/auth";
 import { usePlan } from "../hooks/usePlan";
 import { SidebarPlanBadge } from "./PlanBadge";
 import type { PlanType } from "../../../shared/plans";

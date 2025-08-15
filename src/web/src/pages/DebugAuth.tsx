@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle, CheckCircle, Loader2, Mail, Database, User, Bug, AlertTriangle } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../contexts/auth';
 import { supabase } from '../lib/supabase';
 import { EmailConfigFallback, useEmailFallback, EmailConfigTips } from '../components/EmailConfigFallback';
 
