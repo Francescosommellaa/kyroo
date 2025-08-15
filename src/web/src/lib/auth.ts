@@ -1,14 +1,18 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Signup function
-export async function signUp(email: string, password: string, displayName: string) {
+export async function signUp(email: string, password: string, fullName: string, displayName?: string) {
   const supabase = createClient(
     import.meta.env.VITE_SUPABASE_URL!,
     import.meta.env.VITE_SUPABASE_ANON_KEY!
   )
 
   // Client-side validation
-  if (displayName.length < 2 || displayName.length > 50) {
+  if (fullName.length < 2 || fullName.length > 100) {
+    throw new Error('Full name must be between 2 and 100 characters')
+  }
+
+  if (displayName && (displayName.length < 2 || displayName.length > 50)) {
     throw new Error('Display name must be between 2 and 50 characters')
   }
 
@@ -22,7 +26,8 @@ export async function signUp(email: string, password: string, displayName: strin
     password,
     options: {
       data: {
-        display_name: displayName
+        full_name: fullName,
+        display_name: displayName || fullName
       },
       emailRedirectTo: `${window.location.origin}/auth/callback`
     }
@@ -63,6 +68,27 @@ export async function resetPassword(email: string) {
 
   const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${window.location.origin}/auth/callback`
+  })
+
+  if (error) {
+    throw error
+  }
+
+  return data
+}
+
+// Google OAuth function
+export async function signInWithGoogle() {
+  const supabase = createClient(
+    import.meta.env.VITE_SUPABASE_URL!,
+    import.meta.env.VITE_SUPABASE_ANON_KEY!
+  )
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`
+    }
   })
 
   if (error) {

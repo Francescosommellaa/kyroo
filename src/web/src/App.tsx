@@ -17,6 +17,7 @@ import Account from "./pages/app/Account";
 import AdminDashboard from "./pages/app/AdminDashboard";
 import EnterpriseLimits from "./pages/app/EnterpriseLimits";
 import Pricing from "./pages/Pricing";
+import DebugAuth from "./pages/DebugAuth";
 
 export default function AppRoutes() {
   const { loading } = useAuth();
@@ -37,6 +38,7 @@ export default function AppRoutes() {
       {/* Auth pages */}
       <Route path="/auth/callback" element={<AuthCallbackPage />} />
       <Route path="/auth/reset-password" element={<ResetPasswordPage />} />
+      <Route path="/debug-auth" element={<DebugAuth />} />
       
       {/* Public pages */}
       <Route path="/privacy" element={<PrivacyPolicy />} />

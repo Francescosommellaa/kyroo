@@ -9,6 +9,7 @@ import type { PlanLimits } from '../../../../shared/plans';
 
 interface UserProfile {
   id: string;
+  full_name: string | null;
   display_name: string | null;
   custom_limits: Partial<PlanLimits> | null;
 }

@@ -46,7 +46,7 @@ export default function ResetPasswordPage() {
     try {
       const { error } = await updatePassword(password)
       if (error) {
-        setError(error.message)
+        setError(error)
       } else {
         setSuccess(true)
         setTimeout(() => {

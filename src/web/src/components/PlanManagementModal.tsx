@@ -19,6 +19,7 @@ import { PLAN_CONFIGS } from "../../../shared/plans";
 
 interface User {
   id: string;
+  full_name: string | null;
   display_name: string | null;
   plan: PlanType;
   plan_expires_at: string | null;

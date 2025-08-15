@@ -37,6 +37,7 @@ export default function Account() {
 
   // Form state
   const [formData, setFormData] = useState({
+    full_name: "",
     display_name: "",
     phone: "",
     first_name: "",
@@ -61,6 +62,7 @@ export default function Account() {
     if (profile && !hasUnsavedChanges && !isUpdatingPassword) {
       // Aggiungi la condizione !isUpdatingPassword
       setFormData({
+        full_name: profile.full_name || "",
         display_name: profile.display_name || "",
         phone: profile.phone || "",
         first_name: "",
@@ -135,7 +137,7 @@ export default function Account() {
       const { error } = await uploadAvatar(file);
 
       if (error) {
-        setMessage({ type: "error", text: error.message });
+        setMessage({ type: "error", text: error });
       } else {
         setMessage({
           type: "success",
@@ -160,12 +162,13 @@ export default function Account() {
       setMessage(null);
 
       const { error } = await updateProfile({
+        full_name: formData.full_name.trim() || null,
         display_name: formData.display_name.trim() || null,
         phone: formData.phone.trim() || null,
       });
 
       if (error) {
-        setMessage({ type: "error", text: error.message });
+        setMessage({ type: "error", text: error });
       } else {
         setMessage({
           type: "success",
@@ -245,7 +248,7 @@ export default function Account() {
       const { error } = await updatePassword(passwordData.newPassword);
 
       if (error) {
-        setPasswordMessage({ type: "error", text: error.message });
+        setPasswordMessage({ type: "error", text: error });
       } else {
         setPasswordMessage({
           type: "success",
@@ -395,6 +398,27 @@ export default function Account() {
                     </p>
                   </div>
 
+                  {/* Full Name */}
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Nome Completo
+                    </label>
+                    <div className="relative">
+                      <User
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary"
+                        size={18}
+                      />
+                      <input
+                        type="text"
+                        name="full_name"
+                        value={formData.full_name}
+                        onChange={handleInputChange}
+                        placeholder="Il tuo nome completo"
+                        className="w-full pl-10 pr-4 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
                   {/* Display Name */}
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
@@ -410,10 +434,13 @@ export default function Account() {
                         name="display_name"
                         value={formData.display_name}
                         onChange={handleInputChange}
-                        placeholder="Come vuoi essere chiamato"
+                        placeholder="Come vuoi essere chiamato (opzionale)"
                         className="w-full pl-10 pr-4 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent"
                       />
                     </div>
+                    <p className="text-xs text-foreground-secondary mt-1">
+                      Se vuoto, verrà usato il nome completo
+                    </p>
                   </div>
 
                   {/* Phone */}

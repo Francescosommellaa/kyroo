@@ -20,6 +20,7 @@ import { useNavigate } from "react-router-dom";
 import type { PlanType } from "../../../../shared/plans";
 interface User {
   id: string;
+  full_name: string | null;
   display_name: string | null;
   phone: string | null;
   avatar_url: string | null;
@@ -218,7 +219,7 @@ export default function AdminDashboard() {
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
       !searchTerm ||
-      user.display_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.id.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesRole = roleFilter === "all" || user.role === roleFilter;

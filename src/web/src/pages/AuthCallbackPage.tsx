@@ -3,17 +3,19 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function AuthCallbackPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // Remove this line: const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { loading: authLoading } = useAuth();
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
+        // Gestisce il callback OAuth (Google, etc.) e verifica email
         const { data, error } = await supabase.auth.getSession();
 
         if (error) {
@@ -23,13 +25,12 @@ export default function AuthCallbackPage() {
         }
 
         if (data.session) {
-          // Remove this line: setSuccess(true);
           // Reindirizza all'app dopo 2 secondi
           setTimeout(() => {
             navigate("/app");
           }, 2000);
         } else {
-          // Prova a gestire il callback manualmente
+          // Prova a gestire il callback manualmente per verifica email
           const { error: callbackError } = await supabase.auth.getUser();
 
           if (callbackError) {
@@ -37,7 +38,6 @@ export default function AuthCallbackPage() {
               "Errore nella verifica dell'email. Il link potrebbe essere scaduto.",
             );
           } else {
-            // Remove this line: setSuccess(true);
             setTimeout(() => {
               navigate("/app");
             }, 2000);
@@ -51,8 +51,11 @@ export default function AuthCallbackPage() {
       }
     };
 
-    handleAuthCallback();
-  }, [navigate, searchParams]);
+    // Aspetta che il contesto di autenticazione sia caricato
+    if (!authLoading) {
+      handleAuthCallback();
+    }
+  }, [navigate, searchParams, authLoading]);
 
   if (loading) {
     return (
@@ -67,10 +70,10 @@ export default function AuthCallbackPage() {
             size={48}
           />
           <h2 className="text-xl font-semibold text-foreground">
-            Verifica in corso...
+            Autenticazione in corso...
           </h2>
           <p className="text-foreground-secondary">
-            Stiamo verificando la tua email
+            Stiamo completando l'accesso
           </p>
         </motion.div>
       </div>
@@ -119,10 +122,10 @@ export default function AuthCallbackPage() {
         </div>
         <div>
           <h2 className="text-xl font-semibold text-foreground mb-2">
-            Email verificata con successo!
+            Accesso completato con successo!
           </h2>
           <p className="text-foreground-secondary">
-            Il tuo account è stato attivato. Verrai reindirizzato all'app...
+            Verrai reindirizzato all'app...
           </p>
         </div>
         <div className="flex items-center justify-center space-x-2">

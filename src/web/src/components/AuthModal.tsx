@@ -12,6 +12,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
+
+import { EmailConfigFallback, useEmailFallback, EmailConfigTips } from "./EmailConfigFallback";
 import { useNavigate } from "react-router-dom";
 
 interface AuthModalProps {
@@ -32,14 +34,16 @@ export default function AuthModal({
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [registeredEmail, setRegisteredEmail] = useState("");
+  const { fallbackState, hideFallback } = useEmailFallback();
 
-  const { signIn, signUp, resetPassword, resendVerificationEmail } = useAuth();
+  const { signIn, signUp, resetPassword, resendVerificationEmail, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -71,7 +75,12 @@ export default function AuthModal({
           return;
         }
 
-        if (displayName.length < 2 || displayName.length > 50) {
+        if (fullName.length < 2 || fullName.length > 100) {
+          setError("Il nome completo deve essere tra 2 e 100 caratteri");
+          return;
+        }
+
+        if (displayName && (displayName.length < 2 || displayName.length > 50)) {
           setError("Il nome visualizzato deve essere tra 2 e 50 caratteri");
           return;
         }
@@ -79,16 +88,17 @@ export default function AuthModal({
         const { error, needsVerification } = await signUp(
           email,
           password,
+          fullName,
           displayName,
         );
 
         if (error) {
-          if (error.message.includes("already registered")) {
+          if (error.includes("already registered")) {
             setError(
               "Questo indirizzo email è già registrato. Prova ad accedere.",
             );
           } else {
-            setError(error.message);
+            setError(error);
           }
         } else if (needsVerification) {
           setRegisteredEmail(email);
@@ -105,7 +115,7 @@ export default function AuthModal({
         const { error } = await signIn(email, password);
 
         if (error) {
-          setError(error.message);
+          setError(error);
         } else {
           onClose();
           navigate("/app");
@@ -114,7 +124,7 @@ export default function AuthModal({
         const { error } = await resetPassword(email);
 
         if (error) {
-          setError(error.message);
+          setError(error);
         } else {
           setMessage(
             "Email di reset inviata! Controlla la tua casella di posta.",
@@ -137,12 +147,33 @@ export default function AuthModal({
       const { error } = await resendVerificationEmail();
 
       if (error) {
-        setError(error.message);
+        setError(error);
       } else {
         setMessage("Email di verifica inviata nuovamente!");
       }
     } catch (err) {
       setError("Errore nell'invio dell'email di verifica");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const { error } = await signInWithGoogle();
+
+      if (error) {
+        setError(error);
+      } else {
+        // Il redirect sarà gestito automaticamente da Supabase
+        // Non chiudiamo il modal qui perché l'utente verrà reindirizzato
+      }
+    } catch (err) {
+      setError("Errore durante l'accesso con Google");
     } finally {
       setLoading(false);
     }
@@ -156,6 +187,7 @@ export default function AuthModal({
     setPassword("");
     setConfirmPassword("");
     setDisplayName("");
+    setFullName("");
   };
 
   const getTitle = () => {
@@ -219,6 +251,24 @@ export default function AuthModal({
               </button>
             </div>
 
+            {/* Mostra il fallback email se necessario */}
+            {fallbackState.show && (
+              <EmailConfigFallback
+                error={fallbackState.error}
+                errorCode={fallbackState.errorCode}
+                email={fallbackState.email}
+                onRetry={() => {
+                  if (mode === "register") {
+                    handleSubmit(new Event('submit') as any);
+                  } else if (mode === "reset") {
+                    handleSubmit(new Event('submit') as any);
+                  }
+                }}
+                onDismiss={hideFallback}
+                className="mb-4"
+              />
+            )}
+
             {/* Error/Success Message */}
             {(error || message) && (
               <motion.div
@@ -250,6 +300,7 @@ export default function AuthModal({
                     <strong>{registeredEmail}</strong>. Clicca sul link
                     nell'email per attivare il tuo account.
                   </p>
+                  <EmailConfigTips />
                 </div>
 
                 <div className="space-y-4">
@@ -277,11 +328,37 @@ export default function AuthModal({
             ) : (
               /* Form normale */
               <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Full Name (solo per registrazione) */}
+                {mode === "register" && (
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Nome completo
+                    </label>
+                    <div className="relative">
+                      <User
+                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-foreground-secondary"
+                        size={18}
+                      />
+                      <input
+                        type="text"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        placeholder="Il tuo nome completo"
+                        required
+                        minLength={2}
+                        maxLength={100}
+                        className="w-full pl-10 pr-4 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* Display Name (solo per registrazione) */}
                 {mode === "register" && (
                   <div>
                     <label className="block text-sm font-medium text-foreground mb-2">
                       Nome visualizzato
+                      <span className="text-xs text-foreground-secondary ml-1">(opzionale)</span>
                     </label>
                     <div className="relative">
                       <User
@@ -292,8 +369,7 @@ export default function AuthModal({
                         type="text"
                         value={displayName}
                         onChange={(e) => setDisplayName(e.target.value)}
-                        placeholder="Il tuo nome"
-                        required
+                        placeholder="Come vuoi essere chiamato (lascia vuoto per usare il nome completo)"
                         minLength={2}
                         maxLength={50}
                         className="w-full pl-10 pr-4 py-3 bg-surface border border-border rounded-xl text-foreground placeholder-foreground-secondary focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent"
@@ -407,6 +483,52 @@ export default function AuthModal({
                   {getButtonText()}
                 </motion.button>
               </form>
+            )}
+
+            {/* Google Sign In - solo per login e register */}
+            {mode !== "verify-email" && mode !== "reset" && (
+              <div className="mt-6">
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="bg-surface px-2 text-foreground-secondary">oppure</span>
+                  </div>
+                </div>
+                <motion.button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={loading}
+                  className="mt-4 w-full bg-white hover:bg-gray-50 text-gray-900 border border-gray-300 px-6 py-3 rounded-xl font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:ring-offset-surface disabled:opacity-50 flex items-center justify-center gap-3"
+                  whileHover={{ scale: loading ? 1 : 1.02 }}
+                  whileTap={{ scale: loading ? 1 : 0.98 }}
+                >
+                  <svg className="w-5 h-5" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                    />
+                  </svg>
+                  {loading ? (
+                    <Loader2 className="animate-spin" size={18} />
+                  ) : (
+                    "Continua con Google"
+                  )}
+                </motion.button>
+              </div>
             )}
 
             {/* Mode switching */}

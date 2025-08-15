@@ -6,6 +6,7 @@ export function SignupForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [fullName, setFullName] = useState('')
   const [displayName, setDisplayName] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -23,7 +24,13 @@ export function SignupForm() {
       return
     }
 
-    if (displayName.length < 2 || displayName.length > 50) {
+    if (fullName.length < 2 || fullName.length > 100) {
+      setError('Full name must be between 2 and 100 characters')
+      setLoading(false)
+      return
+    }
+
+    if (displayName && (displayName.length < 2 || displayName.length > 50)) {
       setError('Display name must be between 2 and 50 characters')
       setLoading(false)
       return
@@ -36,7 +43,7 @@ export function SignupForm() {
     }
 
     try {
-      await signUp(email, password, displayName)
+      await signUp(email, password, fullName, displayName || undefined)
       setSuccess(true)
       setError('')
       // Redirect or show success message
@@ -81,16 +88,32 @@ export function SignupForm() {
         </div>
         
         <div>
+          <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">
+            Nome completo
+          </label>
+          <input
+            id="fullName"
+            type="text"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            placeholder="Il tuo nome completo"
+            required
+            minLength={2}
+            maxLength={100}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        
+        <div>
           <label htmlFor="displayName" className="block text-sm font-medium text-gray-700 mb-1">
-            Display Name
+            Nome visualizzato (opzionale)
           </label>
           <input
             id="displayName"
             type="text"
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="Display Name"
-            required
+            placeholder="Come vuoi essere chiamato (se diverso dal nome completo)"
             minLength={2}
             maxLength={50}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
