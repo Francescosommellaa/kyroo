@@ -56,29 +56,68 @@ export default function AuthCallbackPage() {
           console.log('Processing OAuth callback...');
           
           // Aspetta che Supabase processi automaticamente il callback
-          await new Promise(resolve => setTimeout(resolve, 2000));
+          await new Promise(resolve => setTimeout(resolve, 3000));
           
-          // Ricontrolla la sessione
-          const { data: newSessionData } = await supabase.auth.getSession();
+          // Ricontrolla la sessione con retry logic
+          let sessionEstablished = false;
+          let attempts = 0;
+          const maxAttempts = 5;
           
-          if (newSessionData?.session?.user) {
-            console.log("OAuth session established successfully");
-            navigate('/', { replace: true });
+          while (!sessionEstablished && attempts < maxAttempts) {
+            attempts++;
+            console.log(`Session check attempt ${attempts}/${maxAttempts}`);
+            
+            const { data: newSessionData } = await supabase.auth.getSession();
+            
+            if (newSessionData?.session?.user) {
+              console.log("OAuth session established successfully");
+              
+              // Verifica che il profilo utente esista, altrimenti aspetta di più
+              try {
+                const { data: userProfile } = await supabase
+                  .from('users')
+                  .select('id')
+                  .eq('id', newSessionData.session.user.id)
+                  .single();
+                  
+                if (userProfile) {
+                  console.log('User profile found, redirecting...');
+                  sessionEstablished = true;
+                  navigate('/', { replace: true });
+                  return;
+                } else {
+                  console.log('User profile not found yet, waiting...');
+                  await new Promise(resolve => setTimeout(resolve, 2000));
+                }
+              } catch (profileError) {
+                console.log('Profile check failed, waiting for creation...');
+                await new Promise(resolve => setTimeout(resolve, 2000));
+              }
+            } else {
+              console.log(`OAuth session not established yet, attempt ${attempts}`);
+              
+              if (attempts < maxAttempts) {
+                // Prova a fare refresh della sessione
+                const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+                
+                if (refreshData?.session?.user) {
+                  console.log("Session refreshed successfully");
+                  // Continua il loop per verificare il profilo
+                } else if (refreshError) {
+                  console.error('Refresh error:', refreshError);
+                }
+                
+                // Aspetta prima del prossimo tentativo
+                await new Promise(resolve => setTimeout(resolve, 2000));
+              }
+            }
+          }
+          
+          if (!sessionEstablished) {
+            console.error('Failed to establish OAuth session after multiple attempts');
+            setError('Errore durante l\'autenticazione OAuth. Riprova.');
+            setLoading(false);
             return;
-          } else {
-            console.log("OAuth session not established, trying to refresh...");
-            // Prova a fare refresh della sessione
-            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
-            
-            if (refreshData?.session?.user) {
-              console.log("Session refreshed successfully");
-              navigate('/', { replace: true });
-              return;
-            }
-            
-            if (refreshError) {
-              console.error('Refresh error:', refreshError);
-            }
           }
         }
 

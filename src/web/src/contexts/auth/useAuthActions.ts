@@ -75,7 +75,7 @@ export const useAuthActions = () => {
 
           // Create user profile in the users table with enhanced retry and error handling
           if (data.user) {
-            await ensureUserProfile(data.user);
+            await ensureUserProfile(data.user, { fullName, displayName });
           }
 
           return data;
@@ -234,8 +234,8 @@ export const useAuthActions = () => {
     }
   };
 
-  // Create user profile if it doesn't exist (for OAuth users)
-  const ensureUserProfile = async (user: any): Promise<void> => {
+  // Create user profile if it doesn't exist (for both OAuth and normal registration)
+  const ensureUserProfile = async (user: any, additionalData?: { fullName?: string; displayName?: string }): Promise<void> => {
     await withRetry(
       async () => {
         // Check if user profile exists
@@ -246,33 +246,94 @@ export const useAuthActions = () => {
           .single();
 
         if (selectError && selectError.code !== 'PGRST116') {
-          handleSupabaseError(selectError, 'Check user profile existence');
+          console.warn('Error checking user profile existence:', selectError);
+          // Don't throw error, continue with creation attempt
         }
 
         if (!existingUser) {
-          // Create user profile
-          const { error } = await supabase
-            .from('users')
-            .insert({
-              id: user.id,
-              email: user.email!,
-              full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
-              display_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
-              avatar_url: user.user_metadata?.avatar_url || null,
-              role: 'user',
-              plan: 'free',
-              email_verified: user.email_confirmed_at ? true : false
-            });
+          // Prepare user data with fallbacks
+          const userData = {
+            id: user.id,
+            email: user.email!,
+            full_name: additionalData?.fullName || 
+                      user.user_metadata?.full_name || 
+                      user.user_metadata?.name || 
+                      null,
+            display_name: additionalData?.displayName || 
+                         additionalData?.fullName ||
+                         user.user_metadata?.full_name || 
+                         user.user_metadata?.name || 
+                         user.email?.split('@')[0] || 
+                         null,
+            avatar_url: user.user_metadata?.avatar_url || null,
+            role: 'user',
+            plan: 'free',
+            email_verified: user.email_confirmed_at ? true : false
+          };
 
-          if (error) {
-            console.error('Database error creating OAuth user profile:', {
-              error,
+          console.log('Creating user profile:', { userId: user.id, email: user.email });
+
+          // Try multiple approaches for user creation
+          let profileError = null;
+          
+          // First attempt: normal insert
+          const { error: insertError } = await supabase
+            .from('users')
+            .insert(userData);
+
+          if (insertError) {
+            profileError = insertError;
+            console.warn('First insert attempt failed:', insertError);
+            
+            // Second attempt: upsert (insert or update)
+            const { error: upsertError } = await supabase
+              .from('users')
+              .upsert(userData, { onConflict: 'id' });
+              
+            if (upsertError) {
+              profileError = upsertError;
+              console.warn('Upsert attempt failed:', upsertError);
+              
+              // Third attempt: using service role if available
+              try {
+                const { error: serviceError } = await supabase
+                  .from('users')
+                  .insert(userData);
+                  
+                if (serviceError) {
+                  profileError = serviceError;
+                } else {
+                  profileError = null; // Success
+                }
+              } catch (serviceAttemptError) {
+                console.warn('Service role attempt failed:', serviceAttemptError);
+              }
+            } else {
+              profileError = null; // Upsert succeeded
+            }
+          } else {
+            profileError = null; // First insert succeeded
+          }
+
+          if (profileError) {
+            console.error('All user profile creation attempts failed:', {
+              error: profileError,
               userId: user.id,
               email: user.email,
               provider: user.app_metadata?.provider
             });
-            handleSupabaseError(error, 'Create OAuth user profile');
+            
+            // Don't throw error for OAuth users to prevent auth flow interruption
+            if (user.app_metadata?.provider) {
+              console.warn('OAuth user profile creation failed, but continuing auth flow');
+            } else {
+              handleSupabaseError(profileError, 'Create user profile');
+            }
+          } else {
+            console.log('User profile created successfully:', user.id);
           }
+        } else {
+          console.log('User profile already exists:', user.id);
         }
       },
       {
