@@ -31,8 +31,8 @@ export class AuthErrorBoundary extends Component<Props, State> {
     this.props.onError?.(error, errorInfo);
 
     // Log auth-specific errors
-    if (import.meta.env.DEV) {
-      console.error('AuthErrorBoundary caught an error:', {
+    if (process.env.NODE_ENV !== 'production') {
+      console.error("AuthErrorBoundary caught an error:", {
         error: error.message,
         stack: error.stack,
         componentStack: errorInfo.componentStack,
@@ -55,59 +55,41 @@ export class AuthErrorBoundary extends Component<Props, State> {
 
   render() {
     if (this.state.hasError) {
+      // Custom fallback UI if provided
       if (this.props.fallback) {
         return this.props.fallback;
       }
 
+      // Default error UI
       return (
-        <div className="flex items-center justify-center p-6">
-          <div className="max-w-sm w-full bg-white border border-red-200 rounded-lg p-6">
-            <div className="flex items-center justify-center w-10 h-10 mx-auto bg-red-100 rounded-full mb-4">
-              <svg
-                className="w-5 h-5 text-red-600"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                />
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+          <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-6">
+            <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full">
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
-
-            <h3 className="text-lg font-medium text-gray-900 text-center mb-2">
-              Authentication Error
-            </h3>
-
-            <p className="text-sm text-gray-600 text-center mb-4">
-              There was a problem with the authentication system. Please try again.
-            </p>
-
-            {import.meta.env.DEV && this.state.error && (
-              <div className="mb-4 p-2 bg-red-50 border border-red-200 rounded text-xs">
-                <strong className="text-red-800">Dev Error:</strong>
-                <div className="text-red-700 mt-1 font-mono">
-                  {this.state.error.message}
-                </div>
+            <div className="mt-4 text-center">
+              <h3 className="text-lg font-medium text-gray-900">
+                🔧 Si è verificato un errore
+              </h3>
+              <p className="mt-2 text-sm text-gray-500">
+                {this.state.error ? this.state.error.message : 'Errore imprevisto nell&apos;applicazione'}
+              </p>
+              <div className="mt-6 flex space-x-3">
+                <button
+                  onClick={this.handleRetry}
+                  className="flex-1 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  🔄 Riprova
+                </button>
+                <button
+                  onClick={this.handleGoToLogin}
+                  className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                >
+                  🏠 Torna al Login
+                </button>
               </div>
-            )}
-
-            <div className="flex flex-col space-y-2">
-              <button
-                onClick={this.handleRetry}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-md text-sm hover:bg-blue-700 transition-colors"
-              >
-                Try Again
-              </button>
-              <button
-                onClick={this.handleGoToLogin}
-                className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md text-sm hover:bg-gray-200 transition-colors"
-              >
-                Back to Login
-              </button>
             </div>
           </div>
         </div>
