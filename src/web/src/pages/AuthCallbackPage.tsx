@@ -41,13 +41,7 @@ export default function AuthCallbackPage() {
         const errorParam = hashParams.get('error') || searchParams.get('error');
         const errorDescription = hashParams.get('error_description') || searchParams.get('error_description');
         
-        console.log('Callback params:', { 
-          accessToken: !!accessToken, 
-          refreshToken: !!refreshToken, 
-          type, 
-          error: errorParam,
-          errorDescription 
-        });
+        // Callback parameters processed
 
         // Se ci sono errori nei parametri URL
         if (errorParam) {

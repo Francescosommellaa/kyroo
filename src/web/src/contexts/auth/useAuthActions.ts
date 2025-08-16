@@ -73,33 +73,9 @@ export const useAuthActions = () => {
             handleSupabaseError(error, 'User signup');
           }
 
-          // Create user profile in the users table with retry
+          // Create user profile in the users table with enhanced retry and error handling
           if (data.user) {
-            await withRetry(
-              async () => {
-                const { error: profileError } = await supabase
-                  .from('users')
-                  .insert({
-                    id: data.user!.id,
-                    email,
-                    full_name: fullName || null,
-                    display_name: displayName || fullName || null,
-                    role: 'user',
-                    plan: 'free',
-                    email_verified: false
-                  });
-
-                if (profileError) {
-                  handleSupabaseError(profileError, 'User profile creation');
-                }
-              },
-              {
-                operation: 'User profile creation',
-                userId: data.user!.id,
-                timestamp: new Date().toISOString()
-              },
-              { maxAttempts: 2 }
-            );
+            await ensureUserProfile(data.user);
           }
 
           return data;

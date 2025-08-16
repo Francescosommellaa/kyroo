@@ -10,7 +10,7 @@
   # VITE_SUPABASE_ANON_KEY = "your-anon-key"
   SECRETS_SCAN_OMIT_PATHS = ".env,.env.*,src/web/.env,src/web/.env.*,node_modules/**,dist/**,build/**,*.log"
   SECRETS_SCAN_OMIT_KEYS = "VITE_MILVUS_TOKEN,VITE_SUPABASE_ANON_KEY,VITE_SUPABASE_URL,VITE_MILVUS_ENDPOINT"
-  SECRETS_SCAN_ENABLED = "false"
+  SECRETS_SCAN_ENABLED = "true"
 
 [functions]
   node_bundler = "esbuild"

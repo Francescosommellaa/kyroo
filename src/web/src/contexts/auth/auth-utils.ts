@@ -209,11 +209,11 @@ export const mapSupabaseError = (error: AuthError): { code: AuthErrorCode; messa
 
 // Logging utilities
 export const logAuthEvent = (event: AuthEvent, details?: any): void => {
-  console.log(`Auth Event: ${event}`, details);
+  console.log(`Auth Event: ${event}`);
 };
 
 export const logAuthError = (event: AuthEvent, error: any, context?: any): void => {
-  console.error(`Auth Error: ${event}`, { error, context });
+  console.error(`Auth Error: ${event}`);
 };
 
 // Avatar utilities

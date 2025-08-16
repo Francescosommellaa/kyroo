@@ -98,6 +98,14 @@ CREATE POLICY "Users can view own profile" ON public.users
 CREATE POLICY "Users can update own profile" ON public.users
     FOR UPDATE USING (auth.uid() = id);
 
+-- Gli utenti possono eliminare solo i propri dati
+CREATE POLICY "Users can delete own profile" ON public.users
+    FOR DELETE USING (auth.uid() = id);
+
+-- Gli utenti possono inserire solo i propri dati
+CREATE POLICY "Users can insert own profile" ON public.users
+    FOR INSERT WITH CHECK (auth.uid() = id);
+
 -- Gli admin possono vedere tutti gli utenti
 CREATE POLICY "Admins can view all users" ON public.users
     FOR SELECT USING (
