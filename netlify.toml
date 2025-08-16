@@ -2,16 +2,14 @@
   command = "npm ci && npm run build"
   publish = "src/web/dist"
   functions = "netlify/functions"
-  environment = {
-    SECRETS_SCAN_OMIT_PATHS = ".env,.env.*,src/web/.env,src/web/.env.*,node_modules/**,dist/**,build/**,*.log",
-    SECRETS_SCAN_ENABLED = "true"
-  }
 
 [build.environment]
   # Environment variables are configured in Netlify dashboard
   # These are just placeholders - actual values set in Netlify UI
   # VITE_SUPABASE_URL = "https://your-project.supabase.co"
   # VITE_SUPABASE_ANON_KEY = "your-anon-key"
+  SECRETS_SCAN_OMIT_PATHS = ".env,.env.*,src/web/.env,src/web/.env.*,node_modules/**,dist/**,build/**,*.log"
+  SECRETS_SCAN_ENABLED = "true"
 
 [functions]
   node_bundler = "esbuild"
