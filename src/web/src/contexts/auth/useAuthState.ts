@@ -198,9 +198,10 @@ export const useAuthState = () => {
                                     error.message.includes('temporary') ||
                                     error.message.includes('retry');
             
+            const currentAttempts = profileLoadAttempts.get(userId) || 0;
             if (isNetworkError) {
               // Only log network errors as warnings after first attempt
-              if (attempts > 0) {
+              if (currentAttempts > 0) {
                 console.warn('[AUTH WARN] Network error during profile load, will retry');
               }
             } else if (!isTemporaryError) {
@@ -209,7 +210,8 @@ export const useAuthState = () => {
             }
           } else {
             // Log unknown error types only if they persist
-            if (attempts > 1) {
+            const currentAttempts = profileLoadAttempts.get(userId) || 0;
+            if (currentAttempts > 1) {
               logAuthError(AuthEvent.PROFILE_LOAD_ERROR, error, { userId });
             }
           }
@@ -275,14 +277,14 @@ export const useAuthState = () => {
         }
         
         // Use adaptive timeout based on previous attempts
-        const attempts = profileLoadAttempts.get(user.id) || 0;
-        const timeoutMs = attempts === 0 ? 3000 : 5000; // First attempt: 3s, subsequent: 5s
+        const userAttempts = profileLoadAttempts.get(user.id) || 0;
+        const timeoutMs = userAttempts === 0 ? 3000 : 5000; // First attempt: 3s, subsequent: 5s
         
         const timeoutPromise = new Promise<Profile | null>((_, reject) => {
           setTimeout(() => {
             // Only log timeout as warning if it's not the first attempt or if we're in debug mode
-            if (attempts > 0 || process.env.NODE_ENV === 'development') {
-              console.warn(`[AUTH WARN] Profile loading timeout after ${timeoutMs}ms for user:`, user.id, 'attempt:', attempts + 1);
+            if (userAttempts > 0 || process.env.NODE_ENV === 'development') {
+              console.warn(`[AUTH WARN] Profile loading timeout after ${timeoutMs}ms for user:`, user.id, 'attempt:', userAttempts + 1);
             }
             reject(new Error('Profile loading timeout'));
           }, timeoutMs);
@@ -307,8 +309,8 @@ export const useAuthState = () => {
         // Only log timeout errors as warnings since they might resolve on retry
         if (error instanceof Error && error.message.includes('timeout')) {
           // Only log timeout warnings for repeated failures
-          const attempts = profileLoadAttempts.get(user.id) || 0;
-          if (attempts >= 1) {
+          const currentAttempts = profileLoadAttempts.get(user.id) || 0;
+          if (currentAttempts >= 1) {
             console.warn('[AUTH WARN] Profile loading timeout, continuing without profile');
           }
         } else {
@@ -364,10 +366,9 @@ export const useAuthState = () => {
       });
       
       // Reset attempt counters older than 5 minutes
-       setProfileLoadAttempts(prev => {
-         const newMap = new Map();
-         // Only keep recent attempts to allow retries after some time
-         return newMap;
+       setProfileLoadAttempts(() => {
+         // Reset all attempt counters to prevent memory leaks
+         return new Map();
        });
        
        // Cleanup old log timestamps to prevent memory leaks

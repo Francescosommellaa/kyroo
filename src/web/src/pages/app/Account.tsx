@@ -30,8 +30,7 @@ export default function Account() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [message, setMessage] = useState<MessageState | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<MessageState | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
+  // Removed unused state variables to fix TypeScript compilation errors
 
   // Form state
   const [formData, setFormData] = useState<ProfileFormData>({
@@ -93,7 +92,6 @@ export default function Account() {
           type: "success",
           text: "Profilo aggiornato con successo!",
         });
-        setHasUnsavedChanges(false);
       }
     } catch (err) {
       setMessage({
@@ -111,7 +109,6 @@ export default function Account() {
   const handlePasswordChange = async (data: PasswordFormData) => {
     try {
       setPasswordLoading(true);
-      setIsUpdatingPassword(true);
       setPasswordMessage(null);
 
       const { error } = await updatePassword(data.newPassword);
@@ -137,7 +134,6 @@ export default function Account() {
       });
     } finally {
       setPasswordLoading(false);
-      setIsUpdatingPassword(false);
     }
   };
 
@@ -193,7 +189,6 @@ export default function Account() {
                 onInputChange={(e) => {
                   const { name, value } = e.target;
                   setFormData(prev => ({ ...prev, [name]: value }));
-                  setHasUnsavedChanges(true);
                 }}
                 onSubmit={handleProfileSubmit}
                 userEmail={user?.email || ''}
