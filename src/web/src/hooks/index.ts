@@ -3,8 +3,9 @@
 export { useAsync } from './useAsync';
 export { useForm } from './useForm';
 export { usePasswordToggle } from './usePasswordToggle';
+export { usePlan } from './usePlan';
 export { useValidation } from './useValidation';
-// export { default as usePlan } from './usePlan'; // Temporarily disabled due to missing dependencies
+export { useMilvus, useWorkspaceMilvus } from './useMilvus'; // Temporarily disabled due to missing dependencies
 
 // Re-export types
 export type { AsyncState, AsyncOptions, UseAsyncReturn } from './useAsync';

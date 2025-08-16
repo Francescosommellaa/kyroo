@@ -64,6 +64,6 @@ if (import.meta.env.DEV) {
 }
 
 // Helper types
-export type Profile = Database['public']['Tables']['user']['Row']
-export type ProfileUpdate = Database['public']['Tables']['user']['Update']
-export type ProfileInsert = Database['public']['Tables']['user']['Insert']
+export type Profile = Database['public']['Tables']['users']['Row']
+export type ProfileUpdate = Database['public']['Tables']['users']['Update']
+export type ProfileInsert = Database['public']['Tables']['users']['Insert']

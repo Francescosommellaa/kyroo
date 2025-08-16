@@ -193,7 +193,7 @@ export default function DebugAuth() {
     try {
       const { error } = await supabase.auth.resend({
         type: 'signup',
-        email: email,
+        email,
         options: {
           emailRedirectTo: `${window.location.origin}/auth/callback`
         }

@@ -12,13 +12,18 @@
   "scripts": {
     "build": "npm -w src/web run build || true",
     "dev": "npm -w src/web run dev",
-    "lint": "eslint . --ext .ts,.tsx --fix",
+    "lint": "eslint . --fix",
     "format": "prettier --write .",
     "test": "npm -ws run test"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.39.1",
+    "@typescript-eslint/parser": "^8.39.1",
     "eslint": "^8.0.0",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
     "prettier": "^3.0.0",
     "typescript": "^5.0.0"
   },

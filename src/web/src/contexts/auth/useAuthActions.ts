@@ -5,11 +5,19 @@ import {
   validatePassword,
   validateFullName,
   validateDisplayName,
-  mapSupabaseError,
+  mapSupabaseError
+} from "./auth-utils";
+import {
+  withRetry,
+  handleSupabaseError,
+  NetworkError,
+  AuthenticationError,
+  ValidationError
+} from '@/lib/error-handling';
+import {
   logAuthEvent,
   logAuthError
-} from "./auth-utils";
-import { handleNetworkOperation, createNetworkError } from "../../utils/network-error-utils";
+} from './auth-utils';
 
 export const useAuthActions = () => {
   // Sign up with email and password
@@ -47,8 +55,8 @@ export const useAuthActions = () => {
         }
       }
 
-      // Attempt signup with network error handling
-      const result = await handleNetworkOperation(
+      // Attempt signup with enhanced retry logic
+      const result = await withRetry(
         async () => {
           const { data, error } = await supabase.auth.signUp({
             email,
@@ -62,22 +70,45 @@ export const useAuthActions = () => {
           });
 
           if (error) {
-            throw error;
+            handleSupabaseError(error, 'User signup');
+          }
+
+          // Create user profile in the users table with retry
+          if (data.user) {
+            await withRetry(
+              async () => {
+                const { error: profileError } = await supabase
+                  .from('users')
+                  .insert({
+                    id: data.user!.id,
+                    email,
+                    full_name: fullName || null,
+                    display_name: displayName || fullName || null,
+                    role: 'user',
+                    plan: 'free',
+                    email_verified: false
+                  });
+
+                if (profileError) {
+                  handleSupabaseError(profileError, 'User profile creation');
+                }
+              },
+              {
+                operation: 'User profile creation',
+                userId: data.user!.id,
+                timestamp: new Date().toISOString()
+              },
+              { maxAttempts: 2 }
+            );
           }
 
           return data;
         },
         {
-          maxRetries: 2,
-          context: 'Registrazione utente',
-          onRetry: (attempt, error) => {
-            logAuthEvent(AuthEvent.SIGNUP_ATTEMPT, { 
-              email, 
-              retryAttempt: attempt,
-              networkError: error.type 
-            });
-          }
-        }
+          operation: 'User signup',
+          timestamp: new Date().toISOString()
+        },
+        { maxAttempts: 3 }
       );
 
       if (result.user && !result.user.email_confirmed_at) {
@@ -94,15 +125,28 @@ export const useAuthActions = () => {
 
     } catch (error: any) {
       logAuthError(AuthEvent.SIGNUP_ERROR, error, { email });
-      
-      // Check if it's a network error
-      if (error.type && error.suggestion) {
-        return { 
-          success: false, 
-          error: `${error.message}\n💡 ${error.suggestion}` 
+
+      if (error instanceof NetworkError) {
+        return {
+          success: false,
+          error: `Network error: ${error.message}. Please check your connection and try again.`
         };
       }
-      
+
+      if (error instanceof AuthenticationError) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
+      if (error instanceof ValidationError) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
       const { message } = mapSupabaseError(error);
       return { success: false, error: message };
     }
@@ -123,8 +167,8 @@ export const useAuthActions = () => {
         return { success: false, error: 'Password is required' };
       }
 
-      // Attempt signin with network error handling
-      const result = await handleNetworkOperation(
+      // Attempt signin with enhanced retry logic
+      const result = await withRetry(
         async () => {
           const { data, error } = await supabase.auth.signInWithPassword({
             email,
@@ -132,22 +176,16 @@ export const useAuthActions = () => {
           });
 
           if (error) {
-            throw error;
+            handleSupabaseError(error, 'User signin');
           }
 
           return data;
         },
         {
-          maxRetries: 2,
-          context: 'Accesso utente',
-          onRetry: (attempt, error) => {
-            logAuthEvent(AuthEvent.SIGNIN_ATTEMPT, { 
-              email, 
-              retryAttempt: attempt,
-              networkError: error.type 
-            });
-          }
-        }
+          operation: 'User signin',
+          timestamp: new Date().toISOString()
+        },
+        { maxAttempts: 3 }
       );
 
       logAuthEvent(AuthEvent.SIGNIN_SUCCESS, { email, userId: result.user?.id });
@@ -155,15 +193,21 @@ export const useAuthActions = () => {
 
     } catch (error: any) {
       logAuthError(AuthEvent.SIGNIN_ERROR, error, { email });
-      
-      // Check if it's a network error
-      if (error.type && error.suggestion) {
-        return { 
-          success: false, 
-          error: `${error.message}\n💡 ${error.suggestion}` 
+
+      if (error instanceof NetworkError) {
+        return {
+          success: false,
+          error: `Network error: ${error.message}. Please check your connection and try again.`
         };
       }
-      
+
+      if (error instanceof AuthenticationError) {
+        return {
+          success: false,
+          error: error.message
+        };
+      }
+
       const { message } = mapSupabaseError(error);
       return { success: false, error: message };
     }
@@ -174,30 +218,89 @@ export const useAuthActions = () => {
     try {
       logAuthEvent(AuthEvent.SIGNIN_ATTEMPT, { provider: 'google' });
 
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
+      await withRetry(
+        async () => {
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: `${window.location.origin}/auth/callback`
+            }
+          });
 
-      if (error) {
-        throw error;
-      }
+          if (error) {
+            handleSupabaseError(error, 'Google OAuth signin');
+          }
+        },
+        {
+          operation: 'Google OAuth signin',
+          timestamp: new Date().toISOString()
+        },
+        { maxAttempts: 2 }
+      );
 
       logAuthEvent(AuthEvent.SIGNIN_SUCCESS, { provider: 'google' });
       return { success: true };
 
     } catch (error: any) {
       logAuthError(AuthEvent.SIGNIN_ERROR, error, { provider: 'google' });
-      
-      // Create network error for Google sign-in
-      const networkError = createNetworkError(error, 'Accesso con Google');
+
+      if (error instanceof NetworkError) {
+        return {
+          success: false,
+          error: `Network error during Google sign-in: ${error.message}. Please try again.`
+        };
+      }
+
       return {
         success: false,
-        error: `${networkError.message}\n💡 ${networkError.suggestion}`
+        error: 'Failed to sign in with Google. Please try again.'
       };
     }
+  };
+
+  // Create user profile if it doesn't exist (for OAuth users)
+  const ensureUserProfile = async (user: any): Promise<void> => {
+    await withRetry(
+      async () => {
+        // Check if user profile exists
+        const { data: existingUser, error: selectError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+
+        if (selectError && selectError.code !== 'PGRST116') {
+          handleSupabaseError(selectError, 'Check user profile existence');
+        }
+
+        if (!existingUser) {
+          // Create user profile
+          const { error } = await supabase
+            .from('users')
+            .insert({
+              id: user.id,
+              email: user.email!,
+              full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+              display_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
+              avatar_url: user.user_metadata?.avatar_url || null,
+              provider: user.app_metadata?.provider || 'email',
+              role: 'user',
+              plan: 'free',
+              email_verified: user.email_confirmed_at ? true : false
+            });
+
+          if (error) {
+            handleSupabaseError(error, 'Create OAuth user profile');
+          }
+        }
+      },
+      {
+        operation: 'Ensure user profile',
+        userId: user.id,
+        timestamp: new Date().toISOString()
+      },
+      { maxAttempts: 3 }
+    );
   };
 
   // Sign out
@@ -205,23 +308,37 @@ export const useAuthActions = () => {
     try {
       logAuthEvent(AuthEvent.SIGNOUT_ATTEMPT);
 
-      const { error } = await supabase.auth.signOut();
+      await withRetry(
+        async () => {
+          const { error } = await supabase.auth.signOut();
 
-      if (error) {
-        throw error;
-      }
+          if (error) {
+            handleSupabaseError(error, 'User signout');
+          }
+        },
+        {
+          operation: 'User signout',
+          timestamp: new Date().toISOString()
+        },
+        { maxAttempts: 2 }
+      );
 
       logAuthEvent(AuthEvent.SIGNOUT_SUCCESS);
       return { success: true };
 
     } catch (error: any) {
       logAuthError(AuthEvent.SIGNOUT_ERROR, error);
-      
-      // Create network error for sign out
-      const networkError = createNetworkError(error, 'Disconnessione');
+
+      if (error instanceof NetworkError) {
+        return {
+          success: false,
+          error: `Network error during sign out: ${error.message}. You may already be signed out.`
+        };
+      }
+
       return {
         success: false,
-        error: `${networkError.message}\n💡 ${networkError.suggestion}`
+        error: 'Failed to sign out. Please try again.'
       };
     }
   };
@@ -237,19 +354,36 @@ export const useAuthActions = () => {
         return { success: false, error: emailError };
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`
-      });
+      await withRetry(
+        async () => {
+          const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/reset-password`
+          });
 
-      if (error) {
-        throw error;
-      }
+          if (error) {
+            handleSupabaseError(error, 'Password reset');
+          }
+        },
+        {
+          operation: 'Password reset',
+          timestamp: new Date().toISOString()
+        },
+        { maxAttempts: 3 }
+      );
 
       logAuthEvent(AuthEvent.PASSWORD_RESET_SUCCESS, { email });
       return { success: true };
 
     } catch (error: any) {
       logAuthError(AuthEvent.PASSWORD_RESET_ERROR, error, { email });
+
+      if (error instanceof NetworkError) {
+        return {
+          success: false,
+          error: `Network error: ${error.message}. Please check your connection and try again.`
+        };
+      }
+
       const { message } = mapSupabaseError(error);
       return { success: false, error: message };
     }
@@ -266,17 +400,34 @@ export const useAuthActions = () => {
         return { success: false, error: passwordError };
       }
 
-      const { error } = await supabase.auth.updateUser({ password });
+      await withRetry(
+        async () => {
+          const { error } = await supabase.auth.updateUser({ password });
 
-      if (error) {
-        throw error;
-      }
+          if (error) {
+            handleSupabaseError(error, 'Password update');
+          }
+        },
+        {
+          operation: 'Password update',
+          timestamp: new Date().toISOString()
+        },
+        { maxAttempts: 2 }
+      );
 
       logAuthEvent(AuthEvent.PASSWORD_UPDATE_SUCCESS);
       return { success: true };
 
     } catch (error: any) {
       logAuthError(AuthEvent.PASSWORD_UPDATE_ERROR, error);
+
+      if (error instanceof NetworkError) {
+        return {
+          success: false,
+          error: `Network error: ${error.message}. Please check your connection and try again.`
+        };
+      }
+
       const { message } = mapSupabaseError(error);
       return { success: false, error: message };
     }
@@ -288,7 +439,7 @@ export const useAuthActions = () => {
       logAuthEvent(AuthEvent.EMAIL_RESEND_ATTEMPT);
 
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user?.email) {
         return {
           success: false,
@@ -296,20 +447,38 @@ export const useAuthActions = () => {
         };
       }
 
-      const { error } = await supabase.auth.resend({
-        type: 'signup',
-        email: user.email
-      });
+      await withRetry(
+        async () => {
+          const { error } = await supabase.auth.resend({
+            type: 'signup',
+            email: user.email!
+          });
 
-      if (error) {
-        throw error;
-      }
+          if (error) {
+            handleSupabaseError(error, 'Resend verification email');
+          }
+        },
+        {
+          operation: 'Resend verification email',
+          userId: user.id,
+          timestamp: new Date().toISOString()
+        },
+        { maxAttempts: 3 }
+      );
 
-      logAuthEvent(AuthEvent.EMAIL_RESEND_SUCCESS, { email: user.email });
+      logAuthEvent(AuthEvent.EMAIL_RESEND_SUCCESS, { email: user.email! });
       return { success: true };
 
     } catch (error: any) {
       logAuthError(AuthEvent.EMAIL_RESEND_ERROR, error);
+
+      if (error instanceof NetworkError) {
+        return {
+          success: false,
+          error: `Network error: ${error.message}. Please check your connection and try again.`
+        };
+      }
+
       const { message } = mapSupabaseError(error);
       return { success: false, error: message };
     }
@@ -326,6 +495,7 @@ export const useAuthActions = () => {
     resetPassword,
     updatePassword,
     resendVerificationEmail,
+    ensureUserProfile,
     logout
   };
 };
