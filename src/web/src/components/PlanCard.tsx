@@ -141,29 +141,28 @@ export default function PlanCard({
           <div>
             <span className="text-foreground-secondary">Workspace:</span>
             <span className="text-foreground font-medium ml-1">
-              {formatLimit(plan.limits.maxWorkspaces)}
+              {formatLimit(plan.limits.maxWorkspaces, planType)}
             </span>
           </div>
 
           <div>
             <span className="text-foreground-secondary">Utenti:</span>
             <span className="text-foreground font-medium ml-1">
-              {plan.limits.maxUsersPerWorkspace +
-                plan.limits.maxCollaboratorsPerWorkspace}
+              {formatLimit(plan.limits.maxUsersPerWorkspace + plan.limits.maxCollaboratorsPerWorkspace, planType)}
             </span>
           </div>
 
           <div>
             <span className="text-foreground-secondary">Ricerche/giorno:</span>
             <span className="text-foreground font-medium ml-1">
-              {formatLimit(plan.limits.maxWebSearchesPerDay)}
+              {formatLimit(plan.limits.maxWebSearchesPerDay, planType)}
             </span>
           </div>
 
           <div>
             <span className="text-foreground-secondary">File/mese:</span>
             <span className="text-foreground font-medium ml-1">
-              {formatLimit(plan.limits.maxFilesPerMonth)}
+              {formatLimit(plan.limits.maxFilesPerMonth, planType)}
             </span>
           </div>
         </div>

@@ -176,84 +176,84 @@ export default function Pricing() {
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">Workspace massimi:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.maxWorkspaces)}
+                          {formatLimit(plan.limits.maxWorkspaces, planType)}
                         </span>
                       </div>
                       
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">Utenti per workspace:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.maxUsersPerWorkspace)}
+                          {formatLimit(plan.limits.maxUsersPerWorkspace, planType)}
                         </span>
                       </div>
                       
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">Collaboratori per workspace:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.maxCollaboratorsPerWorkspace)}
+                          {formatLimit(plan.limits.maxCollaboratorsPerWorkspace, planType)}
                         </span>
                       </div>
                       
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">Token chat massimi:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.maxChatInputTokens)}
+                          {formatLimit(plan.limits.maxChatInputTokens, planType)}
                         </span>
                       </div>
                       
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">Ricerche web/giorno:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.maxWebSearchesPerDay)}
+                          {formatLimit(plan.limits.maxWebSearchesPerDay, planType)}
                         </span>
                       </div>
                       
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">File/mese:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.maxFilesPerMonth)}
+                          {formatLimit(plan.limits.maxFilesPerMonth, planType)}
                         </span>
                       </div>
                       
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">Dimensione file max:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.maxFileSizeMB)} MB
+                          {formatLimit(plan.limits.maxFileSizeMB, planType)} MB
                         </span>
                       </div>
                       
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">Web-Agent run/mese:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.maxWebAgentRunsPerMonth)}
+                          {formatLimit(plan.limits.maxWebAgentRunsPerMonth, planType)}
                         </span>
                       </div>
                       
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">Workflow attivi/workspace:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.maxActiveWorkflowsPerWorkspace)}
+                          {formatLimit(plan.limits.maxActiveWorkflowsPerWorkspace, planType)}
                         </span>
                       </div>
                       
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">Esecuzioni workflow/giorno:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.maxWorkflowExecutionsPerDay)}
+                          {formatLimit(plan.limits.maxWorkflowExecutionsPerDay, planType)}
                         </span>
                       </div>
                       
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">Knowledge Base:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.maxKnowledgeBaseSizeGB)} GB
+                          {formatLimit(plan.limits.maxKnowledgeBaseSizeGB, planType)} GB
                         </span>
                       </div>
                       
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">Retention dati:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.dataRetentionDays)} giorni
+                          {formatLimit(plan.limits.dataRetentionDays, planType)} giorni
                         </span>
                       </div>
                     </div>

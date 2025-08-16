@@ -55,7 +55,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-12">
+          <div className="hidden md:flex items-center space-x-4 lg:space-x-12">
             <Link 
               to="/" 
               className="text-foreground-secondary hover:text-foreground transition-all duration-200 font-medium focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-background rounded-lg px-3 py-2"
@@ -114,7 +114,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Buttons */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-3 lg:space-x-6">
             {user ? (
               <Link to="/app/chat">
                 <motion.button 

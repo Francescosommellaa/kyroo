@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   ArrowRight, 
@@ -13,8 +14,10 @@ import {
 import { AuthModal } from '../components/AuthModal'
 import Navbar from '../components/Landing/Navbar'
 import Footer from '../components/Landing/Footer'
+import { PLAN_CONFIGS, formatLimit } from '@kyroo/shared/plans'
 
 export default function LandingPage() {
+  const navigate = useNavigate()
   const [authModal, setAuthModal] = useState<{ isOpen: boolean; mode: 'login' | 'register' }>({ 
     isOpen: false, 
     mode: 'register' 
@@ -34,54 +37,60 @@ export default function LandingPage() {
     setOpenFaq(openFaq === index ? null : index)
   }
 
-  const getPricingPlans = (yearly: boolean) => [
-    {
-      name: "Free",
-      price: "€0",
-      period: "/mese",
-      features: [
-        "3 workspace",
-        "5 utenti totali",
-        "10 ricerche web/giorno",
-        "20 file/mese",
-        "Support community"
-      ],
-      cta: "Inizia Gratis",
-      popular: false
-    },
-    {
-      name: "Pro",
-      price: yearly ? "€96" : "€12",
-      period: yearly ? "/anno" : "/mese",
-      originalPrice: yearly ? "€144/anno" : undefined,
-      savings: yearly ? "Risparmia 33%" : undefined,
-      features: [
-        "10 workspace",
-        "50 utenti totali",
-        "100 ricerche web/giorno",
-        "200 file/mese",
-        "Support prioritario",
-        "Prova gratuita 7 giorni"
-      ],
-      cta: "Prova Pro",
-      popular: true
-    },
-    {
-      name: "Enterprise",
-      price: "Personalizzato",
-      period: "",
-      features: [
-        "Workspace illimitati",
-        "Utenti illimitati",
-        "Limiti personalizzabili",
-        "Support dedicato 24/7",
-        "SLA garantito",
-        "Onboarding dedicato"
-      ],
-      cta: "Contatta Sales",
-      popular: false
-    }
-  ]
+  const getPricingPlans = (yearly: boolean) => {
+    const freeConfig = PLAN_CONFIGS.free
+    const proConfig = PLAN_CONFIGS.pro
+    const enterpriseConfig = PLAN_CONFIGS.enterprise
+
+    return [
+      {
+        name: "Free",
+        price: "€0",
+        period: "/mese",
+        features: [
+          `${formatLimit(freeConfig.maxWorkspaces)} workspace`,
+          `${formatLimit(freeConfig.maxOwnersPerWorkspace + freeConfig.maxUserCollaboratorsPerWorkspace)} utenti per workspace`,
+          "10 ricerche web/giorno",
+          "20 file/mese",
+          "Support community"
+        ],
+        cta: "Inizia Gratis",
+        popular: false
+      },
+      {
+        name: "Pro",
+        price: yearly ? "€96" : "€12",
+        period: yearly ? "/anno" : "/mese",
+        originalPrice: yearly ? "€144/anno" : undefined,
+        savings: yearly ? "Risparmia 33%" : undefined,
+        features: [
+          `${formatLimit(proConfig.maxWorkspaces)} workspace`,
+          `${formatLimit(proConfig.maxOwnersPerWorkspace + proConfig.maxUserCollaboratorsPerWorkspace)} utenti per workspace`,
+          "100 ricerche web/giorno",
+          "200 file/mese",
+          "Support prioritario",
+          "Prova gratuita 7 giorni"
+        ],
+        cta: "Prova Pro",
+        popular: true
+      },
+      {
+        name: "Enterprise",
+        price: "Personalizzato",
+        period: "",
+        features: [
+          `${formatLimit(enterpriseConfig.maxWorkspaces)} workspace`,
+          `${formatLimit(enterpriseConfig.maxOwnersPerWorkspace + enterpriseConfig.maxUserCollaboratorsPerWorkspace)} utenti per workspace`,
+          "Limiti personalizzabili",
+          "Support dedicato 24/7",
+          "SLA garantito",
+          "Onboarding dedicato"
+        ],
+        cta: "Contatta Sales",
+        popular: false
+      }
+    ]
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -247,11 +256,16 @@ export default function LandingPage() {
             </div>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-10 max-w-6xl mx-auto">
+          {/* Pricing Plans Grid - Unified Layout */}
+          <div className="grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10 max-w-sm mx-auto md:max-w-none">
             {getPricingPlans(isYearly).map((plan, index) => (
               <motion.div
                 key={index}
-                className={`card-elevated relative flex flex-col hover-lift ${plan.popular ? 'ring-2 ring-accent-violet shadow-2xl shadow-accent-violet/20' : ''}`}
+                className={`card-elevated relative flex flex-col hover-lift p-6 md:p-8 ${
+                  plan.popular ? 'ring-2 ring-accent-violet shadow-2xl shadow-accent-violet/20' : ''
+                } ${
+                  plan.name === 'Enterprise' ? 'md:col-span-2 lg:col-span-1' : ''
+                }`}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -259,32 +273,36 @@ export default function LandingPage() {
               >
                 {plan.popular && (
                   <div className="absolute -top-5 left-1/2 transform -translate-x-1/2">
-                    <span className="bg-gradient-to-r from-accent-violet to-accent-cyan text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                    <span className="bg-gradient-to-r from-accent-violet to-accent-cyan text-white px-4 py-1.5 md:px-6 md:py-2 rounded-full text-xs md:text-sm font-bold shadow-lg whitespace-nowrap">
                       Più Popolare
                     </span>
                   </div>
                 )}
                 
                 <div className="text-center flex flex-col h-full">
-                  <h3 className="text-2xl font-bold mb-4 tracking-tight">{plan.name}</h3>
-                  <div className="mb-6">
-                    <span className="text-5xl font-bold tracking-tight">{plan.price}</span>
+                  <h3 className="text-2xl font-bold mb-4 md:mb-6 tracking-tight">{plan.name}</h3>
+                  <div className="mb-4 md:mb-6">
+                    <span className="text-4xl md:text-5xl font-bold tracking-tight">{plan.price}</span>
                     <span className="text-foreground-secondary text-lg font-light">{plan.period}</span>
                   </div>
                   
                   {plan.savings && (
-                    <div className="mb-8 text-sm">
+                    <div className="mb-6 md:mb-8 text-sm">
                       <span className="text-foreground-secondary">invece di </span>
                       <span className="text-foreground-secondary line-through">{plan.originalPrice}</span>
                       <span className="text-accent-cyan font-bold ml-2">{plan.savings}</span>
                     </div>
                   )}
                   
-                  <ul className="space-y-4 mb-10 flex-grow">
+                  <ul className={`mb-8 md:mb-10 flex-grow ${
+                    plan.name === 'Enterprise' 
+                      ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-x-6 gap-y-3 md:gap-y-4'
+                      : 'space-y-3 md:space-y-4'
+                  }`}>
                     {plan.features.map((feature, featureIndex) => (
                       <li key={featureIndex} className="flex items-center gap-4">
-                        <Check className="text-accent-cyan flex-shrink-0" size={18} />
-                        <span className="text-foreground-secondary font-light">{feature}</span>
+                        <Check className="text-accent-cyan flex-shrink-0" size={16} />
+                        <span className="text-foreground-secondary font-light text-sm md:text-base">{feature}</span>
                       </li>
                     ))}
                   </ul>
@@ -292,7 +310,7 @@ export default function LandingPage() {
                   <div className="mt-auto">
                     <motion.button
                       onClick={() => openAuthModal(plan.name === 'Free' ? 'register' : 'register')}
-                      className={`w-full py-4 px-8 rounded-2xl font-semibold transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-4 focus:ring-offset-surface-elevated shadow-lg hover:shadow-xl ${
+                      className={`w-full py-3 px-6 md:py-4 md:px-8 rounded-2xl font-semibold text-base md:text-lg transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-4 focus:ring-offset-surface-elevated shadow-lg hover:shadow-xl ${
                         plan.popular 
                           ? 'bg-gradient-to-r from-accent-violet to-accent-cyan hover:from-accent-violet/90 hover:to-accent-cyan/90 text-white focus:ring-accent-violet hover:scale-105' 
                           : 'glass-strong hover:glass text-foreground focus:ring-accent-cyan hover:scale-105'
@@ -316,7 +334,7 @@ export default function LandingPage() {
             transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.3 }}
           >
             <motion.button
-              onClick={() => window.open('/pricing', '_blank')}
+              onClick={() => navigate('/pricing')}
               className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-accent-violet/10 to-accent-cyan/10 border border-accent-violet/20 rounded-2xl text-accent-violet hover:text-accent-cyan transition-all duration-300 hover:shadow-lg hover:scale-105 font-semibold"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
