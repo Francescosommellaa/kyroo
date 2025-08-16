@@ -4,7 +4,9 @@ import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './contexts/auth'
 import App from './App.tsx'
 import './styles/tailwind.css'
+import './styles/animations.css'
 import CookieBanner from './components/CookieBanner'
+import { NetworkStatusIndicator } from './components/NetworkStatusIndicator'
 
 // Disabilita service worker se presente
 if ('serviceWorker' in navigator) {
@@ -22,6 +24,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <BrowserRouter>
         <App />
         <CookieBanner />
+        <NetworkStatusIndicator />
       </BrowserRouter>
     </AuthProvider>
   </React.StrictMode>,

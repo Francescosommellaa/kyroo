@@ -81,16 +81,16 @@ export function extractErrorDetails(error: unknown): {
 export function handleAuthError(error: any): string {
   const { message, code } = extractErrorDetails(error);
   
-  // Map common Supabase auth error codes to user-friendly messages
+  // Map common Supabase auth error codes to user-friendly Italian messages
   const authErrorMap: Record<string, string> = {
-    'invalid_credentials': 'Invalid email or password',
-    'email_not_confirmed': 'Please check your email and click the confirmation link',
-    'signup_disabled': 'New registrations are currently disabled',
-    'email_address_invalid': 'Please enter a valid email address',
-    'password_too_short': 'Password must be at least 6 characters long',
-    'user_already_registered': 'An account with this email already exists',
-    'weak_password': 'Password is too weak. Please choose a stronger password',
-    'rate_limit_exceeded': 'Too many attempts. Please try again later',
+    'invalid_credentials': '❌ Email o password non corretti',
+    'email_not_confirmed': '✉️ Controlla la tua email e clicca sul link di conferma',
+    'signup_disabled': '🚫 Le registrazioni sono temporaneamente disabilitate',
+    'email_address_invalid': '📧 Inserisci un indirizzo email valido',
+    'password_too_short': '🔐 La password deve contenere almeno 6 caratteri',
+    'user_already_registered': '🔒 Esiste già un account con questa email',
+    'weak_password': '🔒 Password troppo debole. Scegli una password più sicura',
+    'rate_limit_exceeded': '⏱️ Troppi tentativi. Riprova più tardi',
   };
   
   return authErrorMap[code || ''] || message;
@@ -100,18 +100,18 @@ export function handleAuthError(error: any): string {
 export function handleApiError(error: any): string {
   const { message, code } = extractErrorDetails(error);
   
-  // Map common API error codes
+  // Map common API error codes to Italian messages
   const apiErrorMap: Record<string, string> = {
-    '400': 'Bad request. Please check your input',
-    '401': 'You are not authorized to perform this action',
-    '403': 'Access denied',
-    '404': 'The requested resource was not found',
-    '409': 'A conflict occurred. The resource may already exist',
-    '422': 'Invalid data provided',
-    '429': 'Too many requests. Please try again later',
-    '500': 'Server error. Please try again later',
-    '502': 'Service temporarily unavailable',
-    '503': 'Service temporarily unavailable',
+    '400': '❌ Richiesta non valida. Controlla i dati inseriti',
+    '401': '🔐 Non sei autorizzato a eseguire questa azione',
+    '403': '🚫 Accesso negato',
+    '404': '🔍 La risorsa richiesta non è stata trovata',
+    '409': '⚠️ Si è verificato un conflitto. La risorsa potrebbe già esistere',
+    '422': '📝 Dati non validi forniti',
+    '429': '⏱️ Troppe richieste. Riprova più tardi',
+    '500': '🔧 Errore del server. Riprova più tardi',
+    '502': '🌐 Servizio temporaneamente non disponibile',
+    '503': '🌐 Servizio temporaneamente non disponibile',
   };
   
   return apiErrorMap[code || ''] || message;

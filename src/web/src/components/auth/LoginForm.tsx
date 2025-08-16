@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { AuthFormData, AuthFormProps } from './auth-modal-types';
 import { useAuth } from '../../contexts/auth';
+import ErrorMessage, { SuccessMessage, InlineError } from '../ErrorMessage';
+import { validateLoginForm, ValidationResult } from '../../utils/validation-utils';
 
 export function LoginForm({ onSubmit, isLoading, error, message, onModeChange }: AuthFormProps) {
   const [formData, setFormData] = useState<AuthFormData>({
@@ -9,11 +11,24 @@ export function LoginForm({ onSubmit, isLoading, error, message, onModeChange }:
     password: '',
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, ValidationResult>>({});
   const { signInWithGoogle } = useAuth();
+
+  const validateForm = (): boolean => {
+    const validation = validateLoginForm({
+      email: formData.email,
+      password: formData.password
+    });
+
+    setValidationErrors(validation.errors);
+    return validation.isValid;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onSubmit(formData);
+    if (validateForm()) {
+      await onSubmit(formData);
+    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -28,22 +43,25 @@ export function LoginForm({ onSubmit, isLoading, error, message, onModeChange }:
     <div className="space-y-6">
       {/* Error/Success Messages */}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-600">{error}</p>
-        </div>
+        <ErrorMessage 
+          message={error} 
+          type="error" 
+          icon="auth"
+          animate={true}
+        />
       )}
       
       {message && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-sm text-green-600">{message}</p>
-        </div>
+        <SuccessMessage 
+          message={message}
+        />
       )}
 
       {/* Login Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Email Field */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="email" className="block text-sm font-medium text-foreground mb-1">
             Email
           </label>
           <input
@@ -51,15 +69,18 @@ export function LoginForm({ onSubmit, isLoading, error, message, onModeChange }:
             type="email"
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className={`w-full px-3 py-2 border rounded-lg bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent ${
+              validationErrors.email ? 'border-red-300 bg-red-50' : 'border-border'
+            }`}
             placeholder="Inserisci la tua email"
             required
           />
+          <InlineError message={validationErrors.email?.message} />
         </div>
 
         {/* Password Field */}
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="password" className="block text-sm font-medium text-foreground mb-1">
             Password
           </label>
           <div className="relative">
@@ -68,25 +89,28 @@ export function LoginForm({ onSubmit, isLoading, error, message, onModeChange }:
               type={showPassword ? 'text' : 'password'}
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={`w-full px-3 py-2 pr-10 border rounded-lg bg-surface text-foreground focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent ${
+                validationErrors.password ? 'border-red-300 bg-red-50' : 'border-border'
+              }`}
               placeholder="Inserisci la tua password"
               required
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-foreground/60 hover:text-foreground"
             >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           </div>
+          <InlineError message={validationErrors.password?.message} />
         </div>
 
         {/* Submit Button */}
         <button
           type="submit"
           disabled={isLoading}
-          className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full bg-accent-violet text-white py-2 px-4 rounded-lg hover:bg-accent-violet/90 focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isLoading ? 'Accesso in corso...' : 'Accedi'}
         </button>
@@ -95,10 +119,10 @@ export function LoginForm({ onSubmit, isLoading, error, message, onModeChange }:
       {/* Google Sign In */}
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-300" />
+          <div className="w-full border-t border-border" />
         </div>
         <div className="relative flex justify-center text-sm">
-          <span className="px-2 bg-white text-gray-500">oppure</span>
+          <span className="px-2 bg-background text-foreground/60">oppure</span>
         </div>
       </div>
 
@@ -106,7 +130,7 @@ export function LoginForm({ onSubmit, isLoading, error, message, onModeChange }:
         type="button"
         onClick={handleGoogleSignIn}
         disabled={isLoading}
-        className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="w-full flex items-center justify-center px-4 py-2 border border-border rounded-lg shadow-sm bg-surface text-sm font-medium text-foreground hover:bg-surface/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-accent-violet disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
           <path
@@ -131,21 +155,21 @@ export function LoginForm({ onSubmit, isLoading, error, message, onModeChange }:
 
       {/* Mode Switch Links */}
       <div className="text-center space-y-2">
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-foreground/70">
           Non hai un account?{' '}
           <button
             type="button"
             onClick={() => onModeChange('signup')}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-accent-violet hover:text-accent-violet/80 font-medium"
           >
             Registrati
           </button>
         </p>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-foreground/70">
           <button
             type="button"
             onClick={() => onModeChange('reset')}
-            className="text-blue-600 hover:text-blue-700 font-medium"
+            className="text-accent-violet hover:text-accent-violet/80 font-medium"
           >
             Password dimenticata?
           </button>

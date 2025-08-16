@@ -22,14 +22,6 @@ import DebugAuth from "./pages/DebugAuth";
 export default function AppRoutes() {
   const { loading } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-accent-violet border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <Routes>
       {/* Landing page - sempre accessibile */}
@@ -46,8 +38,16 @@ export default function AppRoutes() {
       <Route path="/contacts" element={<ContactsPage />} />
       <Route path="/pricing" element={<Pricing />} />
       
-      {/* Protected app routes */}
-      <Route path="/app" element={<ProtectedRoute />}>
+      {/* Protected app routes - mostrano loading se necessario */}
+      <Route path="/app" element={
+        loading ? (
+          <div className="min-h-screen bg-background flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-accent-violet border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : (
+          <ProtectedRoute />
+        )
+      }>
         <Route path="chat" element={<Chat />} />
         <Route path="planner" element={<Planner />} />
         <Route path="executions" element={<Executions />} />

@@ -11,48 +11,48 @@ export const createValidationRule = (validate: (value: string) => boolean, messa
 export const emailValidationRules: ValidationRule[] = [
   createValidationRule(
     (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email),
-    "Please enter a valid email address"
+    "Inserisci un indirizzo email valido"
   )
 ];
 
 export const passwordValidationRules: ValidationRule[] = [
   createValidationRule(
     (password) => password.length >= 8,
-    "Password must be at least 8 characters long"
+    "La password deve contenere almeno 8 caratteri"
   ),
   createValidationRule(
     (password) => /[A-Z]/.test(password),
-    "Password must contain at least one uppercase letter"
+    "La password deve contenere almeno una lettera maiuscola"
   ),
   createValidationRule(
     (password) => /[a-z]/.test(password),
-    "Password must contain at least one lowercase letter"
+    "La password deve contenere almeno una lettera minuscola"
   ),
   createValidationRule(
     (password) => /\d/.test(password),
-    "Password must contain at least one number"
+    "La password deve contenere almeno un numero"
   )
 ];
 
 export const fullNameValidationRules: ValidationRule[] = [
   createValidationRule(
     (name) => name.trim().length >= 2,
-    "Full name must be at least 2 characters long"
+    "Il nome completo deve contenere almeno 2 caratteri"
   ),
   createValidationRule(
     (name) => /^[a-zA-Z\s'-]+$/.test(name.trim()),
-    "Full name can only contain letters, spaces, hyphens, and apostrophes"
+    "Il nome può contenere solo lettere, spazi, trattini e apostrofi"
   )
 ];
 
 export const displayNameValidationRules: ValidationRule[] = [
   createValidationRule(
     (name) => name.trim().length >= 2,
-    "Display name must be at least 2 characters long"
+    "Il nome visualizzato deve contenere almeno 2 caratteri"
   ),
   createValidationRule(
     (name) => name.trim().length <= 50,
-    "Display name must be less than 50 characters"
+    "Il nome visualizzato deve essere inferiore a 50 caratteri"
   )
 ];
 
@@ -97,14 +97,14 @@ export const validateAvatarFile = (file: File): { isValid: boolean; error?: stri
   if (!allowedTypes.includes(file.type)) {
     return {
       isValid: false,
-      error: 'Please select a valid image file (JPEG, PNG, GIF, or WebP)'
+      error: '🖼️ Seleziona un file immagine valido (JPEG, PNG, GIF o WebP)'
     };
   }
 
   if (file.size > maxSize) {
     return {
       isValid: false,
-      error: 'File size must be less than 5MB'
+      error: '📏 Il file deve essere inferiore a 5MB'
     };
   }
 
@@ -115,45 +115,96 @@ export const validateAvatarFile = (file: File): { isValid: boolean; error?: stri
 export const mapSupabaseError = (error: AuthError): { code: AuthErrorCode; message: string } => {
   const errorMessage = error.message.toLowerCase();
 
-  // Map common Supabase errors to our error codes
+  // Map common Supabase errors to our error codes with Italian messages
   if (errorMessage.includes('user already registered')) {
-    return { code: AuthErrorCode.USER_ALREADY_EXISTS, message: 'An account with this email already exists' };
+    return { 
+      code: AuthErrorCode.USER_ALREADY_EXISTS, 
+      message: '🔒 Esiste già un account con questa email. Prova ad accedere o usa un\'altra email.' 
+    };
   }
   
   if (errorMessage.includes('invalid email')) {
-    return { code: AuthErrorCode.INVALID_EMAIL, message: 'Please enter a valid email address' };
+    return { 
+      code: AuthErrorCode.INVALID_EMAIL, 
+      message: '📧 L\'indirizzo email non è valido. Controlla e riprova.' 
+    };
   }
   
   if (errorMessage.includes('password') && errorMessage.includes('short')) {
-    return { code: AuthErrorCode.PASSWORD_TOO_SHORT, message: 'Password must be at least 8 characters long' };
+    return { 
+      code: AuthErrorCode.PASSWORD_TOO_SHORT, 
+      message: '🔐 La password è troppo corta. Deve contenere almeno 8 caratteri.' 
+    };
   }
   
   if (errorMessage.includes('email not confirmed')) {
-    return { code: AuthErrorCode.EMAIL_NOT_CONFIRMED, message: 'Please check your email and click the confirmation link' };
+    return { 
+      code: AuthErrorCode.EMAIL_NOT_CONFIRMED, 
+      message: '✉️ Controlla la tua email e clicca sul link di conferma per attivare l\'account.' 
+    };
   }
   
   if (errorMessage.includes('invalid login credentials')) {
-    return { code: AuthErrorCode.INVALID_CREDENTIALS, message: 'Invalid email or password' };
+    return { 
+      code: AuthErrorCode.INVALID_CREDENTIALS, 
+      message: '❌ Email o password non corretti. Verifica i tuoi dati e riprova.' 
+    };
   }
   
   if (errorMessage.includes('too many requests')) {
-    return { code: AuthErrorCode.TOO_MANY_REQUESTS, message: 'Too many requests. Please try again later' };
+    return { 
+      code: AuthErrorCode.TOO_MANY_REQUESTS, 
+      message: '⏱️ Troppi tentativi. Attendi qualche minuto prima di riprovare.' 
+    };
   }
   
   if (errorMessage.includes('rate limit')) {
-    return { code: AuthErrorCode.EMAIL_RATE_LIMIT, message: 'Please wait before requesting another email' };
+    return { 
+      code: AuthErrorCode.EMAIL_RATE_LIMIT, 
+      message: '📨 Attendi prima di richiedere un\'altra email di verifica.' 
+    };
   }
   
   if (errorMessage.includes('permission denied') || errorMessage.includes('access denied')) {
-    return { code: AuthErrorCode.PERMISSION_DENIED, message: 'Permission denied. Please try again' };
+    return { 
+      code: AuthErrorCode.PERMISSION_DENIED, 
+      message: '🚫 Accesso negato. Verifica le tue credenziali e riprova.' 
+    };
   }
   
   if (errorMessage.includes('network') || errorMessage.includes('connection')) {
-    return { code: AuthErrorCode.CONNECTION_ERROR, message: 'Connection error. Please check your internet connection' };
+    return { 
+      code: AuthErrorCode.CONNECTION_ERROR, 
+      message: '🌐 Problema di connessione. Controlla la tua connessione internet e riprova.' 
+    };
   }
 
-  // Default fallback
-  return { code: AuthErrorCode.UNKNOWN_SIGNIN_ERROR, message: error.message };
+  if (errorMessage.includes('weak password')) {
+    return { 
+      code: AuthErrorCode.PASSWORD_TOO_SHORT, 
+      message: '🔒 Password troppo debole. Usa almeno 8 caratteri con lettere maiuscole, minuscole e numeri.' 
+    };
+  }
+
+  if (errorMessage.includes('signup disabled')) {
+    return { 
+      code: AuthErrorCode.UNKNOWN_SIGNIN_ERROR, 
+      message: '🚫 Le registrazioni sono temporaneamente disabilitate. Riprova più tardi.' 
+    };
+  }
+
+  if (errorMessage.includes('timeout')) {
+    return { 
+      code: AuthErrorCode.CONNECTION_ERROR, 
+      message: '⏰ Richiesta scaduta. Controlla la connessione e riprova.' 
+    };
+  }
+
+  // Default fallback with Italian message
+  return { 
+    code: AuthErrorCode.UNKNOWN_SIGNIN_ERROR, 
+    message: '⚠️ Si è verificato un errore imprevisto. Riprova tra qualche istante.' 
+  };
 };
 
 // Logging utilities

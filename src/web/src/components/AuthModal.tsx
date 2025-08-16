@@ -41,35 +41,42 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
     }
   }, [isOpen, defaultMode]);
 
+  // Aggiorna la modalità quando defaultMode cambia, anche se il modal è aperto
+  useEffect(() => {
+    setMode(defaultMode);
+  }, [defaultMode]);
+
   const handleLoginSubmit = async (data: AuthFormData) => {
     setIsLoading(true);
     setError(null);
     setMessage(null);
 
-    try {
-      await signIn(data.email, data.password);
+    const result = await signIn(data.email, data.password);
+    
+    if (result.success) {
       onClose();
-    } catch (error: any) {
-      console.error('Login error:', error);
-      setError(error.message || 'Si è verificato un errore durante l\'accesso.');
-    } finally {
-       setIsLoading(false);
-     }
-   };
+    } else {
+      console.error('Login error:', result.error);
+      setError(result.error || 'Si è verificato un errore durante l\'accesso.');
+    }
+    
+    setIsLoading(false);
+  };
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setError(null);
     
-    try {
-      await signInWithGoogle();
+    const result = await signInWithGoogle();
+    
+    if (result.success) {
       onClose();
-    } catch (error: any) {
-      console.error('Google sign in error:', error);
-      setError(error.message || 'Errore durante l\'accesso con Google');
-    } finally {
-      setIsLoading(false);
+    } else {
+      console.error('Google sign in error:', result.error);
+      setError(result.error || 'Errore durante l\'accesso con Google');
     }
+    
+    setIsLoading(false);
   };
 
   const handleSignupSubmit = async (data: AuthFormData) => {
@@ -77,22 +84,23 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
     setError(null);
     setMessage(null);
 
-    try {
-      await signUp(
-        data.email,
-        data.password,
-        data.fullName || '',
-        data.displayName || ''
-      );
+    const result = await signUp(
+      data.email,
+      data.password,
+      data.fullName || '',
+      data.displayName || ''
+    );
+    
+    if (result.success) {
       setUserEmail(data.email);
       setMode('verify');
       setMessage('Account creato! Controlla la tua email per verificare l\'account.');
-    } catch (error: any) {
-      console.error('Signup error:', error);
-      setError(error.message || 'Si è verificato un errore durante la registrazione.');
-    } finally {
-      setIsLoading(false);
+    } else {
+      console.error('Signup error:', result.error);
+      setError(result.error || 'Si è verificato un errore durante la registrazione.');
     }
+    
+    setIsLoading(false);
   };
 
   const handleResetSubmit = async (data: AuthFormData) => {
@@ -100,15 +108,16 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
     setError(null);
     setMessage(null);
 
-    try {
-      await resetPassword(data.email);
+    const result = await resetPassword(data.email);
+    
+    if (result.success) {
       setMessage('Email di reset inviata! Controlla la tua casella di posta.');
-    } catch (error: any) {
-      console.error('Reset password error:', error);
-      setError(error.message || 'Si è verificato un errore durante il reset della password.');
-    } finally {
-      setIsLoading(false);
+    } else {
+      console.error('Reset password error:', result.error);
+      setError(result.error || 'Si è verificato un errore durante il reset della password.');
     }
+    
+    setIsLoading(false);
   };
 
   const handleResendVerification = async () => {

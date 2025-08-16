@@ -7,9 +7,9 @@ import {
   validateDisplayName,
   mapSupabaseError,
   logAuthEvent,
-  logAuthError,
-  withRetry
+  logAuthError
 } from "./auth-utils";
+import { handleNetworkOperation, createNetworkError } from "../../utils/network-error-utils";
 
 export const useAuthActions = () => {
   // Sign up with email and password
@@ -47,25 +47,38 @@ export const useAuthActions = () => {
         }
       }
 
-      // Attempt signup with retry
-      const result = await withRetry(async () => {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: fullName || '',
-              display_name: displayName || fullName || ''
+      // Attempt signup with network error handling
+      const result = await handleNetworkOperation(
+        async () => {
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: {
+                full_name: fullName || '',
+                display_name: displayName || fullName || ''
+              }
             }
+          });
+
+          if (error) {
+            throw error;
           }
-        });
 
-        if (error) {
-          throw error;
+          return data;
+        },
+        {
+          maxRetries: 2,
+          context: 'Registrazione utente',
+          onRetry: (attempt, error) => {
+            logAuthEvent(AuthEvent.SIGNUP_ATTEMPT, { 
+              email, 
+              retryAttempt: attempt,
+              networkError: error.type 
+            });
+          }
         }
-
-        return data;
-      });
+      );
 
       if (result.user && !result.user.email_confirmed_at) {
         logAuthEvent(AuthEvent.SIGNUP_SUCCESS, { email, needsVerification: true });
@@ -81,6 +94,15 @@ export const useAuthActions = () => {
 
     } catch (error: any) {
       logAuthError(AuthEvent.SIGNUP_ERROR, error, { email });
+      
+      // Check if it's a network error
+      if (error.type && error.suggestion) {
+        return { 
+          success: false, 
+          error: `${error.message}\n💡 ${error.suggestion}` 
+        };
+      }
+      
       const { message } = mapSupabaseError(error);
       return { success: false, error: message };
     }
@@ -101,25 +123,47 @@ export const useAuthActions = () => {
         return { success: false, error: 'Password is required' };
       }
 
-      // Attempt signin with retry
-      const result = await withRetry(async () => {
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password
-        });
+      // Attempt signin with network error handling
+      const result = await handleNetworkOperation(
+        async () => {
+          const { data, error } = await supabase.auth.signInWithPassword({
+            email,
+            password
+          });
 
-        if (error) {
-          throw error;
+          if (error) {
+            throw error;
+          }
+
+          return data;
+        },
+        {
+          maxRetries: 2,
+          context: 'Accesso utente',
+          onRetry: (attempt, error) => {
+            logAuthEvent(AuthEvent.SIGNIN_ATTEMPT, { 
+              email, 
+              retryAttempt: attempt,
+              networkError: error.type 
+            });
+          }
         }
-
-        return data;
-      });
+      );
 
       logAuthEvent(AuthEvent.SIGNIN_SUCCESS, { email, userId: result.user?.id });
       return { success: true };
 
     } catch (error: any) {
       logAuthError(AuthEvent.SIGNIN_ERROR, error, { email });
+      
+      // Check if it's a network error
+      if (error.type && error.suggestion) {
+        return { 
+          success: false, 
+          error: `${error.message}\n💡 ${error.suggestion}` 
+        };
+      }
+      
       const { message } = mapSupabaseError(error);
       return { success: false, error: message };
     }
@@ -146,9 +190,12 @@ export const useAuthActions = () => {
 
     } catch (error: any) {
       logAuthError(AuthEvent.SIGNIN_ERROR, error, { provider: 'google' });
+      
+      // Create network error for Google sign-in
+      const networkError = createNetworkError(error, 'Accesso con Google');
       return {
         success: false,
-        error: 'Failed to sign in with Google. Please try again.'
+        error: `${networkError.message}\n💡 ${networkError.suggestion}`
       };
     }
   };
@@ -169,9 +216,12 @@ export const useAuthActions = () => {
 
     } catch (error: any) {
       logAuthError(AuthEvent.SIGNOUT_ERROR, error);
+      
+      // Create network error for sign out
+      const networkError = createNetworkError(error, 'Disconnessione');
       return {
         success: false,
-        error: 'Failed to sign out. Please try again.'
+        error: `${networkError.message}\n💡 ${networkError.suggestion}`
       };
     }
   };

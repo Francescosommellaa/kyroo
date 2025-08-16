@@ -1,61 +1,123 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { CheckCircle, AlertCircle, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabase";
-import { useAuth } from "../contexts/auth";
+// Removed unused imports
 
 export default function AuthCallbackPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
-  const { loading: authLoading } = useAuth();
+  // Removed unused variables for TypeScript compliance
 
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Gestisce il callback OAuth (Google, etc.) e verifica email
+        // Gestisce il callback OAuth/email verification
         const { data, error } = await supabase.auth.getSession();
-
+        
         if (error) {
-          console.error("Auth callback error:", error);
-          setError(error.message);
+          console.error("Session error:", error);
+          setError('Errore durante il recupero della sessione');
+          setLoading(false);
           return;
         }
 
-        if (data.session) {
-          // Reindirizza all'app dopo 2 secondi
-          setTimeout(() => {
-            navigate("/app");
-          }, 2000);
-        } else {
-          // Prova a gestire il callback manualmente per verifica email
-          const { error: callbackError } = await supabase.auth.getUser();
+        // Se abbiamo una sessione attiva, reindirizza all'app
+        if (data?.session?.user) {
+          console.log("Session found, redirecting to app");
+          navigate('/', { replace: true });
+          return;
+        }
 
-          if (callbackError) {
-            setError(
-              "Errore nella verifica dell'email. Il link potrebbe essere scaduto.",
-            );
+        // Controlla se ci sono parametri di callback OAuth o email verification
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const searchParams = new URLSearchParams(window.location.search);
+        
+        const accessToken = hashParams.get('access_token') || searchParams.get('access_token');
+        const refreshToken = hashParams.get('refresh_token') || searchParams.get('refresh_token');
+        const type = hashParams.get('type') || searchParams.get('type');
+        const errorParam = hashParams.get('error') || searchParams.get('error');
+        const errorDescription = hashParams.get('error_description') || searchParams.get('error_description');
+        
+        console.log('Callback params:', { 
+          accessToken: !!accessToken, 
+          refreshToken: !!refreshToken, 
+          type, 
+          error: errorParam,
+          errorDescription 
+        });
+
+        // Se ci sono errori nei parametri URL
+        if (errorParam) {
+          console.error('OAuth error:', errorParam, errorDescription);
+          setError(errorDescription || 'Errore durante l\'autenticazione');
+          setLoading(false);
+          return;
+        }
+
+        // Se abbiamo token di accesso (OAuth callback)
+        if (accessToken && refreshToken) {
+          console.log('Processing OAuth callback...');
+          
+          // Aspetta che Supabase processi automaticamente il callback
+          await new Promise(resolve => setTimeout(resolve, 2000));
+          
+          // Ricontrolla la sessione
+          const { data: newSessionData } = await supabase.auth.getSession();
+          
+          if (newSessionData?.session?.user) {
+            console.log("OAuth session established successfully");
+            navigate('/', { replace: true });
+            return;
           } else {
-            setTimeout(() => {
-              navigate("/app");
-            }, 2000);
+            console.log("OAuth session not established, trying to refresh...");
+            // Prova a fare refresh della sessione
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+            
+            if (refreshData?.session?.user) {
+              console.log("Session refreshed successfully");
+              navigate('/', { replace: true });
+              return;
+            }
+            
+            if (refreshError) {
+              console.error('Refresh error:', refreshError);
+            }
           }
         }
-      } catch (err) {
-        console.error("Unexpected error:", err);
-        setError("Si è verificato un errore imprevisto.");
+
+        // Se è un callback di verifica email
+        if (type === 'signup' || type === 'email_change' || type === 'recovery') {
+          console.log('Processing email verification callback...');
+          
+          // Per la verifica email, aspetta un po' di più
+          await new Promise(resolve => setTimeout(resolve, 1500));
+          
+          const { data: verificationData } = await supabase.auth.getSession();
+          
+          if (verificationData?.session?.user) {
+            console.log("Email verification successful");
+            navigate('/', { replace: true });
+            return;
+          }
+        }
+
+        // Se arriviamo qui, qualcosa è andato storto
+        console.log("No session found after callback processing");
+        setError('Errore nella verifica. Il link potrebbe essere scaduto o non valido.');
+        
+      } catch (error) {
+        console.error('Auth callback error:', error);
+        setError('Si è verificato un errore imprevisto durante l\'autenticazione.');
       } finally {
         setLoading(false);
       }
     };
 
-    // Aspetta che il contesto di autenticazione sia caricato
-    if (!authLoading) {
-      handleAuthCallback();
-    }
-  }, [navigate, searchParams, authLoading]);
+    handleAuthCallback();
+  }, [navigate]);
 
   if (loading) {
     return (

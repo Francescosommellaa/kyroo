@@ -19,7 +19,7 @@ export const useAuthState = () => {
       logAuthEvent(AuthEvent.PROFILE_LOAD_ATTEMPT, { userId });
       
       const { data, error } = await supabase
-        .from('profiles')
+        .from('user')
         .select('*')
         .eq('id', userId)
         .single();
