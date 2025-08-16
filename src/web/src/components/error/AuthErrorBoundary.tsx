@@ -41,12 +41,13 @@ export class AuthErrorBoundary extends Component<Props, State> {
     }
   }
 
+  // Reset error state to retry the failed operation
   private handleRetry = () => {
     this.setState({ hasError: false, error: undefined });
   };
 
+  // Reset error state and handle navigation to login page
   private handleGoToLogin = () => {
-
     // Reset error state and potentially redirect to login
     this.setState({ hasError: false, error: undefined });
     // You might want to trigger a navigation to login page here

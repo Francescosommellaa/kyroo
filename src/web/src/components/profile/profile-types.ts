@@ -10,6 +10,7 @@ export interface ProfileFormData {
   phone: string;
   first_name: string;
   last_name: string;
+  email: string;
 }
 
 export interface PasswordFormData {
@@ -41,7 +42,7 @@ export interface ProfileFormProps {
   loading: boolean;
   message: MessageState | null;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (data: ProfileFormData) => Promise<void>;
   userEmail: string;
 }
 
@@ -59,7 +60,7 @@ export interface PasswordChangeProps {
   loading: boolean;
   message: MessageState | null;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (data: PasswordFormData) => Promise<void>;
   onToggleVisibility: (field: 'current' | 'new' | 'confirm') => void;
 }
 
@@ -71,6 +72,7 @@ export interface ProfileSettingsProps {
     role?: string;
   } | null;
   userId?: string;
+  user: any;
 }
 
 export interface QuickActionsProps {

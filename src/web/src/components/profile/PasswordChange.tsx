@@ -51,7 +51,10 @@ export default function PasswordChange({
         </motion.div>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-6">
+      <form onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(passwordData);
+      }} className="space-y-6">
         {/* Current Password */}
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">

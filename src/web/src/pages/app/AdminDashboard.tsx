@@ -1,27 +1,29 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+
+import { useAuth } from '../../contexts/auth';
 import PlanManagementModal from '../../components/PlanManagementModal';
 import {
   DashboardStats,
-  DashboardFilters,
+  DashboardFilters as DashboardFiltersComponent,
   UsersTable,
-  type User,
-  type DashboardFilters as DashboardFiltersType,
-  type MessageState,
-  type ActionLoadingState,
-  calculateDashboardStats,
   filterUsers
 } from '../../components/dashboard';
+import type {
+  User,
+  DashboardFilters,
+  MessageState,
+  ActionLoadingState
+} from '../../components/dashboard/dashboard-types';
+
 import type { PlanType } from '../../../../shared/plans';
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<MessageState | null>(null);
-  const [filters, setFilters] = useState<DashboardFiltersType>({
+  const [filters, setFilters] = useState<DashboardFilters>({
     searchTerm: '',
     roleFilter: 'all',
     planFilter: 'all'
@@ -31,7 +33,6 @@ export default function AdminDashboard() {
   const [showPlanModal, setShowPlanModal] = useState(false);
 
   const { session } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
     loadUsers();
@@ -223,8 +224,8 @@ export default function AdminDashboard() {
   };
 
   // Handle filter changes
-  const handleFiltersChange = (newFilters: Partial<DashboardFiltersType>) => {
-    setFilters(prev => ({ ...prev, ...newFilters }));
+  const handleFiltersChange = (newFilters: Partial<DashboardFilters>) => {
+    setFilters((prev: DashboardFilters) => ({ ...prev, ...newFilters }));
   };
 
   // Handle plan management
@@ -244,10 +245,7 @@ export default function AdminDashboard() {
     return filterUsers(users, filters);
   }, [users, filters]);
 
-  // Memoized dashboard stats
-  const dashboardStats = useMemo(() => {
-    return calculateDashboardStats(users);
-  }, [users]);
+
 
   if (loading) {
     return (
@@ -291,7 +289,7 @@ export default function AdminDashboard() {
       <DashboardStats users={users} loading={loading} />
 
       {/* Dashboard Filters */}
-      <DashboardFilters
+      <DashboardFiltersComponent
         filters={filters}
         onFiltersChange={handleFiltersChange}
       />

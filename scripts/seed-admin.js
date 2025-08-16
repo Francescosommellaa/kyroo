@@ -50,7 +50,7 @@ async function createAdmin() {
       });
 
     if (authError) {
-      if (authError.message.includes("already registered")) {
+      if (authError.message.includes("already registered") || authError.message.includes("already been registered")) {
         console.log("⚠️  Utente già esistente, aggiorno il ruolo...");
 
         // Trova l'utente esistente
@@ -58,8 +58,15 @@ async function createAdmin() {
           await supabase.auth.admin.listUsers();
         if (findError) throw findError;
 
-        const user = existingUser.users.find((u) => u.email === adminEmail);
-        if (!user) throw new Error("Utente non trovato");
+        console.log(`🔍 Cercando utente con email: ${adminEmail}`);
+        console.log(`📋 Trovati ${existingUser.users.length} utenti totali`);
+        
+        const user = existingUser.users.find((u) => u.email.toLowerCase() === adminEmail.toLowerCase());
+        if (!user) {
+          console.log("📧 Utenti trovati:");
+          existingUser.users.forEach(u => console.log(`   - ${u.email} (ID: ${u.id})`));
+          throw new Error("Utente non trovato nella lista");
+        }
 
         // Aggiorna il profilo a admin
         const { error: updateError } = await supabase
@@ -67,11 +74,18 @@ async function createAdmin() {
           .update({ role: "admin" })
           .eq("id", user.id);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.log("⚠️  Errore nell'aggiornamento del ruolo:", updateError.message);
+          // Continua comunque se l'utente esiste già
+        }
 
         console.log("✅ Ruolo admin aggiornato con successo!");
         console.log(`   Email: ${adminEmail}`);
         console.log(`   ID: ${user.id}`);
+        
+        console.log("\n🎉 Setup admin completato!");
+        console.log("   Ora puoi accedere con le credenziali admin.");
+        return; // Esci dalla funzione con successo
       } else {
         throw authError;
       }

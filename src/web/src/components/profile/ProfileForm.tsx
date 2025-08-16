@@ -50,7 +50,10 @@ export default function ProfileForm({
         </motion.div>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-6">
+      <form onSubmit={(e) => {
+        e.preventDefault();
+        onSubmit(formData);
+      }} className="space-y-6">
         {/* Email (Read-only) */}
         <div>
           <label className="block text-sm font-medium text-foreground mb-2">

@@ -29,28 +29,31 @@ export default function DashboardStats({ users, loading }: DashboardStatsProps) 
       title: 'Totale Utenti',
       value: stats.totalUsers,
       icon: Users,
-      color: 'accent-violet',
+      bgColor: 'bg-violet-500/10',
+      textColor: 'text-violet-500',
       delay: 0.1
     },
     {
       title: 'Amministratori',
       value: stats.adminUsers,
       icon: Shield,
-      color: 'accent-cyan',
+      bgColor: 'bg-cyan-500/10',
+      textColor: 'text-cyan-500',
       delay: 0.2
     },
     {
       title: 'Utenti Standard',
       value: stats.standardUsers,
       icon: UserCheck,
-      color: 'green-500',
+      bgColor: 'bg-green-500/10',
+      textColor: 'text-green-500',
       delay: 0.3
     }
   ];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-      {statsCards.map((card, index) => {
+      {statsCards.map((card) => {
         const IconComponent = card.icon;
         
         return (
@@ -70,8 +73,8 @@ export default function DashboardStats({ users, loading }: DashboardStatsProps) 
                   {card.value}
                 </p>
               </div>
-              <div className={`w-12 h-12 bg-${card.color}/10 rounded-xl flex items-center justify-center`}>
-                <IconComponent className={`text-${card.color}`} size={24} />
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${card.bgColor}`}>
+                <IconComponent className={card.textColor} size={24} />
               </div>
             </div>
           </motion.div>

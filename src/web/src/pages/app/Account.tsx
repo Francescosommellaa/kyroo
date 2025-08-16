@@ -11,15 +11,16 @@ import {
   PasswordFormData,
   MessageState,
   ShowPasswordsState,
+  PLAN_INFO,
 } from "../../components/profile";
 
 export default function Account() {
-  const { user, profile, updateProfile, uploadAvatar, updatePassword } =
+  const { user, profile, updateProfile, updatePassword } =
     useAuth();
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [message, setMessage] = useState<MessageState>(null);
-  const [passwordMessage, setPasswordMessage] = useState<MessageState>(null);
+  const [message, setMessage] = useState<MessageState | null>(null);
+  const [passwordMessage, setPasswordMessage] = useState<MessageState | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
 
@@ -28,6 +29,8 @@ export default function Account() {
     full_name: "",
     display_name: "",
     phone: "",
+    first_name: "",
+    last_name: "",
     email: "",
   });
 
@@ -51,6 +54,8 @@ export default function Account() {
         full_name: profile.full_name || "",
         display_name: profile.display_name || "",
         phone: profile.phone || "",
+        first_name: "",
+        last_name: "",
         email: user?.email || "",
       });
     }
@@ -90,31 +95,7 @@ export default function Account() {
     }
   };
 
-  // Handle avatar upload
-  const handleAvatarUpload = async (file: File) => {
-    try {
-      setLoading(true);
-      setMessage(null);
 
-      const { error } = await uploadAvatar(file);
-
-      if (error) {
-        setMessage({ type: "error", text: error });
-      } else {
-        setMessage({
-          type: "success",
-          text: "Avatar aggiornato con successo!",
-        });
-      }
-    } catch (err) {
-      setMessage({
-        type: "error",
-        text: "Errore durante l'upload dell'avatar",
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Handle password change
   const handlePasswordChange = async (data: PasswordFormData) => {
@@ -198,10 +179,14 @@ export default function Account() {
               <ProfileForm
                 formData={formData}
                 loading={loading}
+                message={message}
+                onInputChange={(e) => {
+                  const { name, value } = e.target;
+                  setFormData(prev => ({ ...prev, [name]: value }));
+                  setHasUnsavedChanges(true);
+                }}
                 onSubmit={handleProfileSubmit}
-                onAvatarUpload={handleAvatarUpload}
-                profile={profile}
-                user={user}
+                userEmail={user?.email || ''}
               />
 
               {/* Password Change Component */}
@@ -210,9 +195,14 @@ export default function Account() {
                 showPasswords={showPasswords}
                 loading={passwordLoading}
                 message={passwordMessage}
+                onInputChange={(e) => {
+                  const { name, value } = e.target;
+                  setPasswordData(prev => ({ ...prev, [name]: value }));
+                }}
                 onSubmit={handlePasswordChange}
-                onPasswordDataChange={setPasswordData}
-                onShowPasswordsChange={setShowPasswords}
+                onToggleVisibility={(field) => {
+                  setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
+                }}
               />
             </div>
 
@@ -220,6 +210,7 @@ export default function Account() {
             <div className="space-y-6">
               <ProfileSettings
                 userPlan={userPlan}
+                planInfo={PLAN_INFO}
                 profile={profile}
                 user={user}
               />
