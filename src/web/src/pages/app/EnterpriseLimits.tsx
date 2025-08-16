@@ -206,14 +206,14 @@ export default function EnterpriseLimits() {
               </div>
 
               <div>
-                <label htmlFor="maxCollaboratorsPerWorkspace" className="block text-sm font-medium text-foreground mb-1">
-                  Max Collaboratori per Workspace
+                <label htmlFor="maxUserCollaboratorsPerWorkspace" className="block text-sm font-medium text-foreground mb-1">
+                  Collaboratori per workspace
                 </label>
                 <input
                   type="number"
-                  id="maxCollaboratorsPerWorkspace"
-                  value={customLimits.maxCollaboratorsPerWorkspace ?? ''}
-                  onChange={(e) => handleLimitChange('maxCollaboratorsPerWorkspace', e.target.value)}
+                  id="maxUserCollaboratorsPerWorkspace"
+                  value={customLimits.maxUserCollaboratorsPerWorkspace ?? ''}
+                  onChange={(e) => handleLimitChange('maxUserCollaboratorsPerWorkspace', e.target.value)}
                   className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent"
                   placeholder="-1 per illimitato"
                 />
@@ -356,14 +356,14 @@ export default function EnterpriseLimits() {
               </div>
 
               <div>
-                <label htmlFor="maxWorkflowExecutionsPerDay" className="block text-sm font-medium text-foreground mb-1">
-                  Max Esecuzioni Workflow al Giorno
+                <label htmlFor="maxWorkflowExecutionsPerDayPerWorkflow" className="block text-sm font-medium text-foreground mb-1">
+                  Esecuzioni workflow/giorno per workflow
                 </label>
                 <input
                   type="number"
-                  id="maxWorkflowExecutionsPerDay"
-                  value={customLimits.maxWorkflowExecutionsPerDay ?? ''}
-                  onChange={(e) => handleLimitChange('maxWorkflowExecutionsPerDay', e.target.value)}
+                  id="maxWorkflowExecutionsPerDayPerWorkflow"
+                  value={customLimits.maxWorkflowExecutionsPerDayPerWorkflow ?? ''}
+                  onChange={(e) => handleLimitChange('maxWorkflowExecutionsPerDayPerWorkflow', e.target.value)}
                   className="w-full px-3 py-2 bg-surface border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-accent-violet focus:border-transparent"
                   placeholder="-1 per illimitato"
                 />

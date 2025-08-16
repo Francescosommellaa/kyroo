@@ -48,8 +48,8 @@ export default function LandingPage() {
         price: "€0",
         period: "/mese",
         features: [
-          `${formatLimit(freeConfig.maxWorkspaces)} workspace`,
-          `${formatLimit(freeConfig.maxOwnersPerWorkspace + freeConfig.maxUserCollaboratorsPerWorkspace)} utenti per workspace`,
+          `${formatLimit(freeConfig.limits.maxWorkspaces)} workspace`,
+          `${formatLimit(freeConfig.limits.maxOwnersPerWorkspace + freeConfig.limits.maxUserCollaboratorsPerWorkspace)} utenti per workspace`,
           "10 ricerche web/giorno",
           "20 file/mese",
           "Support community"
@@ -64,8 +64,8 @@ export default function LandingPage() {
         originalPrice: yearly ? "€144/anno" : undefined,
         savings: yearly ? "Risparmia 33%" : undefined,
         features: [
-          `${formatLimit(proConfig.maxWorkspaces)} workspace`,
-          `${formatLimit(proConfig.maxOwnersPerWorkspace + proConfig.maxUserCollaboratorsPerWorkspace)} utenti per workspace`,
+          `${formatLimit(proConfig.limits.maxWorkspaces)} workspace`,
+          `${formatLimit(proConfig.limits.maxOwnersPerWorkspace + proConfig.limits.maxUserCollaboratorsPerWorkspace)} utenti per workspace`,
           "100 ricerche web/giorno",
           "200 file/mese",
           "Support prioritario",
@@ -79,8 +79,8 @@ export default function LandingPage() {
         price: "Personalizzato",
         period: "",
         features: [
-          `${formatLimit(enterpriseConfig.maxWorkspaces)} workspace`,
-          `${formatLimit(enterpriseConfig.maxOwnersPerWorkspace + enterpriseConfig.maxUserCollaboratorsPerWorkspace)} utenti per workspace`,
+          `${formatLimit(enterpriseConfig.limits.maxWorkspaces)} workspace`,
+          `${formatLimit(enterpriseConfig.limits.maxOwnersPerWorkspace + enterpriseConfig.limits.maxUserCollaboratorsPerWorkspace)} utenti per workspace`,
           "Limiti personalizzabili",
           "Support dedicato 24/7",
           "SLA garantito",

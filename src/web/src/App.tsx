@@ -1,6 +1,5 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "./contexts/auth";
-import ProtectedRoute from "./components/ProtectedRoute";
 import LandingPage from "./pages/LandingPage";
 import AuthCallbackPage from "./pages/AuthCallbackPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
@@ -18,6 +17,17 @@ import AdminDashboard from "./pages/app/AdminDashboard";
 import EnterpriseLimits from "./pages/app/EnterpriseLimits";
 import Pricing from "./pages/Pricing";
 import DebugAuth from "./pages/DebugAuth";
+
+// Componente per gestire l'autenticazione delle route protette
+function AuthenticatedApp() {
+  const { user } = useAuth();
+  
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+  
+  return <Outlet />;
+}
 
 export default function AppRoutes() {
   const { loading } = useAuth();
@@ -45,7 +55,7 @@ export default function AppRoutes() {
             <div className="w-8 h-8 border-4 border-accent-violet border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
-          <ProtectedRoute />
+          <AuthenticatedApp />
         )
       }>
         <Route path="chat" element={<Chat />} />

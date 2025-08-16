@@ -190,7 +190,7 @@ export default function Pricing() {
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">Collaboratori per workspace:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.maxCollaboratorsPerWorkspace, planType)}
+                          {formatLimit(plan.limits.maxUserCollaboratorsPerWorkspace, planType)}
                         </span>
                       </div>
                       
@@ -239,7 +239,7 @@ export default function Pricing() {
                       <div className="flex justify-between">
                         <span className="text-foreground-secondary">Esecuzioni workflow/giorno:</span>
                         <span className="text-foreground font-medium">
-                          {formatLimit(plan.limits.maxWorkflowExecutionsPerDay, planType)}
+                          {formatLimit(plan.limits.maxWorkflowExecutionsPerDayPerWorkflow, planType)}
                         </span>
                       </div>
                       

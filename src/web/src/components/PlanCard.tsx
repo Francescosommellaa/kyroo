@@ -148,7 +148,7 @@ export default function PlanCard({
           <div>
             <span className="text-foreground-secondary">Utenti:</span>
             <span className="text-foreground font-medium ml-1">
-              {formatLimit(plan.limits.maxUsersPerWorkspace + plan.limits.maxCollaboratorsPerWorkspace, planType)}
+              {formatLimit(plan.limits.maxOwnersPerWorkspace + plan.limits.maxUserCollaboratorsPerWorkspace, planType)}
             </span>
           </div>
 

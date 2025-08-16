@@ -1,32 +1,83 @@
 /**
- * Plan Service
- * Backend service for managing user plans, limits, and usage tracking
+ * plan-service.ts
+ * Backend service per piani, limiti ed enforcement consumi (allineato a usage-tracking v2).
  */
 
 import { supabaseServer } from './supabaseServer';
+
 import type { PlanType, PlanLimits } from '../../shared/plans';
-import { getPlanLimits, isUnlimited, getUpgradeMessage, TRIAL_PRO_DURATION_DAYS } from '../../shared/plans';
-import type {
-  UsageMetrics,
-  UsageCheck,
-  WorkspaceUsage,
-  UserUsage
-} from '../../shared/usage-tracking';
 import {
-  createDefaultUsageMetrics,
-  needsDailyReset,
-  needsMonthlyReset,
-  resetDailyCounters,
-  resetMonthlyCounters,
+  getPlanLimits,
+  isUnlimited,
+  getUpgradeMessage,
+  TRIAL_PRO_DURATION_DAYS
+} from '../../shared/plans';
+
+import type {
+  WorkspaceUsage,
+  UserUsage,
+  UsageCheck
+} from '../../shared/usage-tracking';
+
+import {
+  // date & reset
+  getTodayRomeDate,
+  ensureUserDailyReset,
+  ensureWorkspaceDailyReset,
+  ensureWorkspaceMonthlyReset,
+  // messages & utils
+  USAGE_MESSAGES,
   formatUsageMessage,
   isInTrialPeriod,
   isPlanExpired,
-  USAGE_MESSAGES,
+  // checkers & incrementers
+  checkWorkspaceCap,
+  checkOwnersCap,
+  checkCollaboratorsCap,
+  checkActiveChatsCap,
+  checkWebSearchToday,
+  incWebSearch,
+  checkWebAgentRun,
+  incWebAgentRun,
+  canRunWorkflowToday,
+  incWorkflowRun,
+  checkActiveWorkflowsCap,
+  checkFilesThisMonth,
+  incFilesThisMonth,
+  checkKBIncreaseBytes,
+  checkEmailsThisMonth,
+  incEmails,
+  checkSmsThisMonth,
+  incSms,
+  bytesToGB
 } from '../../shared/usage-tracking';
+
+/* ============================================================
+   TYPES
+============================================================ */
+
+export type UsageActionInput =
+  | { type: 'create_workspace' }
+  | { type: 'invite_owner'; workspaceId: string } // opzionale se prevedi multipli owner su Enterprise
+  | { type: 'invite_collaborator'; workspaceId: string }
+  | { type: 'create_chat'; workspaceId: string }
+  | { type: 'web_search' }
+  | { type: 'web_agent_run'; workspaceId: string }
+  | { type: 'create_workflow'; workspaceId: string }
+  | { type: 'execute_workflow'; workspaceId: string; workflowId: string }
+  | { type: 'upload_file'; workspaceId: string }
+  | { type: 'use_knowledge_base'; workspaceId: string; addBytes: number } // incremento storage
+  | { type: 'chat_input'; tokenCount: number }
+  | { type: 'send_email'; workspaceId: string; count?: number }
+  | { type: 'send_sms'; workspaceId: string; count?: number };
+
+/* ============================================================
+   SERVICE
+============================================================ */
 
 export class PlanService {
   /**
-   * Get user's current plan and trial status
+   * Piano e stato trial dell’utente
    */
   async getUserPlan(userId: string): Promise<{
     planType: PlanType;
@@ -41,102 +92,168 @@ export class PlanService {
       .eq('id', userId)
       .single();
 
-    if (error || !profile) {
-      throw new Error('User profile not found');
-    }
+    if (error || !profile) throw new Error('User profile not found');
 
-    const planType = profile.plan as PlanType;
-    const planExpiresAt = profile.plan_expires_at;
-    const isExpired = isPlanExpired(planExpiresAt);
+    const planType = (profile.plan || 'free') as PlanType;
+    const planExpiresAt = profile.plan_expires_at as string | null;
+    const expired = isPlanExpired(planExpiresAt || undefined);
 
-    // Check if user is in Pro trial
-    const isTrialPro = planType === 'pro' &&
-      planExpiresAt &&
-      isInTrialPeriod(profile.created_at, TRIAL_PRO_DURATION_DAYS);
+    // Trial Pro: semplice — usiamo created_at come start se il piano è Pro con scadenza impostata
+    const trialActive =
+      planType === 'pro' &&
+      !!planExpiresAt &&
+      isInTrialPeriod(profile.created_at, TRIAL_PRO_DURATION_DAYS) &&
+      !expired;
 
     return {
-      planType: isExpired ? 'free' : planType,
-      isTrialPro: isTrialPro && !isExpired,
-      trialStartDate: isTrialPro ? profile.created_at : undefined,
-      planExpiresAt,
-      isExpired,
+      planType: expired ? 'free' : planType,
+      isTrialPro: trialActive,
+      trialStartDate: trialActive ? profile.created_at : undefined,
+      planExpiresAt: planExpiresAt || undefined,
+      isExpired: expired
     };
   }
 
   /**
-   * Get user's current usage metrics
+   * Carica l’uso attuale dell’utente + workspaces (con reset giornaliero/mensile se necessario)
+   * NOTA: Assumiamo due tabelle:
+   *  - user_usage (una riga per utente)
+   *  - workspace_usage (una riga per workspace dell’utente)
    */
   async getUserUsage(userId: string): Promise<UserUsage> {
-    // Get user plan info
     const planInfo = await this.getUserPlan(userId);
 
-    // Get or create usage record
-    let { data: usage, error } = await supabaseServer
+    // --- user_usage (global) ---
+    let { data: uu, error: e1 } = await supabaseServer
       .from('user_usage')
       .select('*')
       .eq('user_id', userId)
       .single();
 
-    if (error || !usage) {
-      // Create default usage record
-      const defaultUsage = this.createDefaultUserUsage(userId, planInfo.planType, planInfo.isTrialPro);
-      await this.saveUserUsage(defaultUsage);
-      return defaultUsage;
+    if (e1 && e1.code !== 'PGRST116') throw new Error(`user_usage load failed: ${e1.message}`);
+
+    // --- workspace_usage (dettagli) ---
+    const { data: wsRows, error: e2 } = await supabaseServer
+      .from('workspace_usage')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (e2) throw new Error(`workspace_usage load failed: ${e2.message}`);
+
+    // Se non esiste, crea user_usage di default
+    if (!uu) {
+      const created = await this.createDefaultUserUsage(userId, planInfo.planType, planInfo.isTrialPro);
+      await this.saveUserUsage(created);
+      return created;
     }
 
-    // Check if resets are needed
-    const needsDaily = needsDailyReset(usage.last_daily_reset);
-    const needsMonthly = needsMonthlyReset(usage.monthly_reset_date);
+    // Mappa DB -> UserUsage
+    const usage = this.mapDatabaseUsageToUserUsage(uu, wsRows || [], planInfo);
 
-    if (needsDaily || needsMonthly) {
-      usage = await this.resetUsageCounters(userId, needsDaily, needsMonthly);
+    // Reset giornaliero per-utente (web search)
+    ensureUserDailyReset(usage);
+
+    // Reset per workspace (giornaliero/mensile)
+    let mutated = false;
+    for (const w of usage.workspaces) {
+      const beforeDaily = w.lastDailyRomeDate;
+      const beforeMonthly = w.nextMonthlyRomeDate;
+      ensureWorkspaceDailyReset(w);
+      ensureWorkspaceMonthlyReset(w);
+      if (w.lastDailyRomeDate !== beforeDaily || w.nextMonthlyRomeDate !== beforeMonthly) mutated = true;
     }
 
-    return this.mapDatabaseUsageToUserUsage(usage, planInfo);
+    if (mutated) await this.saveUserUsage(usage);
+
+    return usage;
   }
 
   /**
-   * Check if user can perform a specific action
+   * Verifica limiti per un’azione (object API)
    */
-  async checkUsageLimit(
-    userId: string,
-    action: UsageAction,
-    workspaceId?: string,
-    actionCount: number = 1
-  ): Promise<UsageCheck> {
-    const userUsage = await this.getUserUsage(userId);
-    const limits = getPlanLimits(userUsage.planType, userUsage.isTrialPro);
+  async checkUsageLimit(userId: string, action: UsageActionInput): Promise<UsageCheck> {
+    const usage = await this.getUserUsage(userId);
+    const limits = getPlanLimits(usage.planType, usage.isTrialPro);
 
-    switch (action) {
+    switch (action.type) {
       case 'create_workspace':
-        return this.checkWorkspaceLimit(userUsage, limits);
+        return checkWorkspaceCap(usage.globalMetrics.totalWorkspaces, limits.maxWorkspaces);
 
-      case 'invite_collaborator':
-        return this.checkCollaboratorLimit(userUsage, limits, workspaceId);
+      case 'invite_owner': {
+        const ws = requireWorkspace(usage, action.workspaceId);
+        return checkOwnersCap(ws.ownersCount, limits.maxOwnersPerWorkspace);
+      }
 
-      case 'create_chat':
-        return this.checkActiveChatLimit(userUsage, limits, workspaceId);
+      case 'invite_collaborator': {
+        if (!limits.canInviteUsers) {
+          return { allowed: false, reason: USAGE_MESSAGES.INVITE_DISABLED, upgradeMessage: getUpgradeMessage(usage.planType, 'inviti') };
+        }
+        const ws = requireWorkspace(usage, action.workspaceId);
+        return checkCollaboratorsCap(ws.collaboratorsCount, limits.maxUserCollaboratorsPerWorkspace);
+      }
 
-      case 'web_search':
-        return this.checkWebSearchLimit(userUsage, limits, actionCount);
+      case 'create_chat': {
+        const ws = requireWorkspace(usage, action.workspaceId);
+        return checkActiveChatsCap(ws.activeChatsCount, limits.maxActiveChatsPerWorkspace);
+      }
 
-      case 'web_agent_run':
-        return this.checkWebAgentLimit(userUsage, limits);
+      case 'web_search': {
+        return checkWebSearchToday(usage, limits.maxWebSearchesPerDay);
+      }
 
-      case 'create_workflow':
-        return this.checkWorkflowLimit(userUsage, limits, workspaceId);
+      case 'web_agent_run': {
+        if (!limits.webAgentEnabled) return { allowed: false, reason: USAGE_MESSAGES.WEB_AGENT_DISABLED, upgradeMessage: getUpgradeMessage(usage.planType, 'Web-Agent') };
+        const ws = requireWorkspace(usage, action.workspaceId);
+        return checkWebAgentRun(ws, limits.maxWebAgentRunsPerMonth);
+      }
 
-      case 'execute_workflow':
-        return this.checkWorkflowExecutionLimit(userUsage, limits);
+      case 'create_workflow': {
+        const ws = requireWorkspace(usage, action.workspaceId);
+        return checkActiveWorkflowsCap(ws.activeWorkflowsCount, limits.maxActiveWorkflowsPerWorkspace);
+      }
 
-      case 'upload_file':
-        return this.checkFileUploadLimit(userUsage, limits);
+      case 'execute_workflow': {
+        const ws = requireWorkspace(usage, action.workspaceId);
+        return canRunWorkflowToday(ws, action.workflowId, limits.maxWorkflowExecutionsPerDayPerWorkflow);
+      }
 
-      case 'use_knowledge_base':
-        return this.checkKnowledgeBaseLimit(userUsage, limits);
+      case 'upload_file': {
+        const ws = requireWorkspace(usage, action.workspaceId);
+        return checkFilesThisMonth(ws, limits.maxFilesPerMonth);
+      }
 
-      case 'chat_input':
-        return this.checkChatTokenLimit(userUsage, limits, actionCount);
+      case 'use_knowledge_base': {
+        if (!limits.knowledgeBaseEnabled) {
+          return { allowed: false, reason: USAGE_MESSAGES.KNOWLEDGE_BASE_DISABLED, upgradeMessage: getUpgradeMessage(usage.planType, 'Knowledge Base') };
+        }
+        const ws = requireWorkspace(usage, action.workspaceId);
+        const maxGB = limits.maxKnowledgeBaseSizeGB;
+        return checkKBIncreaseBytes(ws.knowledgeBaseSizeBytes, action.addBytes, maxGB);
+      }
+
+      case 'chat_input': {
+        const tokenCap = limits.maxChatInputTokens;
+        if (action.tokenCount > tokenCap) {
+          return {
+            allowed: false,
+            reason: formatUsageMessage('CHAT_TOKEN_LIMIT', tokenCap),
+            upgradeMessage: getUpgradeMessage(usage.planType, 'token chat'),
+            currentUsage: action.tokenCount,
+            limit: tokenCap
+          };
+        }
+        return { allowed: true };
+      }
+
+      case 'send_email': {
+        const ws = requireWorkspace(usage, action.workspaceId);
+        return checkEmailsThisMonth(ws, limits.maxEmailsPerMonth, action.count ?? 1);
+      }
+
+      case 'send_sms': {
+        const ws = requireWorkspace(usage, action.workspaceId);
+        return checkSmsThisMonth(ws, limits.maxSmsPerMonth, action.count ?? 1);
+      }
 
       default:
         return { allowed: true };
@@ -144,121 +261,99 @@ export class PlanService {
   }
 
   /**
-   * Record usage for an action
+   * Registra il consumo post-azione (solo se checkUsageLimit ha dato ok)
    */
-  async recordUsage(
-    userId: string,
-    action: UsageAction,
-    workspaceId?: string,
-    amount: number = 1
-  ): Promise<void> {
+  async recordUsage(userId: string, action: UsageActionInput): Promise<void> {
     const usage = await this.getUserUsage(userId);
 
-    switch (action) {
+    switch (action.type) {
       case 'web_search':
-        usage.globalMetrics.webSearchesToday += amount;
+        incWebSearch(usage);
         break;
 
-      case 'web_agent_run':
-        if (workspaceId) {
-          const workspace = usage.workspaces.find(w => w.workspaceId === workspaceId);
-          if (workspace) {
-            workspace.webAgentRunsThisMonth += amount;
-          }
-        }
+      case 'web_agent_run': {
+        const ws = requireWorkspace(usage, action.workspaceId);
+        incWebAgentRun(ws);
         break;
+      }
 
-      case 'upload_file':
-        if (workspaceId) {
-          const workspace = usage.workspaces.find(w => w.workspaceId === workspaceId);
-          if (workspace) {
-            workspace.filesThisMonth += amount;
-          }
-        }
+      case 'upload_file': {
+        const ws = requireWorkspace(usage, action.workspaceId);
+        incFilesThisMonth(ws);
         break;
+      }
 
-      case 'execute_workflow':
-        if (workspaceId) {
-          const workspace = usage.workspaces.find(w => w.workspaceId === workspaceId);
-          if (workspace) {
-            workspace.workflowExecutionsToday += amount;
-          }
-        }
+      case 'execute_workflow': {
+        const ws = requireWorkspace(usage, action.workspaceId);
+        incWorkflowRun(ws, action.workflowId);
         break;
+      }
+
+      case 'use_knowledge_base': {
+        const ws = requireWorkspace(usage, action.workspaceId);
+        ws.knowledgeBaseSizeBytes += Math.max(0, action.addBytes);
+        break;
+      }
+
+      case 'send_email': {
+        const ws = requireWorkspace(usage, action.workspaceId);
+        incEmails(ws, action.count ?? 1);
+        break;
+      }
+
+      case 'send_sms': {
+        const ws = requireWorkspace(usage, action.workspaceId);
+        incSms(ws, action.count ?? 1);
+        break;
+      }
+
+      // create_workspace / invite_* / create_chat / create_workflow / chat_input
+      // non aggiornano contatori mensili/giornalieri qui.
     }
 
     await this.saveUserUsage(usage);
   }
 
   /**
-   * Update workspace usage metrics
+   * Aggiorna metriche del workspace (merge parziale)
    */
-  async updateWorkspaceUsage(
-    userId: string,
-    workspaceId: string,
-    updates: Partial<UsageMetrics>
-  ): Promise<void> {
+  async updateWorkspaceUsage(userId: string, workspaceId: string, updates: Partial<WorkspaceUsage>): Promise<void> {
     const usage = await this.getUserUsage(userId);
-    const workspace = usage.workspaces.find(w => w.workspaceId === workspaceId);
+    const ws = usage.workspaces.find(w => w.workspaceId === workspaceId);
+    if (!ws) throw new Error('Workspace usage not found');
 
-    if (workspace) {
-      Object.assign(workspace, updates);
-      await this.saveUserUsage(usage);
-    }
+    Object.assign(ws, updates);
+    await this.saveUserUsage(usage);
   }
 
   /**
-   * Upgrade user plan
+   * Upgrade/downgrade piano
    */
-  async upgradePlan(
-    userId: string,
-    newPlan: PlanType,
-    expiresAt?: string
-  ): Promise<void> {
+  async upgradePlan(userId: string, newPlan: PlanType, expiresAt?: string): Promise<void> {
     const { error } = await supabaseServer
       .from('profiles')
-      .update({
-        plan: newPlan,
-        plan_expires_at: expiresAt,
-      })
+      .update({ plan: newPlan, plan_expires_at: expiresAt ?? null })
       .eq('id', userId);
 
-    if (error) {
-      throw new Error(`Failed to upgrade plan: ${error.message}`);
-    }
+    if (error) throw new Error(`Failed to upgrade plan: ${error.message}`);
   }
 
-  /**
-   * Start Pro trial
-   */
   async startProTrial(userId: string): Promise<void> {
-    const trialExpiryDate = new Date();
-    trialExpiryDate.setDate(trialExpiryDate.getDate() + TRIAL_PRO_DURATION_DAYS);
-
-    await this.upgradePlan(userId, 'pro', trialExpiryDate.toISOString());
+    const expire = new Date(Date.now() + TRIAL_PRO_DURATION_DAYS * 86_400_000).toISOString();
+    await this.upgradePlan(userId, 'pro', expire);
   }
 
-  /**
-   * Handle trial expiry - downgrade to free
-   */
   async handleTrialExpiry(userId: string): Promise<void> {
     await this.upgradePlan(userId, 'free');
-
-    // TODO: Clean up data that exceeds free plan limits
-    // - Archive excess workspaces
-    // - Disable excess workflows
-    // - Clean up knowledge base if needed
+    // TODO: enforcement post-downgrade (archiviare chat eccedenti, disabilitare workflow oltre il cap, ecc.)
   }
 
-  // Private helper methods
+  /* =======================
+     PRIVATE
+  ======================= */
 
-  private createDefaultUserUsage(
-    userId: string,
-    planType: PlanType,
-    isTrialPro: boolean
-  ): UserUsage {
-    const defaultMetrics = createDefaultUsageMetrics();
-
+  private async createDefaultUserUsage(userId: string, planType: PlanType, isTrialPro: boolean): Promise<UserUsage> {
+    const today = getTodayRomeDate();
     return {
       userId,
       planType,
@@ -267,318 +362,109 @@ export class PlanService {
       globalMetrics: {
         totalWorkspaces: 0,
         webSearchesToday: 0,
-        lastDailyReset: defaultMetrics.lastResetDate,
+        lastDailyRomeDate: today
       },
-      updatedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
   }
 
-  private async resetUsageCounters(
-    userId: string,
-    resetDaily: boolean,
-    resetMonthly: boolean
-  ): Promise<any> {
-    const updates: any = {};
+  /**
+   * DB -> UserUsage mapping
+   * Nota: adatta i nomi colonne alla tua schema reale.
+   */
+  private mapDatabaseUsageToUserUsage(uu: any, wsRows: any[], planInfo: any): UserUsage {
+    const workspaces: WorkspaceUsage[] = (wsRows || []).map((r) => ({
+      workspaceId: r.workspace_id,
+      userId: r.user_id,
+      planType: planInfo.planType,
+      isTrialPro: planInfo.isTrialPro,
+      updatedAt: r.updated_at,
+      workspaceCount: r.workspace_count ?? 0,
+      ownersCount: r.owners_count ?? 0,
+      collaboratorsCount: r.collaborators_count ?? 0,
+      activeChatsCount: r.active_chats_count ?? 0,
+      activeWorkflowsCount: r.active_workflows_count ?? 0,
+      knowledgeBaseSizeBytes: r.kb_size_bytes ?? 0,
+      workflowExecutionsTodayByWorkflow: r.workflow_exec_today_map ?? {},
+      filesThisMonth: r.files_this_month ?? 0,
+      webAgentRunsThisMonth: r.web_agent_runs_this_month ?? 0,
+      emailsThisMonth: r.emails_this_month ?? 0,
+      smsThisMonth: r.sms_this_month ?? 0,
+      lastDailyRomeDate: r.last_daily_rome_date ?? getTodayRomeDate(),
+      nextMonthlyRomeDate: r.next_monthly_rome_date ?? getTodayRomeDate()
+    }));
 
-    if (resetDaily) {
-      updates.web_searches_today = 0;
-      updates.workflow_executions_today = 0;
-      updates.last_daily_reset = new Date().toISOString().split('T')[0];
-    }
-
-    if (resetMonthly) {
-      updates.files_this_month = 0;
-      updates.web_agent_runs_this_month = 0;
-      const nextMonth = new Date();
-      nextMonth.setMonth(nextMonth.getMonth() + 1);
-      updates.monthly_reset_date = nextMonth.toISOString();
-    }
-
-    const { data, error } = await supabaseServer
-      .from('user_usage')
-      .update(updates)
-      .eq('user_id', userId)
-      .select()
-      .single();
-
-    if (error) {
-      throw new Error(`Failed to reset usage counters: ${error.message}`);
-    }
-
-    return data;
-  }
-
-  private mapDatabaseUsageToUserUsage(dbUsage: any, planInfo: any): UserUsage {
-    // Map database usage record to UserUsage interface
-    // This would depend on your actual database schema
     return {
-      userId: dbUsage.user_id,
+      userId: uu.user_id,
       planType: planInfo.planType,
       isTrialPro: planInfo.isTrialPro,
       trialStartDate: planInfo.trialStartDate,
       planExpiresAt: planInfo.planExpiresAt,
-      workspaces: [], // TODO: Load workspace usage
+      workspaces,
       globalMetrics: {
-        totalWorkspaces: dbUsage.total_workspaces || 0,
-        webSearchesToday: dbUsage.web_searches_today || 0,
-        lastDailyReset: dbUsage.last_daily_reset,
+        totalWorkspaces: uu.total_workspaces ?? workspaces.length,
+        webSearchesToday: uu.web_searches_today ?? 0,
+        lastDailyRomeDate: uu.last_daily_rome_date ?? getTodayRomeDate()
       },
-      updatedAt: dbUsage.updated_at,
+      updatedAt: uu.updated_at ?? new Date().toISOString()
     };
   }
 
+  /**
+   * Salva sia user_usage che workspace_usage (upsert)
+   * Nota: adatta i nomi colonne alla tua schema reale (JSONB per mappe).
+   */
   private async saveUserUsage(usage: UserUsage): Promise<void> {
-    // Save usage to database
-    // This would depend on your actual database schema
-    const { error } = await supabaseServer
+    // user_usage
+    const { error: e1 } = await supabaseServer
       .from('user_usage')
       .upsert({
         user_id: usage.userId,
         total_workspaces: usage.globalMetrics.totalWorkspaces,
         web_searches_today: usage.globalMetrics.webSearchesToday,
-        last_daily_reset: usage.globalMetrics.lastDailyReset,
-        updated_at: new Date().toISOString(),
+        last_daily_rome_date: usage.globalMetrics.lastDailyRomeDate,
+        updated_at: new Date().toISOString()
       });
 
-    if (error) {
-      throw new Error(`Failed to save usage: ${error.message}`);
+    if (e1) throw new Error(`Failed to save user_usage: ${e1.message}`);
+
+    // workspace_usage (bulk upsert)
+    const rows = usage.workspaces.map((w) => ({
+      user_id: w.userId,
+      workspace_id: w.workspaceId,
+      workspace_count: w.workspaceCount,
+      owners_count: w.ownersCount,
+      collaborators_count: w.collaboratorsCount,
+      active_chats_count: w.activeChatsCount,
+      active_workflows_count: w.activeWorkflowsCount,
+      kb_size_bytes: w.knowledgeBaseSizeBytes,
+      workflow_exec_today_map: w.workflowExecutionsTodayByWorkflow, // JSONB
+      files_this_month: w.filesThisMonth,
+      web_agent_runs_this_month: w.webAgentRunsThisMonth,
+      emails_this_month: w.emailsThisMonth,
+      sms_this_month: w.smsThisMonth,
+      last_daily_rome_date: w.lastDailyRomeDate,
+      next_monthly_rome_date: w.nextMonthlyRomeDate,
+      updated_at: new Date().toISOString()
+    }));
+
+    if (rows.length) {
+      const { error: e2 } = await supabaseServer.from('workspace_usage').upsert(rows);
+      if (e2) throw new Error(`Failed to save workspace_usage: ${e2.message}`);
     }
-  }
-
-  // Usage check methods
-
-  private checkWorkspaceLimit(usage: UserUsage, limits: PlanLimits): UsageCheck {
-    if (isUnlimited(limits.maxWorkspaces)) {
-      return { allowed: true };
-    }
-
-    if (usage.globalMetrics.totalWorkspaces >= limits.maxWorkspaces) {
-      return {
-        allowed: false,
-        reason: formatUsageMessage('WORKSPACE_LIMIT', limits.maxWorkspaces),
-        upgradeMessage: getUpgradeMessage(usage.planType, 'workspace'),
-        currentUsage: usage.globalMetrics.totalWorkspaces,
-        limit: limits.maxWorkspaces,
-      };
-    }
-
-    return { allowed: true };
-  }
-
-  private checkCollaboratorLimit(usage: UserUsage, limits: PlanLimits, workspaceId?: string): UsageCheck {
-    if (!limits.canInviteUsers) {
-      return {
-        allowed: false,
-        reason: USAGE_MESSAGES.INVITE_DISABLED,
-        upgradeMessage: getUpgradeMessage(usage.planType, 'inviti'),
-      };
-    }
-
-    if (isUnlimited(limits.maxCollaboratorsPerWorkspace)) {
-      return { allowed: true };
-    }
-
-    const workspace = usage.workspaces.find(w => w.workspaceId === workspaceId);
-    const currentCollaborators = workspace?.collaboratorsCount || 0;
-
-    if (currentCollaborators >= limits.maxCollaboratorsPerWorkspace) {
-      return {
-        allowed: false,
-        reason: formatUsageMessage('COLLABORATOR_LIMIT', limits.maxCollaboratorsPerWorkspace),
-        upgradeMessage: getUpgradeMessage(usage.planType, 'collaboratori'),
-        currentUsage: currentCollaborators,
-        limit: limits.maxCollaboratorsPerWorkspace,
-      };
-    }
-
-    return { allowed: true };
-  }
-
-  private checkActiveChatLimit(usage: UserUsage, limits: PlanLimits, workspaceId?: string): UsageCheck {
-    if (isUnlimited(limits.maxActiveChatPerWorkspace)) {
-      return { allowed: true };
-    }
-
-    const workspace = usage.workspaces.find(w => w.workspaceId === workspaceId);
-    const currentChats = workspace?.activeChatsCount || 0;
-
-    if (currentChats >= limits.maxActiveChatPerWorkspace) {
-      return {
-        allowed: false,
-        reason: formatUsageMessage('ACTIVE_CHAT_LIMIT', limits.maxActiveChatPerWorkspace),
-        upgradeMessage: getUpgradeMessage(usage.planType, 'chat attive'),
-        currentUsage: currentChats,
-        limit: limits.maxActiveChatPerWorkspace,
-      };
-    }
-
-    return { allowed: true };
-  }
-
-  private checkWebSearchLimit(usage: UserUsage, limits: PlanLimits, actionCount: number): UsageCheck {
-    if (isUnlimited(limits.maxWebSearchesPerDay)) {
-      return { allowed: true };
-    }
-
-    const currentSearches = usage.globalMetrics.webSearchesToday;
-    if (currentSearches + actionCount > limits.maxWebSearchesPerDay) {
-      return {
-        allowed: false,
-        reason: formatUsageMessage('WEB_SEARCH_LIMIT', limits.maxWebSearchesPerDay),
-        upgradeMessage: getUpgradeMessage(usage.planType, 'ricerche web'),
-        currentUsage: currentSearches,
-        limit: limits.maxWebSearchesPerDay,
-      };
-    }
-
-    return { allowed: true };
-  }
-
-  private checkWebAgentLimit(usage: UserUsage, limits: PlanLimits): UsageCheck {
-    if (!limits.webAgentEnabled) {
-      return {
-        allowed: false,
-        reason: USAGE_MESSAGES.WEB_AGENT_DISABLED,
-        upgradeMessage: getUpgradeMessage(usage.planType, 'Web-Agent'),
-      };
-    }
-
-    if (isUnlimited(limits.maxWebAgentRunsPerMonth)) {
-      return { allowed: true };
-    }
-
-    // Check across all workspaces for monthly limit
-    const totalRuns = usage.workspaces.reduce((sum, w) => sum + w.webAgentRunsThisMonth, 0);
-
-    if (totalRuns >= limits.maxWebAgentRunsPerMonth) {
-      return {
-        allowed: false,
-        reason: formatUsageMessage('WEB_AGENT_LIMIT', limits.maxWebAgentRunsPerMonth),
-        upgradeMessage: getUpgradeMessage(usage.planType, 'Web-Agent'),
-        currentUsage: totalRuns,
-        limit: limits.maxWebAgentRunsPerMonth,
-      };
-    }
-
-    return { allowed: true };
-  }
-
-  private checkWorkflowLimit(usage: UserUsage, limits: PlanLimits, workspaceId?: string): UsageCheck {
-    if (isUnlimited(limits.maxActiveWorkflowsPerWorkspace)) {
-      return { allowed: true };
-    }
-
-    const workspace = usage.workspaces.find(w => w.workspaceId === workspaceId);
-    const currentWorkflows = workspace?.activeWorkflowsCount || 0;
-
-    if (currentWorkflows >= limits.maxActiveWorkflowsPerWorkspace) {
-      return {
-        allowed: false,
-        reason: formatUsageMessage('WORKFLOW_LIMIT', limits.maxActiveWorkflowsPerWorkspace),
-        upgradeMessage: getUpgradeMessage(usage.planType, 'workflow'),
-        currentUsage: currentWorkflows,
-        limit: limits.maxActiveWorkflowsPerWorkspace,
-      };
-    }
-
-    return { allowed: true };
-  }
-
-  private checkWorkflowExecutionLimit(usage: UserUsage, limits: PlanLimits): UsageCheck {
-    if (isUnlimited(limits.maxWorkflowExecutionsPerDay)) {
-      return { allowed: true };
-    }
-
-    const totalExecutions = usage.workspaces.reduce((sum, w) => sum + w.workflowExecutionsToday, 0);
-
-    if (totalExecutions >= limits.maxWorkflowExecutionsPerDay) {
-      return {
-        allowed: false,
-        reason: formatUsageMessage('WORKFLOW_EXECUTION_LIMIT', limits.maxWorkflowExecutionsPerDay),
-        upgradeMessage: getUpgradeMessage(usage.planType, 'esecuzioni workflow'),
-        currentUsage: totalExecutions,
-        limit: limits.maxWorkflowExecutionsPerDay,
-      };
-    }
-
-    return { allowed: true };
-  }
-
-  private checkFileUploadLimit(usage: UserUsage, limits: PlanLimits): UsageCheck {
-    if (isUnlimited(limits.maxFilesPerMonth)) {
-      return { allowed: true };
-    }
-
-    const totalFiles = usage.workspaces.reduce((sum, w) => sum + w.filesThisMonth, 0);
-
-    if (totalFiles >= limits.maxFilesPerMonth) {
-      return {
-        allowed: false,
-        reason: formatUsageMessage('FILE_LIMIT', limits.maxFilesPerMonth),
-        upgradeMessage: getUpgradeMessage(usage.planType, 'file'),
-        currentUsage: totalFiles,
-        limit: limits.maxFilesPerMonth,
-      };
-    }
-
-    return { allowed: true };
-  }
-
-  private checkKnowledgeBaseLimit(usage: UserUsage, limits: PlanLimits): UsageCheck {
-    if (!limits.knowledgeBaseEnabled) {
-      return {
-        allowed: false,
-        reason: USAGE_MESSAGES.KNOWLEDGE_BASE_DISABLED,
-        upgradeMessage: getUpgradeMessage(usage.planType, 'Knowledge Base'),
-      };
-    }
-
-    if (isUnlimited(limits.maxKnowledgeBaseSizeGB)) {
-      return { allowed: true };
-    }
-
-    const totalKBSize = usage.workspaces.reduce((sum, w) => sum + w.knowledgeBaseSizeGB, 0);
-
-    if (totalKBSize >= limits.maxKnowledgeBaseSizeGB) {
-      return {
-        allowed: false,
-        reason: formatUsageMessage('KNOWLEDGE_BASE_FULL', limits.maxKnowledgeBaseSizeGB),
-        upgradeMessage: getUpgradeMessage(usage.planType, 'Knowledge Base'),
-        currentUsage: totalKBSize,
-        limit: limits.maxKnowledgeBaseSizeGB,
-      };
-    }
-
-    return { allowed: true };
-  }
-
-  private checkChatTokenLimit(usage: UserUsage, limits: PlanLimits, tokenCount: number): UsageCheck {
-    if (tokenCount > limits.maxChatInputTokens) {
-      return {
-        allowed: false,
-        reason: formatUsageMessage('CHAT_TOKEN_LIMIT', limits.maxChatInputTokens),
-        upgradeMessage: getUpgradeMessage(usage.planType, 'token chat'),
-        currentUsage: tokenCount,
-        limit: limits.maxChatInputTokens,
-      };
-    }
-
-    return { allowed: true };
   }
 }
 
-export type UsageAction =
-  | 'create_workspace'
-  | 'invite_collaborator'
-  | 'create_chat'
-  | 'web_search'
-  | 'web_agent_run'
-  | 'create_workflow'
-  | 'execute_workflow'
-  | 'upload_file'
-  | 'use_knowledge_base'
-  | 'chat_input';
+/* ============================================================
+   HELPERS
+============================================================ */
 
-// Singleton instance
+function requireWorkspace(usage: UserUsage, workspaceId: string | undefined): WorkspaceUsage {
+  if (!workspaceId) throw new Error('workspaceId is required for this action');
+  const ws = usage.workspaces.find((w) => w.workspaceId === workspaceId);
+  if (!ws) throw new Error('Workspace usage not found');
+  return ws;
+}
+
+// Singleton
 export const planService = new PlanService();
-

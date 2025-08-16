@@ -135,9 +135,9 @@ export function calculateEnterpriseCosts(
   }
 
   // Collaborator costs
-  if (limits.maxCollaboratorsPerWorkspace && limits.maxCollaboratorsPerWorkspace > 0) {
+  if (limits.maxUserCollaboratorsPerWorkspace && limits.maxUserCollaboratorsPerWorkspace > 0) {
     const workspaces = limits.maxWorkspaces === -1 ? 10 : (limits.maxWorkspaces || 1);
-    const collaboratorsPerWorkspace = limits.maxCollaboratorsPerWorkspace === -1 ? 50 : limits.maxCollaboratorsPerWorkspace;
+    const collaboratorsPerWorkspace = limits.maxUserCollaboratorsPerWorkspace === -1 ? 50 : limits.maxUserCollaboratorsPerWorkspace;
     const totalCollaborators = workspaces * collaboratorsPerWorkspace * utilizationRate;
     
     estimates.push({
@@ -244,8 +244,8 @@ export function calculateEnterpriseCosts(
   }
 
   // Workflow execution costs (Upstash QStash)
-  if (limits.maxWorkflowExecutionsPerDay && limits.maxWorkflowExecutionsPerDay > 0) {
-    const messagesPerMonth = limits.maxWorkflowExecutionsPerDay === -1 ? 30000 : limits.maxWorkflowExecutionsPerDay * 30 * 10; // Assume 10 messages per execution
+  if (limits.maxWorkflowExecutionsPerDayPerWorkflow && limits.maxWorkflowExecutionsPerDayPerWorkflow > 0) {
+    const messagesPerMonth = limits.maxWorkflowExecutionsPerDayPerWorkflow === -1 ? 30000 : limits.maxWorkflowExecutionsPerDayPerWorkflow * 30 * 10; // Assume 10 messages per execution
     const usage = messagesPerMonth * utilizationRate;
     
     estimates.push({
