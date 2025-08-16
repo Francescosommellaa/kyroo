@@ -37,16 +37,15 @@ class MilvusError extends Error {
 }
 
 /**
- * Milvus/Zilliz integration service
- * Handles cluster creation, collection management, and vector operations
+ * Milvus/Zilliz integration service (client-side)
+ * Makes secure calls to backend API instead of direct Milvus API calls
  */
 export class MilvusService {
-  private config: MilvusConfig;
-  private baseUrl: string;
+  private apiBaseUrl: string;
 
-  constructor(config: MilvusConfig) {
-    this.config = config;
-    this.baseUrl = config.endpoint.replace(/\/$/, '');
+  constructor() {
+    // Use Netlify functions endpoint instead of direct Milvus API
+    this.apiBaseUrl = '/.netlify/functions/milvus';
   }
 
   /**
@@ -54,23 +53,20 @@ export class MilvusService {
    */
   async createCluster(clusterName: string): Promise<string> {
     try {
-      const response = await fetch(`${this.baseUrl}/v1/clusters`, {
+      const response = await fetch(`${this.apiBaseUrl}?action=create_cluster`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.config.token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          clusterName,
-          plan: 'Starter', // Default plan
-          cu: 1 // Compute units
+          clusterName
         })
       });
 
       if (!response.ok) {
         const error = await response.json();
         throw new MilvusError(
-          `Failed to create cluster: ${error.message || response.statusText}`,
+          `Failed to create cluster: ${error.error || response.statusText}`,
           error.code,
           error
         );
@@ -97,14 +93,13 @@ export class MilvusService {
     schema: CollectionSchema
   ): Promise<void> {
     try {
-      const response = await fetch(`${this.baseUrl}/v1/vector/collections`, {
+      const response = await fetch(`${this.apiBaseUrl}?action=create_collection`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.config.token}`,
-          'Content-Type': 'application/json',
-          'cluster-id': clusterId
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          clusterId,
           collectionName: schema.name,
           description: schema.description,
           schema: {
@@ -149,7 +144,7 @@ export class MilvusService {
       if (!response.ok) {
         const error = await response.json();
         throw new MilvusError(
-          `Failed to create collection: ${error.message || response.statusText}`,
+          `Failed to create collection: ${error.error || response.statusText}`,
           error.code,
           error
         );
@@ -174,14 +169,13 @@ export class MilvusService {
     vectors: VectorData[]
   ): Promise<void> {
     try {
-      const response = await fetch(`${this.baseUrl}/v1/vector/insert`, {
+      const response = await fetch(`${this.apiBaseUrl}?action=insert_vectors`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.config.token}`,
-          'Content-Type': 'application/json',
-          'cluster-id': clusterId
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          clusterId,
           collectionName,
           data: vectors.map(v => ({
             id: v.id,
@@ -194,7 +188,7 @@ export class MilvusService {
       if (!response.ok) {
         const error = await response.json();
         throw new MilvusError(
-          `Failed to insert vectors: ${error.message || response.statusText}`,
+          `Failed to insert vectors: ${error.error || response.statusText}`,
           error.code,
           error
         );
@@ -217,41 +211,35 @@ export class MilvusService {
     clusterId: string,
     collectionName: string,
     queryVector: number[],
-    topK: number = 10,
+    limit: number = 10,
     filter?: string
   ): Promise<SearchResult[]> {
     try {
-      const response = await fetch(`${this.baseUrl}/v1/vector/search`, {
+      const response = await fetch(`${this.apiBaseUrl}?action=search_vectors`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.config.token}`,
-          'Content-Type': 'application/json',
-          'cluster-id': clusterId
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          clusterId,
           collectionName,
           vector: queryVector,
-          limit: topK,
-          filter: filter || '',
-          outputFields: ['id', 'metadata']
+          limit,
+          filter
         })
       });
 
       if (!response.ok) {
         const error = await response.json();
         throw new MilvusError(
-          `Failed to search vectors: ${error.message || response.statusText}`,
+          `Failed to search vectors: ${error.error || response.statusText}`,
           error.code,
           error
         );
       }
 
       const result = await response.json();
-      return result.data.map((item: any) => ({
-        id: item.id,
-        score: item.distance,
-        metadata: item.metadata
-      }));
+      return result.data || [];
     } catch (error) {
       if (error instanceof MilvusError) {
         throw error;
@@ -268,18 +256,21 @@ export class MilvusService {
    */
   async deleteCollection(clusterId: string, collectionName: string): Promise<void> {
     try {
-      const response = await fetch(`${this.baseUrl}/v1/vector/collections/${collectionName}`, {
-        method: 'DELETE',
+      const response = await fetch(`${this.apiBaseUrl}?action=delete_collection`, {
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.config.token}`,
-          'cluster-id': clusterId
-        }
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          clusterId,
+          collectionName
+        })
       });
 
       if (!response.ok) {
         const error = await response.json();
         throw new MilvusError(
-          `Failed to delete collection: ${error.message || response.statusText}`,
+          `Failed to delete collection: ${error.error || response.statusText}`,
           error.code,
           error
         );
@@ -298,26 +289,22 @@ export class MilvusService {
   /**
    * Get cluster status
    */
-  async getClusterStatus(clusterId: string): Promise<string> {
+  async getClusterStatus(clusterId: string): Promise<any> {
     try {
-      const response = await fetch(`${this.baseUrl}/v1/clusters/${clusterId}`, {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${this.config.token}`
-        }
+      const response = await fetch(`${this.apiBaseUrl}?action=cluster_status&clusterId=${clusterId}`, {
+        method: 'GET'
       });
 
       if (!response.ok) {
         const error = await response.json();
         throw new MilvusError(
-          `Failed to get cluster status: ${error.message || response.statusText}`,
+          `Failed to get cluster status: ${error.error || response.statusText}`,
           error.code,
           error
         );
       }
 
-      const result = await response.json();
-      return result.status;
+      return await response.json();
     } catch (error) {
       if (error instanceof MilvusError) {
         throw error;
@@ -331,38 +318,31 @@ export class MilvusService {
 }
 
 /**
- * Get Milvus configuration from environment variables
+ * Get Milvus configuration from environment variables (client-side - no token)
  */
 export function getMilvusConfig(): MilvusConfig {
-  const endpoint = import.meta.env.VITE_MILVUS_ENDPOINT;
-  const token = import.meta.env.VITE_MILVUS_TOKEN;
-
-  if (!endpoint || !token) {
-    throw new MilvusError(
-      'Milvus configuration missing. Please set VITE_MILVUS_ENDPOINT and VITE_MILVUS_TOKEN environment variables.',
-      'CONFIG_ERROR'
-    );
-  }
+  // Only endpoint is needed on client-side for display purposes
+  // Token is handled securely on the server-side
+  const endpoint = import.meta.env.VITE_MILVUS_ENDPOINT || 'https://api.milvus.io';
 
   return {
     endpoint,
-    token
+    token: '' // Token is not exposed to client-side
   };
 }
 
 /**
  * Create a Milvus service instance
  */
-export function createMilvusService(config: MilvusConfig): MilvusService {
-  return new MilvusService(config);
+export function createMilvusService(): MilvusService {
+  return new MilvusService();
 }
 
 /**
  * Create a Milvus service instance with environment configuration
  */
 export function createMilvusServiceFromEnv(): MilvusService {
-  const config = getMilvusConfig();
-  return new MilvusService(config);
+  return new MilvusService();
 }
 
 /**

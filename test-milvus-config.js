@@ -23,18 +23,18 @@ function testMilvusConfig() {
     console.log("\n🔍 Step 2: Checking Milvus environment variables...");
 
     const hasEndpoint = envContent.includes("VITE_MILVUS_ENDPOINT=");
-    const hasToken = envContent.includes("VITE_MILVUS_TOKEN=");
+    const hasBackendToken = envContent.includes("MILVUS_TOKEN=");
 
     if (!hasEndpoint) {
       throw new Error("VITE_MILVUS_ENDPOINT not found in .env.local");
     }
 
-    if (!hasToken) {
-      throw new Error("VITE_MILVUS_TOKEN not found in .env.local");
+    if (!hasBackendToken) {
+      throw new Error("MILVUS_TOKEN not found in .env.local");
     }
 
     console.log("✅ VITE_MILVUS_ENDPOINT found");
-    console.log("✅ VITE_MILVUS_TOKEN found");
+    console.log("✅ MILVUS_TOKEN found (backend only)");
 
     // Test 3: Verifica che il file .env.example sia aggiornato
     console.log("\n📝 Step 3: Checking .env.example file...");
@@ -44,7 +44,7 @@ function testMilvusConfig() {
       const exampleContent = fs.readFileSync(examplePath, "utf8");
       const hasExampleVars =
         exampleContent.includes("VITE_MILVUS_ENDPOINT=") &&
-        exampleContent.includes("VITE_MILVUS_TOKEN=");
+        exampleContent.includes("MILVUS_TOKEN=");
 
       if (hasExampleVars) {
         console.log("✅ .env.example updated with Milvus variables");
@@ -95,11 +95,14 @@ function testMilvusConfig() {
     console.error("\n💡 Troubleshooting:");
     console.error("   1. Make sure .env.local exists in the project root");
     console.error(
-      "   2. Check that VITE_MILVUS_ENDPOINT and VITE_MILVUS_TOKEN are set",
+      "   2. Check that VITE_MILVUS_ENDPOINT and MILVUS_TOKEN are set",
     );
     console.error("   3. Verify the API key is correct");
     console.error(
       "   4. Restart the development server after adding environment variables",
+    );
+    console.error(
+      "   5. Note: MILVUS_TOKEN is now used only in backend for security",
     );
 
     process.exit(1);

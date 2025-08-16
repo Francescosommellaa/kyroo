@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { 
   MilvusService, 
   createMilvusService, 
-  MilvusConfig, 
   CollectionSchema, 
   VectorData, 
   SearchResult,
@@ -12,7 +11,6 @@ import {
 import { useAsync } from './useAsync';
 
 interface UseMilvusOptions {
-  config: MilvusConfig;
   onError?: (error: MilvusError) => void;
 }
 
@@ -52,8 +50,8 @@ interface UseMilvusReturn {
  * Custom hook for Milvus/Zilliz operations
  * Provides a React-friendly interface for vector database operations
  */
-export function useMilvus({ config, onError }: UseMilvusOptions): UseMilvusReturn {
-  const [service] = useState(() => createMilvusService(config));
+export function useMilvus({ onError }: UseMilvusOptions = {}): UseMilvusReturn {
+  const [service] = useState(() => createMilvusService());
   const { loading, error, execute, reset } = useAsync(async (fn: () => Promise<any>) => {
     return await fn();
   });
@@ -156,12 +154,11 @@ export function useMilvus({ config, onError }: UseMilvusOptions): UseMilvusRetur
  * Hook for workspace-specific Milvus operations
  * Automatically handles cluster creation and management for a workspace
  */
-export function useWorkspaceMilvus(workspaceId: string, config: MilvusConfig) {
+export function useWorkspaceMilvus(workspaceId: string) {
   const [clusterId, setClusterId] = useState<string | null>(null);
   const [clusterStatus, setClusterStatus] = useState<string>('unknown');
   
   const milvus = useMilvus({ 
-    config,
     onError: (error) => {
       console.error('Milvus operation failed:', error);
     }

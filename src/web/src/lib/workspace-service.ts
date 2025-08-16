@@ -24,10 +24,8 @@ interface WorkspaceWithCollections extends Workspace {
 export class WorkspaceService {
   private milvusService?: MilvusService;
 
-  constructor(milvusConfig?: MilvusConfig) {
-    if (milvusConfig) {
-      this.milvusService = createMilvusService(milvusConfig);
-    }
+  constructor() {
+    this.milvusService = createMilvusService();
   }
 
   /**
@@ -382,8 +380,8 @@ export class WorkspaceService {
 /**
  * Create a workspace service instance
  */
-export function createWorkspaceService(milvusConfig?: MilvusConfig): WorkspaceService {
-  return new WorkspaceService(milvusConfig);
+export function createWorkspaceService(): WorkspaceService {
+  return new WorkspaceService();
 }
 
 export type { CreateWorkspaceOptions, WorkspaceWithCollections };
