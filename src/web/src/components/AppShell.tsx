@@ -38,7 +38,6 @@ const getFeatureAvailability = (planType: PlanType, isTrialPro: boolean) => {
     knowledge: effectivePlan !== "free", // Pro and Enterprise only (Knowledge Base)
     ingestion: effectivePlan !== "free", // Pro and Enterprise only (File analysis)
     billing: true, // Available for all plans
-    account: true, // Available for all plans
   };
 };
 
@@ -78,12 +77,6 @@ const navItems = [
     label: "Billing",
     icon: CreditCard,
     feature: "billing" as const,
-  },
-  {
-    path: "/app/account",
-    label: "Account",
-    icon: User,
-    feature: "account" as const,
   },
 ];
 
@@ -310,8 +303,11 @@ export default function AppShell({ children }: AppShellProps) {
 
           {/* User Profile & Logout */}
           <div className="p-4 border-t border-border">
-            {/* Profile */}
-            <div className="flex items-center space-x-3 mb-4">
+            {/* Profile - Now clickable */}
+            <NavLink
+              to="/app/account"
+              className="flex items-center space-x-3 mb-4 p-2 rounded-lg transition-colors hover:bg-surface-elevated focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface group"
+            >
               {profile?.avatar_url ? (
                 <img
                   src={profile.avatar_url}
@@ -342,7 +338,19 @@ export default function AppShell({ children }: AppShellProps) {
                   </motion.div>
                 )}
               </AnimatePresence>
-            </div>
+              <AnimatePresence>
+                {!isDesktopCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <ChevronRight size={16} className="text-foreground-secondary group-hover:text-foreground transition-colors" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </NavLink>
 
             {/* Logout */}
             <motion.button
@@ -478,8 +486,12 @@ export default function AppShell({ children }: AppShellProps) {
 
               {/* User Profile & Logout */}
               <div className="p-4 border-t border-border">
-                {/* Profile */}
-                <div className="flex items-center space-x-3 mb-4">
+                {/* Profile - Now clickable */}
+                <NavLink
+                  to="/app/account"
+                  onClick={closeMobileMenu}
+                  className="flex items-center space-x-3 mb-4 p-2 rounded-lg transition-colors hover:bg-surface-elevated focus:outline-none focus:ring-2 focus:ring-accent-violet focus:ring-offset-2 focus:ring-offset-surface"
+                >
                   {profile?.avatar_url ? (
                     <img
                       src={profile.avatar_url}
@@ -500,7 +512,8 @@ export default function AppShell({ children }: AppShellProps) {
                       isTrialPro={isTrialPro}
                     />
                   </div>
-                </div>
+                  <ChevronRight size={16} className="text-foreground-secondary" />
+                </NavLink>
 
                 {/* Logout */}
                 <motion.button
