@@ -173,4 +173,94 @@ const Billing: React.FC<BillingProps> = ({
             isCurrentPlan
               ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
               : planType === 'pro'
-              ? 'bg-purple-500 hover
+              ? 'bg-purple-500 hover:bg-purple-600 text-white'
+              : 'bg-blue-500 hover:bg-blue-600 text-white'
+          }`}
+        >
+          {isCurrentPlan ? 'Piano Attuale' : planType === 'enterprise' ? 'Contattaci' : 'Scegli Piano'}
+        </button>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Scegli il piano perfetto per te
+          </h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Sblocca tutto il potenziale di Kyroo con i nostri piani flessibili
+          </p>
+        </div>
+
+        {/* Billing Toggle */}
+        <div className="flex justify-center mb-8">
+          <div className="bg-white rounded-lg p-1 shadow-sm border">
+            <button
+              onClick={() => setBillingCycle('monthly')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                billingCycle === 'monthly'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Mensile
+            </button>
+            <button
+              onClick={() => setBillingCycle('yearly')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                billingCycle === 'yearly'
+                  ? 'bg-blue-500 text-white'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Annuale
+              <span className="ml-1 text-xs bg-green-100 text-green-800 px-1 rounded">
+                -20%
+              </span>
+            </button>
+          </div>
+        </div>
+
+        {/* Plans Grid */}
+        <div className="grid md:grid-cols-3 gap-8 mb-12">
+          <PlanCard planType="free" isCurrentPlan={currentPlan === 'free'} />
+          <PlanCard planType="pro" isCurrentPlan={currentPlan === 'pro'} />
+          <PlanCard planType="enterprise" isCurrentPlan={currentPlan === 'enterprise'} />
+        </div>
+
+        {/* Current Usage */}
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Utilizzo Attuale</h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            <UsageBar 
+              current={currentUsage.workspaces} 
+              limit={currentPlanConfig.limits.workspaces} 
+              label="Workspace" 
+            />
+            <UsageBar 
+              current={currentUsage.users} 
+              limit={currentPlanConfig.limits.users} 
+              label="Utenti" 
+            />
+            <UsageBar 
+              current={currentUsage.filesThisMonth} 
+              limit={currentPlanConfig.limits.files} 
+              label="File questo mese" 
+            />
+            <UsageBar 
+              current={currentUsage.emailsThisMonth} 
+              limit={currentPlanConfig.limits.emails} 
+              label="Email questo mese" 
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Billing;

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/auth';
 import {
   AuthFormWrapper,
@@ -17,6 +18,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState('');
+  const navigate = useNavigate();
 
   const {
     signIn,
@@ -55,6 +57,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
     
     if (result.success) {
       onClose();
+      navigate('/app/chat');
     } else {
       console.error('Login error:', result.error);
       setError(result.error || 'Si è verificato un errore durante l\'accesso.');
@@ -71,6 +74,7 @@ export function AuthModal({ isOpen, onClose, defaultMode = 'login' }: AuthModalP
     
     if (result.success) {
       onClose();
+      navigate('/app/chat');
     } else {
       console.error('Google sign in error:', result.error);
       setError(result.error || 'Errore durante l\'accesso con Google');

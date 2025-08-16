@@ -17,6 +17,15 @@ import {
 export default function Account() {
   const { user, profile, updateProfile, updatePassword } =
     useAuth();
+  
+  // Debug logging for profile data
+  console.log('[ACCOUNT DEBUG] Auth state:', { 
+    hasUser: !!user, 
+    hasProfile: !!profile, 
+    userEmail: user?.email,
+    profileData: profile 
+  });
+  
   const [loading, setLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [message, setMessage] = useState<MessageState | null>(null);
@@ -47,19 +56,20 @@ export default function Account() {
     confirm: false,
   });
 
-  // Sync form data with profile when profile changes
+  // Sync profile data to form when profile loads
   useEffect(() => {
-    if (profile && !hasUnsavedChanges && !isUpdatingPassword) {
+    // Wait for auth to finish loading and profile to be available
+    if (!loading && profile) {
       setFormData({
-        full_name: profile.full_name || "",
-        display_name: profile.display_name || "",
-        phone: profile.phone || "",
-        first_name: "",
-        last_name: "",
-        email: user?.email || "",
+        full_name: profile.full_name || '',
+        display_name: profile.display_name || '',
+        phone: profile.phone || '',
+        first_name: '',
+        last_name: '',
+        email: user?.email || ''
       });
     }
-  }, [profile, hasUnsavedChanges, isUpdatingPassword, user?.email]);
+  }, [profile, loading, user?.email]);
 
   // Get user plan from profile
   const userPlan = profile?.plan || "free";
@@ -213,6 +223,7 @@ export default function Account() {
                 planInfo={PLAN_INFO}
                 profile={profile}
                 user={user}
+                userId={user?.id}
               />
             </div>
           </div>

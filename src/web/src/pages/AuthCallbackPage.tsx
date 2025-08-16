@@ -27,7 +27,7 @@ export default function AuthCallbackPage() {
         // Se abbiamo una sessione attiva, reindirizza all'app
         if (data?.session?.user) {
           console.log("Session found, redirecting to app");
-          navigate('/', { replace: true });
+          navigate('/app/chat', { replace: true });
           return;
         }
 
@@ -83,7 +83,7 @@ export default function AuthCallbackPage() {
                 if (userProfile) {
                   console.log('User profile found, redirecting...');
                   sessionEstablished = true;
-                  navigate('/', { replace: true });
+                  navigate('/app/chat', { replace: true });
                   return;
                 } else {
                   console.log('User profile not found yet, waiting...');
@@ -132,7 +132,7 @@ export default function AuthCallbackPage() {
           
           if (verificationData?.session?.user) {
             console.log("Email verification successful");
-            navigate('/', { replace: true });
+            navigate('/app/chat', { replace: true });
             return;
           }
         }
