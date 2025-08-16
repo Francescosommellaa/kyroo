@@ -40,7 +40,7 @@ export default function DebugAuth() {
     });
 
     try {
-      const { data, error } = await supabase.from('user').select('count').limit(1);
+      const { data, error } = await supabase.from('profiles').select('count').limit(1);
       if (error) throw error;
       updateTestResult(0, {
         status: 'success',
@@ -64,7 +64,7 @@ export default function DebugAuth() {
 
     try {
       const { data, error } = await supabase
-        .from('user')
+        .from('profiles')
         .select('*')
         .limit(1);
 

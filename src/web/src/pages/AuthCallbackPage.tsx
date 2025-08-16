@@ -75,7 +75,7 @@ export default function AuthCallbackPage() {
               // Verifica che il profilo utente esista, altrimenti aspetta di più
               try {
                 const { data: userProfile } = await supabase
-                  .from('users')
+                  .from('profiles')
                   .select('id')
                   .eq('id', newSessionData.session.user.id)
                   .single();

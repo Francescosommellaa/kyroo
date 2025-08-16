@@ -36,7 +36,7 @@ export class PlanService {
     isExpired: boolean;
   }> {
     const { data: profile, error } = await supabaseServer
-      .from('user')
+      .from('profiles')
       .select('plan, plan_expires_at, created_at')
       .eq('id', userId)
       .single();
@@ -216,7 +216,7 @@ export class PlanService {
     expiresAt?: string
   ): Promise<void> {
     const { error } = await supabaseServer
-      .from('user')
+      .from('profiles')
       .update({
         plan: newPlan,
         plan_expires_at: expiresAt,

@@ -40,7 +40,7 @@ export async function getUserFromBearer(req: Request): Promise<User> {
  */
 export async function requireAdmin(userId: string): Promise<void> {
   const { data, error } = await supabaseServer
-    .from('user')
+    .from('profiles')
     .select('role')
     .eq('id', userId)
     .single()
@@ -66,7 +66,7 @@ export async function requireAdmin(userId: string): Promise<void> {
 export async function isAdmin(userId: string): Promise<boolean> {
   try {
     const { data, error } = await supabaseServer
-      .from('user')
+      .from('profiles')
       .select('role')
       .eq('id', userId)
       .single()

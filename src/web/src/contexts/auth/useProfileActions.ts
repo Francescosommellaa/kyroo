@@ -29,7 +29,7 @@ export const useProfileActions = () => {
       // Update profile with retry
       const result = await withRetry(async () => {
         const { data, error } = await supabase
-          .from('user')
+          .from('profiles')
           .update({
             ...updates,
             updated_at: new Date().toISOString()
@@ -115,7 +115,7 @@ export const useProfileActions = () => {
 
       // Get current profile to check for existing avatar
       const { data: currentProfile } = await supabase
-        .from('user')
+        .from('profiles')
         .select('avatar_url')
         .eq('id', user.id)
         .single();

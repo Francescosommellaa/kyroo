@@ -30,6 +30,6 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 // Configuration loaded in development mode
 
 // Helper types
-export type Profile = Database['public']['Tables']['users']['Row']
-export type ProfileUpdate = Database['public']['Tables']['users']['Update']
-export type ProfileInsert = Database['public']['Tables']['users']['Insert']
+export type Profile = Database['public']['Tables']['profiles']['Row']
+export type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
+export type ProfileInsert = Database['public']['Tables']['profiles']['Insert']

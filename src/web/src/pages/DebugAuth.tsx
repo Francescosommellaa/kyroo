@@ -41,7 +41,7 @@ export default function DebugAuth() {
     // Test 1: Connessione Supabase
     updateTestResult('Connessione Supabase', 'running', 'Verificando connessione...');
     try {
-      const { error } = await supabase.from('user').select('count').limit(1);
+      const { error } = await supabase.from('profiles').select('count').limit(1);
       if (error) {
         updateTestResult('Connessione Supabase', 'error', `Errore: ${error.message}`, error);
       } else {
@@ -55,7 +55,7 @@ export default function DebugAuth() {
     updateTestResult('Struttura tabella user', 'running', 'Verificando struttura tabella...');
     try {
       const { data, error } = await supabase
-        .from('user')
+        .from('profiles')
         .select('*')
         .limit(1);
       

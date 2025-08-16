@@ -56,8 +56,11 @@ export const useAuthActions = () => {
       }
 
       // Attempt signup with enhanced retry logic
+      console.log('🚀 Starting signup process for:', { email, hasFullName: !!fullName, hasDisplayName: !!displayName });
+      
       const result = await withRetry(
         async () => {
+          console.log('📞 Calling supabase.auth.signUp...');
           const { data, error } = await supabase.auth.signUp({
             email,
             password,
@@ -69,13 +72,34 @@ export const useAuthActions = () => {
             }
           });
 
+          console.log('📞 Supabase signup response:', {
+            hasUser: !!data?.user,
+            userId: data?.user?.id,
+            userEmail: data?.user?.email,
+            emailConfirmed: data?.user?.email_confirmed_at,
+            hasSession: !!data?.session,
+            error: error ? {
+              name: error.name,
+              message: error.message,
+              status: error.status,
+              statusCode: error instanceof Error && error.name === 'AuthError' ? 'AuthError' : 'Unknown'
+            } : null
+          });
+
           if (error) {
+            console.error('🚨 Supabase signup error:', error);
             handleSupabaseError(error, 'User signup');
           }
 
-          // Create user profile in the users table with enhanced retry and error handling
+          // Ensure user profile exists (handles both trigger success and failure cases)
           if (data.user) {
+            console.log('👤 User created, ensuring profile exists...');
+            
+            // Use ensureUserProfile which checks if profile exists and creates it if needed
+            // This handles both cases: when the trigger works and when it doesn't
             await ensureUserProfile(data.user, { fullName, displayName });
+          } else {
+            console.warn('⚠️ No user returned from signup');
           }
 
           return data;
@@ -234,19 +258,93 @@ export const useAuthActions = () => {
     }
   };
 
+  // Update user profile with additional data
+  const updateUserProfile = async (user: any, additionalData?: { fullName?: string; displayName?: string }): Promise<void> => {
+    await withRetry(
+      async () => {
+        console.log('🔄 Updating user profile for user:', {
+          userId: user.id,
+          email: user.email,
+          additionalData
+        });
+
+        const updateData: any = {};
+        
+        if (additionalData?.fullName) {
+          updateData.full_name = additionalData.fullName;
+        }
+        
+        if (additionalData?.displayName) {
+          updateData.display_name = additionalData.displayName;
+        }
+        
+        if (Object.keys(updateData).length > 0) {
+          updateData.updated_at = new Date().toISOString();
+          
+          console.log('📝 Updating profile with data:', updateData);
+          
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update(updateData)
+            .eq('id', user.id);
+            
+          if (updateError) {
+            console.error('❌ Profile update failed:', {
+              code: updateError.code,
+              message: updateError.message,
+              details: updateError.details,
+              hint: updateError.hint,
+              updateData
+            });
+            handleSupabaseError(updateError, 'Update user profile');
+          } else {
+            console.log('✅ Profile updated successfully:', user.id);
+          }
+        } else {
+          console.log('ℹ️ No additional data to update for user:', user.id);
+        }
+      },
+      {
+        operation: 'Update user profile',
+        userId: user.id,
+        timestamp: new Date().toISOString()
+      },
+      { maxAttempts: 3 }
+    );
+  };
+
   // Create user profile if it doesn't exist (for both OAuth and normal registration)
   const ensureUserProfile = async (user: any, additionalData?: { fullName?: string; displayName?: string }): Promise<void> => {
     await withRetry(
       async () => {
+        console.log('🔍 Starting ensureUserProfile for user:', {
+          userId: user.id,
+          email: user.email,
+          provider: user.app_metadata?.provider,
+          emailConfirmed: user.email_confirmed_at,
+          additionalData
+        });
+
         // Check if user profile exists
+        console.log('📋 Checking if user profile exists...');
         const { data: existingUser, error: selectError } = await supabase
-          .from('users')
+          .from('profiles')
           .select('id')
           .eq('id', user.id)
           .single();
 
+        console.log('📋 Profile check result:', {
+          existingUser: !!existingUser,
+          selectError: selectError ? {
+            code: selectError.code,
+            message: selectError.message,
+            details: selectError.details,
+            hint: selectError.hint
+          } : null
+        });
+
         if (selectError && selectError.code !== 'PGRST116') {
-          console.warn('Error checking user profile existence:', selectError);
+          console.warn('⚠️ Error checking user profile existence:', selectError);
           // Don't throw error, continue with creation attempt
         }
 
@@ -271,69 +369,101 @@ export const useAuthActions = () => {
             email_verified: user.email_confirmed_at ? true : false
           };
 
-          console.log('Creating user profile:', { userId: user.id, email: user.email });
+          console.log('📝 Creating user profile with data:', userData);
 
           // Try multiple approaches for user creation
           let profileError = null;
           
           // First attempt: normal insert
+          console.log('🔄 Attempt 1: Normal insert...');
           const { error: insertError } = await supabase
-            .from('users')
+            .from('profiles')
             .insert(userData);
 
           if (insertError) {
             profileError = insertError;
-            console.warn('First insert attempt failed:', insertError);
+            console.error('❌ First insert attempt failed:', {
+              code: insertError.code,
+              message: insertError.message,
+              details: insertError.details,
+              hint: insertError.hint,
+              userData
+            });
             
             // Second attempt: upsert (insert or update)
+            console.log('🔄 Attempt 2: Upsert...');
             const { error: upsertError } = await supabase
-              .from('users')
+              .from('profiles')
               .upsert(userData, { onConflict: 'id' });
               
             if (upsertError) {
               profileError = upsertError;
-              console.warn('Upsert attempt failed:', upsertError);
+              console.error('❌ Upsert attempt failed:', {
+                code: upsertError.code,
+                message: upsertError.message,
+                details: upsertError.details,
+                hint: upsertError.hint,
+                userData
+              });
               
               // Third attempt: using service role if available
+              console.log('🔄 Attempt 3: Service role insert...');
               try {
                 const { error: serviceError } = await supabase
-                  .from('users')
+                  .from('profiles')
                   .insert(userData);
                   
                 if (serviceError) {
                   profileError = serviceError;
+                  console.error('❌ Service role attempt failed:', {
+                    code: serviceError.code,
+                    message: serviceError.message,
+                    details: serviceError.details,
+                    hint: serviceError.hint,
+                    userData
+                  });
                 } else {
                   profileError = null; // Success
+                  console.log('✅ Service role insert succeeded');
                 }
               } catch (serviceAttemptError) {
-                console.warn('Service role attempt failed:', serviceAttemptError);
+                console.error('❌ Service role attempt exception:', serviceAttemptError);
               }
             } else {
               profileError = null; // Upsert succeeded
+              console.log('✅ Upsert succeeded');
             }
           } else {
             profileError = null; // First insert succeeded
+            console.log('✅ First insert succeeded');
           }
 
           if (profileError) {
-            console.error('All user profile creation attempts failed:', {
-              error: profileError,
+            console.error('💥 ALL user profile creation attempts failed:', {
+              finalError: {
+                code: profileError.code,
+                message: profileError.message,
+                details: profileError.details,
+                hint: profileError.hint
+              },
               userId: user.id,
               email: user.email,
-              provider: user.app_metadata?.provider
+              provider: user.app_metadata?.provider,
+              userData
             });
             
             // Don't throw error for OAuth users to prevent auth flow interruption
             if (user.app_metadata?.provider) {
-              console.warn('OAuth user profile creation failed, but continuing auth flow');
+              console.warn('⚠️ OAuth user profile creation failed, but continuing auth flow');
             } else {
+              console.error('🚨 Throwing error for non-OAuth user');
               handleSupabaseError(profileError, 'Create user profile');
             }
           } else {
-            console.log('User profile created successfully:', user.id);
+            console.log('🎉 User profile created successfully:', user.id);
           }
         } else {
-          console.log('User profile already exists:', user.id);
+          console.log('ℹ️ User profile already exists:', user.id);
         }
       },
       {
@@ -538,6 +668,7 @@ export const useAuthActions = () => {
     updatePassword,
     resendVerificationEmail,
     ensureUserProfile,
+    updateUserProfile,
     logout
   };
 };

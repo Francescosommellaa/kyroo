@@ -47,7 +47,7 @@ export function usePlan(): UsePlanReturn {
 
       // Fetch user profile for plan info
       const { data: profile, error: profileError } = await supabase
-        .from('user')
+        .from('profiles')
         .select('plan, plan_expires_at, trial_start_date, trial_used, created_at')
         .eq('id', user.id)
         .single();
@@ -113,7 +113,7 @@ export function usePlan(): UsePlanReturn {
     if (!user) throw new Error('No user');
 
     const { error } = await supabase
-      .from('user')
+      .from('profiles')
       .update({
         plan: newPlan,
         plan_expires_at: expiresAt,
@@ -134,7 +134,7 @@ export function usePlan(): UsePlanReturn {
     trialExpiresAt.setDate(trialExpiresAt.getDate() + 7); // 7 days trial
 
     const { error } = await supabase
-      .from('user')
+      .from('profiles')
       .update({
         plan: 'pro',
         plan_expires_at: trialExpiresAt.toISOString(),
