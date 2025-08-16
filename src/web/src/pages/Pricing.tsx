@@ -4,8 +4,8 @@ import { ArrowLeft, Check, Star, Shield, ChevronUp, ChevronDown } from 'lucide-r
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Landing/Navbar';
 import Footer from '../components/Landing/Footer';
-import { PLAN_CONFIGS, formatLimit } from '../../../shared/plans';
-import type { PlanType } from '../../../shared/plans';
+import { PLAN_CONFIGS, formatLimit } from '@kyroo/shared/plans';
+import type { PlanType } from '@kyroo/shared/plans';
 
 export default function Pricing() {
   const [isYearly, setIsYearly] = useState(false);

@@ -4,6 +4,7 @@
   "main": "index.ts",
   "exports": {
     "./plans": "./plans.ts",
-    "./usage-tracking": "./usage-tracking.ts"
+    "./usage-tracking": "./usage-tracking.ts",
+    "./cost-calculator": "./cost-calculator.ts"
   }
 }

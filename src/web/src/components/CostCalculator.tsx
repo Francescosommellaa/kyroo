@@ -5,8 +5,8 @@
 
 import { useState, useEffect } from "react";
 import { Calculator, Info } from "lucide-react";
-import type { PlanLimits } from "../../../shared/plans";
-import { DEFAULT_UNIT_COSTS, type UnitCosts } from "../../../shared/cost-calculator";
+import type { PlanLimits } from "@kyroo/shared/plans";
+import { DEFAULT_UNIT_COSTS, type UnitCosts } from "@kyroo/shared/cost-calculator";
 import {
   CalculatorForm,
   ResultsDisplay,

@@ -5,8 +5,8 @@
 
 import { motion } from "framer-motion";
 import { Check, Star, Shield } from "lucide-react";
-import type { PlanConfig, PlanType } from '../../../shared/plans';
-import { formatLimit } from '../../../shared/plans';
+import type { PlanConfig, PlanType } from '@kyroo/shared/plans';
+import { formatLimit } from '@kyroo/shared/plans';
 
 interface PlanCardProps {
   plan: PlanConfig;

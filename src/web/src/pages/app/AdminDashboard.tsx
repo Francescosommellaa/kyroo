@@ -17,7 +17,7 @@ import type {
   ActionLoadingState
 } from '../../components/dashboard/dashboard-types';
 
-import type { PlanType } from '../../../../shared/plans';
+import type { PlanType } from '@kyroo/shared/plans';
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState<User[]>([]);

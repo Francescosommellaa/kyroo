@@ -1,4 +1,4 @@
-import type { PlanType } from '../../../../shared/plans';
+import type { PlanType } from '@kyroo/shared/plans';
 
 // User interface for admin dashboard
 export interface User {

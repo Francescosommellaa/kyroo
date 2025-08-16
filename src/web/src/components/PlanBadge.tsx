@@ -4,7 +4,7 @@
  */
 
 import { Star, Shield, Check } from 'lucide-react';
-import type { PlanType } from '../../../shared/plans';
+import type { PlanType } from '@kyroo/shared/plans';
 
 interface PlanBadgeProps {
   planType: PlanType;

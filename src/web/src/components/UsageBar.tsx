@@ -5,7 +5,7 @@
 
 import { motion } from 'framer-motion';
 import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
-import { isUnlimited, formatLimit } from '../../../shared/plans';
+import { isUnlimited, formatLimit } from '@kyroo/shared/plans';
 
 interface UsageBarProps {
   label: string;

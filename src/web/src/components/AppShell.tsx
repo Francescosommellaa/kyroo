@@ -21,7 +21,7 @@ import {
 import { useAuth } from "../contexts/auth";
 import { usePlan } from "../hooks/usePlan";
 import { SidebarPlanBadge } from "./PlanBadge";
-import type { PlanType } from "../../../shared/plans";
+import type { PlanType } from "@kyroo/shared/plans";
 
 interface AppShellProps {
   children: ReactNode;

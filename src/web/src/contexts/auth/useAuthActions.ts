@@ -283,13 +283,18 @@ export const useAuthActions = () => {
               full_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
               display_name: user.user_metadata?.full_name || user.user_metadata?.name || null,
               avatar_url: user.user_metadata?.avatar_url || null,
-              provider: user.app_metadata?.provider || 'email',
               role: 'user',
               plan: 'free',
               email_verified: user.email_confirmed_at ? true : false
             });
 
           if (error) {
+            console.error('Database error creating OAuth user profile:', {
+              error,
+              userId: user.id,
+              email: user.email,
+              provider: user.app_metadata?.provider
+            });
             handleSupabaseError(error, 'Create OAuth user profile');
           }
         }

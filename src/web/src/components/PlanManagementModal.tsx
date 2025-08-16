@@ -14,8 +14,8 @@ import {
   Star,
   Shield,
 } from "lucide-react";
-import type { PlanType } from "../../../shared/plans";
-import { PLAN_CONFIGS } from "../../../shared/plans";
+import type { PlanType } from "@kyroo/shared/plans";
+import { PLAN_CONFIGS } from "@kyroo/shared/plans";
 
 interface User {
   id: string;

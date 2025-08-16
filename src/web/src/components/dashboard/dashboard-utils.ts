@@ -1,5 +1,5 @@
 import type { User, DashboardStats, DashboardFilters } from './dashboard-types';
-import type { PlanType } from '../../../../shared/plans';
+import type { PlanType } from '@kyroo/shared/plans';
 
 /**
  * Calculate dashboard statistics from users array

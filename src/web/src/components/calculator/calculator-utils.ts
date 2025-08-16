@@ -3,7 +3,7 @@
  * Utility functions for cost calculations and formatting
  */
 
-import type { PlanLimits } from "../../../../shared/plans";
+import type { PlanLimits } from "@kyroo/shared/plans";
 import {
   calculateEnterpriseCosts,
   formatCurrency,

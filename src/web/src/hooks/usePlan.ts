@@ -5,9 +5,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/auth';
 import { supabase } from '../lib/supabase';
-import type { PlanType, PlanConfig } from '../../../shared/plans';
-import { getPlanConfig } from '../../../shared/plans';
-import type { UserUsage, UsageCheck } from '../../../shared/usage-tracking';
+import type { PlanType, PlanConfig } from '@kyroo/shared/plans';
+import { getPlanConfig } from '@kyroo/shared/plans';
+import type { UserUsage, UsageCheck } from '@kyroo/shared/usage-tracking';
 
 interface PlanState {
   planType: PlanType;
