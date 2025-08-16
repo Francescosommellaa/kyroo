@@ -46,6 +46,7 @@ export class AuthErrorBoundary extends Component<Props, State> {
   };
 
   private handleGoToLogin = () => {
+
     // Reset error state and potentially redirect to login
     this.setState({ hasError: false, error: undefined });
     // You might want to trigger a navigation to login page here

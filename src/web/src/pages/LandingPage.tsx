@@ -10,7 +10,7 @@ import {
   ChevronDown,
   ChevronUp
 } from 'lucide-react'
-import AuthModal from '../components/AuthModal'
+import { AuthModal } from '../components/AuthModal'
 import Navbar from '../components/Landing/Navbar'
 import Footer from '../components/Landing/Footer'
 

@@ -91,7 +91,7 @@ export default function DebugAuth() {
 
     try {
       const { data, error } = await supabase.rpc('pg_get_functiondef', {
-        funcid: 'handle_new_user'::regproc
+        funcid: 'handle_new_user'
       });
 
       if (error) throw error;
