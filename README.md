@@ -51,10 +51,13 @@ VITE_SUPABASE_ANON_KEY=<anon-public-key>
 ### Produzione
 
 Le variabili d'ambiente vengono configurate tramite:
-- **Netlify**: Site Settings → Environment Variables
+- **Netlify**: Site Settings → Environment Variables (vedi [NETLIFY_ENV_SETUP.md](./NETLIFY_ENV_SETUP.md))
 - **Supabase**: Project Settings → API
 
-**Importante**: Non committare mai file `.env*` con credenziali reali!
+**Importante**: 
+- Non committare mai file `.env*` con credenziali reali!
+- Per deployment Netlify, configura tutte le variabili nel dashboard Netlify
+- Marca come "secret" tutte le chiavi sensibili (tokens, secrets, service keys)
 
 Riavvia il dev server dopo ogni modifica alle env.
 

@@ -2,8 +2,9 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { resolve } from 'path'
 
-export default defineConfig({
-  envDir: resolve(__dirname, '../..'), // Punta alla root del progetto per i file .env
+export default defineConfig(({ mode }) => ({
+  // Only load .env files in development mode to prevent secrets in production builds
+  envDir: mode === 'development' ? resolve(__dirname, '../..') : undefined,
   plugins: [react()],
   resolve: {
     alias: {
@@ -25,4 +26,4 @@ export default defineConfig({
       'Service-Worker-Allowed': '/'
     }
   }
-})
+}))
